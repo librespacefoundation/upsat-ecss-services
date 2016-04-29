@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../../../services/services.h"
+#include "../../../ecss_services/services/services.h"
 
 struct _adcs_data
 {
