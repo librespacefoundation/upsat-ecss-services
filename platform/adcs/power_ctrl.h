@@ -2,7 +2,7 @@
 #define __POWER_CTRL_H
 
 #include <stdint.h>
-#include "../../../services/services.h"
+#include "../../../ecss_services/services/services.h"
 
 extern void HAL_adcs_SD_ON();
 extern void HAL_adcs_SD_OFF();

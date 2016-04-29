@@ -2,7 +2,7 @@
 #define __POWER_CTRL_H
 
 #include <stdint.h>
-#include "../../../services/services.h"
+#include "../../../ecss_services/services/services.h"
 
 extern void HAL_eps_OBC_ON();
 extern void HAL_eps_OBC_OFF();
