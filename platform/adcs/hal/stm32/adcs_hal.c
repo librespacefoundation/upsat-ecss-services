@@ -5,7 +5,7 @@
 #define __FILE_ID__ 13
 
 void HAL_sys_delay(uint32_t sec) {
-	osDelay(sec);
+	HAL_Delay(sec);
 }
 
 void HAL_adcs_SD_ON() {
@@ -28,7 +28,7 @@ void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     for(;;) { // should use hard limits
         res = HAL_UART_Transmit_DMA(huart, buf, size);
         if(res == HAL_OK) { break; }
-        osDelay(10);
+        HAL_Delay(10);
     }
 }
 
@@ -126,48 +126,6 @@ void HAL_reset_source(uint8_t *src) {
     __HAL_RCC_CLEAR_RESET_FLAGS();
 
 }
-
-void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec) {
-
-  RTC_TimeTypeDef sTime;
-
-  sTime.Hours = hours;
-  sTime.Minutes = mins;
-  sTime.Seconds = sec;
-  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
-
-}
-
-void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
-
-  RTC_TimeTypeDef sTime;
-
-  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
-   *hours = sTime.Hours;
-   *mins = sTime.Minutes;
-   *sec = sTime.Seconds;  
-}
-
-void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
-
-  RTC_DateTypeDef sDate;
-
-//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
-  sDate.Month = mon;
-  sDate.Date = date;
-  sDate.Year = year;
-
-  HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
-}
-
-//void HAL_obc_getDate();
-//
-//}
 
 uint32_t HAL_sys_GetTick() {
   return HAL_GetTick();

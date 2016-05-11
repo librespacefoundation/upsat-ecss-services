@@ -1,10 +1,9 @@
-#ifndef __OBC_HAL_H
-#define __OBC_HAL_H
+#ifndef __ADCS_HAL_H
+#define __ADCS_HAL_H
 
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
-#include <cmsis_os.h>
-#include "../../../../ecss_services/services/services.h"
+#include "services.h"
 
 //ToDo
 //  improve return types
@@ -12,7 +11,6 @@
 
 extern struct _adcs_data adcs_data;
 extern UART_HandleTypeDef huart2;
-extern RTC_HandleTypeDef hrtc;
 
 void HAL_adcs_SD_ON();
 
