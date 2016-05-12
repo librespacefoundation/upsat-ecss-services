@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include "stm32l1xx_hal.h"
-#include "../../../../ecss_services/services/services.h"
+#include "services.h"
 
 //ToDo
 //  improve return types
@@ -11,7 +11,6 @@
 
 extern struct _eps_data eps_data;
 extern UART_HandleTypeDef huart3;
-extern RTC_HandleTypeDef hrtc;
 
 void HAL_eps_OBC_ON();
 

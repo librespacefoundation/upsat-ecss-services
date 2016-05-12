@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
-#include "../../../ecss_services/services/services.h"
+#include "services.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -31,5 +31,7 @@ extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
+
+SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
 #endif

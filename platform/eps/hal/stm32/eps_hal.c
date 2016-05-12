@@ -159,48 +159,6 @@ void HAL_reset_source(uint8_t *src) {
 
 }
 
-void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec) {
-
-  RTC_TimeTypeDef sTime;
-
-  sTime.Hours = hours;
-  sTime.Minutes = mins;
-  sTime.Seconds = sec;
-  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
-  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
-  HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
-
-}
-
-void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
-
-  RTC_TimeTypeDef sTime;
-
-  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
-   *hours = sTime.Hours;
-   *mins = sTime.Minutes;
-   *sec = sTime.Seconds;  
-}
-
-void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
-
-  RTC_DateTypeDef sDate;
-
-//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
-  sDate.Month = mon;
-  sDate.Date = date;
-  sDate.Year = year;
-
-  HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
-
-}
-
-//void HAL_obc_getDate();
-//
-//}
-
 uint32_t HAL_sys_GetTick() {
   return HAL_GetTick();
 }
