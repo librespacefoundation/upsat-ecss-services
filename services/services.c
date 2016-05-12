@@ -36,7 +36,7 @@ uint32_t time_now() {
     return 0;
 }
 
-uint8_t uart_temp[200]; 
+extern uint8_t uart_temp[200]; 
 
 uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e) {
   
