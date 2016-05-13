@@ -5,6 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
 #include "services.h"
+#include "task.h"
 
 //ToDo
 //  improve return types
@@ -16,6 +17,7 @@ extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart6;
 extern RTC_HandleTypeDef hrtc;
+extern TaskHandle_t xTask_UART;
 
 void HAL_obc_SD_ON();
 
