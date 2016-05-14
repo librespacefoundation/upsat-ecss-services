@@ -136,6 +136,101 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
 
 }
 
+void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
+{
+  uint32_t tmp1 = 0U, tmp2 = 0U;
+
+  tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
+  tmp2 = __HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE);
+  /* UART in mode Receiver ---------------------------------------------------*/
+  if((tmp1 != RESET) && (tmp2 != RESET))
+  { 
+    UART_OBC_SU_Receive_IT(huart);
+  }
+}
+uint16_t err;
+/**
+  * @brief  Receives an amount of data in non blocking mode 
+  * @param  huart: pointer to a UART_HandleTypeDef structure that contains
+  *                the configuration information for the specified UART module.
+  * @retval HAL status
+  */
+void UART_OBC_SU_Receive_IT(UART_HandleTypeDef *huart)
+{
+    uint8_t c;
+
+    c = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    if(huart->RxXferSize == huart->RxXferCount && c == HLDLC_START_FLAG) {
+      *huart->pRxBuffPtr++ = c;
+      huart->RxXferCount--;
+      //start timeout
+    } else if(c == HLDLC_START_FLAG && (huart->RxXferSize - huart->RxXferCount) < TC_MIN_PKT_SIZE) {
+      err++;
+      huart->pRxBuffPtr -= huart->RxXferSize - huart->RxXferCount;
+      huart->RxXferCount = huart->RxXferSize - 1;
+      *huart->pRxBuffPtr++ = c;
+      //error
+      //event log
+      //reset buffers & pointers
+      //start timeout
+    } else if(c == HLDLC_START_FLAG) {
+      *huart->pRxBuffPtr++ = c;
+      huart->RxXferCount--;
+      
+      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
+
+      /* Disable the UART Parity Error Interrupt */
+      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+
+      /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
+      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+
+	  /* Rx process is completed, restore huart->RxState to Ready */
+      huart->RxState = HAL_UART_STATE_READY;
+
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+      vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
+      
+    } else if(huart->RxXferSize > huart->RxXferCount) {
+      *huart->pRxBuffPtr++ = c;
+      huart->RxXferCount--;
+    } else {
+      err++;
+    }
+
+    if(huart->RxXferCount == 0U) // errror
+    {
+
+
+    }
+
+}
+
+static HAL_StatusTypeDef UART_OBC_SU_Receive_IT(UART_HandleTypeDef *huart)
+{
+
+    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    //timeout
+    if(--huart->RxXferCount == 0U)
+    {
+      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
+
+      /* Disable the UART Parity Error Interrupt */
+      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+
+      /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
+      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+
+	  /* Rx process is completed, restore huart->RxState to Ready */
+      huart->RxState = HAL_UART_STATE_READY;
+     
+      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+      vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
+
+      return HAL_OK;
+    }
+}
+
 void HAL_su_uart_tx(uint8_t *buf, uint16_t size) {
     HAL_UART_Transmit(&huart2, buf, size, 10);
     //HAL_UART_Transmit_DMA(&huart2, buf, size, 10);

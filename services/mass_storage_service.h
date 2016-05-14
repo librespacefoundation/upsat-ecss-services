@@ -48,15 +48,15 @@ struct _MS_data {
     //uint32_t ev_temp_log;
 };
 
-extern struct script_handler obc_su_scripts;
+//extern script_handler su_scripts;
 
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 
 extern uint32_t get_new_fileId();
 
-extern SAT_returnState su_populate_header(struct script_hdr *hdr, uint8_t *buf);
+extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
 
-extern SAT_returnState su_populate_scriptPointers(struct su_script *su_scr, uint8_t *buf);
+//extern SAT_returnState su_populate_scriptPointers( su_script *su_scr, uint8_t *buf);
 
 //ToDo
 //  add format for sd
