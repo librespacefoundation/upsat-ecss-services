@@ -60,7 +60,7 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == ADCS_APP_ID)     { export_pkt(ADCS_APP_ID, pkt, &obc_data.adcs_uart); }
     else if(id == COMMS_APP_ID)    { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
     else if(id == IAC_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
-    else if(id == GND_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
+    else if(id == GND_APP_ID)      { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
     else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
 
     verification_app(pkt);
