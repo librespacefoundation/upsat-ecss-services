@@ -33,7 +33,7 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA 525
+#define MAX_PKT_DATA 2055 //random
 #define TC_MAX_PKT_SIZE 515 //random
 #define TC_MIN_PKT_SIZE 6 //random
 
@@ -125,6 +125,7 @@ typedef enum {
 
 #define TC_MS_ENABLE                    1
 #define TC_MS_DISABLE                   2
+#define TC_MS_CONTENT                   8
 #define TC_MS_DOWNLINK                  9
 #define TC_MS_DELETE                    11
 #define TC_MS_REPORT                    12

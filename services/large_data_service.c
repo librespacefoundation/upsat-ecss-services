@@ -12,11 +12,8 @@ SAT_returnState large_data_app(tc_tm_pkt *pkt) {
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_INT_UPLINK)           { large_data_intRx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_LAST_UPLINK)          { large_data_lastRx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_REPEATED_UPLINK)      { large_data_retryRx_api(pkt); } 
-    else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_STANDALONE_UPLINK)    { large_data_standaloneRx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_ABORT_SE_UPLINK)      { large_data_abort_api(pkt); } 
 
-    else if(pkt->ser_type == TC_MASS_STORAGE_SERVICE && pkt->ser_subtype == TC_MS_REPORT)             { large_data_reportTx_api(pkt); } 
-    else if(pkt->ser_type == TC_MASS_STORAGE_SERVICE && pkt->ser_subtype == TC_MS_DOWNLINK)           { large_data_downlinkTx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_ACK_DOWNLINK)         { large_data_intTx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_REPEAT_DOWNLINK)      { large_data_retryTx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_ABORT_RE_DOWNLINK)    { large_data_abort_api(pkt); }
@@ -187,104 +184,6 @@ SAT_returnState large_data_retryRx_api(tc_tm_pkt *pkt) {
     large_data_verifyPkt(&temp_pkt, LD_status.ld_num, LD_status.app_id);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
 
-    route_pkt(temp_pkt);
-
-    return SATR_OK;
-}
-
-SAT_returnState large_data_standaloneRx_api(tc_tm_pkt *pkt) {
-
-    uint16_t ld_num;
-    uint16_t size;
-    TC_TM_app_id app_id;
-    MS_sid sid;
-
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
-
-    cnv8_16(&pkt->data[0], &ld_num);
-    sid = (MS_sid)pkt->data[2];
-
-    app_id = (TC_TM_app_id)pkt->dest_id;
-    size = pkt->len-LD_PKT_DATA_HDR_SIZE; //ldata headers
-
-    if(!C_ASSERT(app_id == GND_APP_ID) == true)                             { return SATR_ERROR; }
-    if(!C_ASSERT(ld_num == 0) == true)                                      { return SATR_ERROR; }
-    if(!C_ASSERT(size > 0) == true)                                         { return SATR_ERROR; }
-    if(!C_ASSERT(app_id == GND_APP_ID && (sid <= SU_SCRIPT_7 )) == true)    { return SATR_ERROR; }
-
-    mass_storage_store_api(sid, LAST_PART, &pkt->data[LD_PKT_DATA_HDR_SIZE], &size, 0);
-
-    LD_status.timeout = time_now();
-    //return SATR_OK;
-    tc_tm_pkt *temp_pkt = 0;
-
-    large_data_verifyPkt(&temp_pkt, 0, app_id);
-    if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
-    route_pkt(temp_pkt);
-    
-    return SATR_OK;
-}
-
-SAT_returnState large_data_reportTx_api(tc_tm_pkt *pkt) {
-
-    uint16_t size;
-    uint8_t subtype;
-    TC_TM_app_id app_id;
-    MS_sid sid;
-    SAT_returnState res;
-    tc_tm_pkt *temp_pkt = 0;
-
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
-
-    app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
-
-    sid = (MS_sid)pkt->data[0];
-
-    if(!C_ASSERT(LD_status.state == LD_STATE_FREE && app_id == GND_APP_ID) == true) {
-        large_data_abortPkt(&temp_pkt, pkt->dest_id, TM_LD_ABORT_SE_DOWNLINK);
-        if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
-        route_pkt(temp_pkt);
-        return SATR_OK; 
-    }
-
-    if(!C_ASSERT(sid == FOTOS || sid == EVENT_LOG || sid == SU_LOG || sid <= SU_SCRIPT_7) == true)    { return SATR_ERROR; }
-
-    LD_status.fcurr = 0;
-
-    //size = LD_PKT_DATA;
-    size = 0;
-
-    large_data_downlinkPkt(&temp_pkt, 0, sid, app_id);
-
-    if(sid <= SU_SCRIPT_7) {
-        res = mass_storage_report_su_scr_api(sid, &temp_pkt->data[LD_PKT_DATA_HDR_SIZE], &size, &LD_status.fnext);
-    } else {
-        res = mass_storage_report_api(sid, &temp_pkt->data[LD_PKT_DATA_HDR_SIZE], &size, &LD_status.fnext);
-    }
-    
-
-    temp_pkt->len = size;
-
-    if(res == SATR_EOT) { subtype = TM_LD_STANDALONE_DOWNLINK; }
-    else {
-
-        subtype = TM_LD_FIRST_DOWNLINK;
-
-        LD_status.app_id = app_id;
-        LD_status.sid = sid;
-        LD_status.ld_num = 1;
-        LD_status.lpacket_flag = false;
-
-        LD_status.state = LD_STATE_TRANSMITING;
-        LD_status.txType = LD_STATE_REPORT;
-        LD_status.started = time_now();
-
-        LD_status.timeout = time_now();
-    }
-
-    large_data_updatePkt(temp_pkt, size, subtype);
     route_pkt(temp_pkt);
 
     return SATR_OK;

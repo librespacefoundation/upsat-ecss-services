@@ -22,15 +22,6 @@
 #define MS_EVENT_LOG       "/EVENT_LOG"
 #define MS_FOTOS           "/FOTOS"
 
-#define MS_TMP_SU_SCRIPT_1     "/SU_SCR_1/TMP_SCR1.bin"
-#define MS_TMP_SU_SCRIPT_2     "/SU_SCR_2/TMP_SCR2.bin"
-#define MS_TMP_SU_SCRIPT_3     "/SU_SCR_3/TMP_SCR3.bin"
-#define MS_TMP_SU_SCRIPT_4     "/SU_SCR_4/TMP_SCR4.bin"
-#define MS_TMP_SU_SCRIPT_5     "/SU_SCR_5/TMP_SCR5.bin"
-#define MS_TMP_SU_SCRIPT_6     "/SU_SCR_6/TMP_SCR6.bin"
-#define MS_TMP_SU_SCRIPT_7     "/SU_SCR_7/TMP_SCR7.bin"
-#define MS_TMP_FOTOS           "/FOTOS/TMP"
-
 #define MS_MAX_PATH             40 //random num
 #define MS_MAX_FILES            30 //random num
 #define MS_MAX_FNAME            30 //random num
