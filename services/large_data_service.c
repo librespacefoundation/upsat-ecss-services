@@ -10,8 +10,7 @@ SAT_returnState large_data_app(tc_tm_pkt *pkt) {
 
     if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_FIRST_UPLINK)              { large_data_firstRx_api(pkt); } 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_INT_UPLINK)           { large_data_intRx_api(pkt); } 
-    else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_LAST_UPLINK)          { large_data_lastRx_api(pkt); } 
-    else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_REPEATED_UPLINK)      { large_data_retryRx_api(pkt); } 
+    else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_LAST_UPLINK)          { large_data_lastRx_api(pkt); }
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_ABORT_SE_UPLINK)      { large_data_abort_api(pkt); } 
 
     else if(pkt->ser_type == TC_LARGE_DATA_SERVICE && pkt->ser_subtype == TC_LD_ACK_DOWNLINK)         { large_data_intTx_api(pkt); } 
@@ -143,44 +142,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     return SATR_OK;
 }
 
-SAT_returnState large_data_retryRx_api(tc_tm_pkt *pkt) {
 
-    uint16_t ld_num;
-    uint16_t size;
-    TC_TM_app_id app_id;
-    MS_sid sid;
-    MS_mode mode = NO_MODE;
-
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING) == true)                    { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->dest_id == IAC_APP_ID || pkt->dest_id == GND_APP_ID) == true) { return SATR_ERROR; }
-
-    cnv8_16(&pkt->data[0], &ld_num);
-    sid = (MS_sid)pkt->data[2];
-
-    app_id = (TC_TM_app_id)pkt->dest_id;
-    size = pkt->len-LD_PKT_DATA_HDR_SIZE; //ldata headers
-
-    if(!C_ASSERT(size > 0) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.ld_num == ld_num - 1) == true)   { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.sid == sid) == true)             { return SATR_ERROR; }
-
-    LD_status.ld_num = ld_num;
-
-    mass_storage_store_api(sid, mode, &pkt->data[LD_PKT_DATA_HDR_SIZE], &size, LD_status.ld_num);
-
-    LD_status.timeout = time_now();
-    //return SATR_OK;
-    tc_tm_pkt *temp_pkt = 0;
-
-    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, LD_status.app_id);
-    if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
-    route_pkt(temp_pkt);
-
-    return SATR_OK;
-}
 
 SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
@@ -197,11 +159,6 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
     app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
-    sid = (MS_sid)pkt->data[0];
-    mode = (MS_mode)pkt->data[1];
-
-    cnv8_32(&pkt->data[2], &from);
-    cnv8_32(&pkt->data[6], &to);
 
     if(!C_ASSERT(LD_status.state == LD_STATE_FREE && app_id == GND_APP_ID) == true) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, TM_LD_ABORT_SE_DOWNLINK);
@@ -224,25 +181,21 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     temp_pkt->len = size;
 
-    if(res == SATR_EOT) { temp_pkt->ser_subtype = TM_LD_STANDALONE_DOWNLINK; } 
-    else {
+    subtype = TM_LD_FIRST_DOWNLINK;
 
-        subtype = TM_LD_FIRST_DOWNLINK;
+    LD_status.app_id = app_id;
+    LD_status.sid = sid;
+    LD_status.mode = mode;
+    LD_status.from = from;
+    LD_status.to = to;
+    LD_status.ld_num = 1;
+    LD_status.lpacket_flag = false;
 
-        LD_status.app_id = app_id;
-        LD_status.sid = sid;
-        LD_status.mode = mode;
-        LD_status.from = from;
-        LD_status.to = to;
-        LD_status.ld_num = 1;
-        LD_status.lpacket_flag = false;
+    LD_status.state = LD_STATE_TRANSMITING;
+    LD_status.txType = LD_STATE_DOWNLINK;
+    LD_status.started = time_now();
 
-        LD_status.state = LD_STATE_TRANSMITING;
-        LD_status.txType = LD_STATE_DOWNLINK;
-        LD_status.started = time_now();
-
-        LD_status.timeout = time_now();
-    }
+    LD_status.timeout = time_now();
 
     large_data_updatePkt(temp_pkt, size, subtype);
     route_pkt(temp_pkt);
