@@ -6,7 +6,7 @@
 #include "mass_storage_service.h"
 
 #define LD_PKT_DATA             512
-#define LD_PKT_DATA_HDR_SIZE    3
+#define LD_PKT_DATA_HDR_SIZE    2
 
 #define LD_TX_TYPE_REPORT       1
 #define LD_TX_TYPE_DOWNLINK     2
@@ -34,6 +34,9 @@ struct _ld_status {
     MS_mode mode;           /**/
     uint32_t from;          /**/
     uint32_t to;            /**/
+
+    uint8_t buf[MAX_DATA_PKT];         /**/
+    uint16_t size;         /**/
 };
 
 extern tc_tm_pkt * get_pkt();

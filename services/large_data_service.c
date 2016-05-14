@@ -41,29 +41,25 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     }
 
     cnv8_16(&pkt->data[0], &ld_num);
-    sid = (MS_sid)pkt->data[2];
 
     app_id = (TC_TM_app_id)pkt->dest_id;
-    size = pkt->len-LD_PKT_DATA_HDR_SIZE; //ldata headers
+    size = pkt->len; //ldata headers
 
     if(!C_ASSERT(app_id == IAC_APP_ID || app_id == GND_APP_ID) == true)                                             { return SATR_ERROR; }
     if(!C_ASSERT(ld_num == 0) == true)                                                                              { return SATR_ERROR; }
     if(!C_ASSERT(size > 0) == true)                                                                                 { return SATR_ERROR; } 
-    if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
+    //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
 
-    //large_data_state();
-    LD_status.app_id = app_id;
-    LD_status.sid = sid;
     LD_status.ld_num = ld_num;
     LD_status.state = LD_STATE_RECEIVING;
     LD_status.started = time_now();
 
-    mass_storage_store_api(sid, mode, &pkt->data[LD_PKT_DATA_HDR_SIZE], &size, LD_status.ld_num);
+    for(uint16_t i = LD_PKT_DATA_HDR_SIZE; i < size; i++) { LD_status.buf[(LD_status.ld_num * MAX_PKT_DATA) + i] = pkt->data[i]; }
 
+    LD_status.ld_num = size;
     LD_status.timeout = time_now();
-    //return SATR_OK;
 
-    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, LD_status.app_id);
+    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, app_id);
     route_pkt(temp_pkt);
 
     return SATR_OK;
@@ -75,34 +71,30 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     uint16_t size;
     TC_TM_app_id app_id;
     MS_sid sid;
+    tc_tm_pkt *temp_pkt = 0;
     MS_mode mode = NO_MODE;
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING) == true)                    { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->dest_id == IAC_APP_ID || pkt->dest_id == GND_APP_ID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)         { return SATR_ERROR; } 
+    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING) == true)    { return SATR_ERROR; }
 
     cnv8_16(&pkt->data[0], &ld_num);
-    sid = (MS_sid)pkt->data[2];
 
     app_id = (TC_TM_app_id)pkt->dest_id;
-    size = pkt->len-LD_PKT_DATA_HDR_SIZE; //ldata headers
+    size = pkt->len; //ldata headers
 
-    if(!C_ASSERT(size > 0) == true)                     { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.ld_num == ld_num) == true)   { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.sid == sid) == true)         { return SATR_ERROR; }
+    if(!C_ASSERT(app_id == IAC_APP_ID || app_id == GND_APP_ID) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(LD_status.ld_num + 1 == ld_num) == true)                 { return SATR_ERROR; }
+    if(!C_ASSERT(size > 0) == true)                                       { return SATR_ERROR; } 
+    //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
 
     LD_status.ld_num = ld_num;
+    LD_status.ld_num += size;
 
-    mass_storage_store_api(sid, mode, &pkt->data[LD_PKT_DATA_HDR_SIZE], &size, LD_status.ld_num);
+    for(uint16_t i = LD_PKT_DATA_HDR_SIZE; i < size; i++) { LD_status.buf[(LD_status.ld_num * MAX_PKT_DATA) + i] = pkt->data[i]; }
 
     LD_status.timeout = time_now();
-    //return SATR_OK;
-    tc_tm_pkt *temp_pkt = 0;
 
-    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, LD_status.app_id);
-    if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-    
+    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, app_id);
     route_pkt(temp_pkt);
 
     return SATR_OK;
@@ -114,38 +106,39 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     uint16_t size;
     TC_TM_app_id app_id;
     MS_sid sid;
+    tc_tm_pkt *temp_pkt = 0;
+    MS_mode mode = NO_MODE;
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING) == true)                    { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->dest_id == IAC_APP_ID || pkt->dest_id == GND_APP_ID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)         { return SATR_ERROR; } 
+    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING) == true)    { return SATR_ERROR; }
 
     cnv8_16(&pkt->data[0], &ld_num);
-    sid = (MS_sid)pkt->data[2];
 
     app_id = (TC_TM_app_id)pkt->dest_id;
-    size = pkt->len-LD_PKT_DATA_HDR_SIZE; //ldata headers
+    size = pkt->len; //ldata headers
 
-    if(!C_ASSERT(size > 0) == true)                     { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.ld_num == ld_num) == true)   { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.sid == sid) == true)         { return SATR_ERROR; }
+    if(!C_ASSERT(app_id == IAC_APP_ID || app_id == GND_APP_ID) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(LD_status.ld_num + 1 == ld_num) == true)                 { return SATR_ERROR; }
+    if(!C_ASSERT(size > 0) == true)                                       { return SATR_ERROR; } 
+    //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
 
     LD_status.ld_num = ld_num;
 
-    mass_storage_store_api(sid, LAST_PART, &pkt->data[LD_PKT_DATA_HDR_SIZE], &size, LD_status.ld_num);
+    for(uint16_t i = LD_PKT_DATA_HDR_SIZE; i < size; i++) { LD_status.buf[(LD_status.ld_num * MAX_PKT_DATA) + i] = pkt->data[i]; }
 
+    size += LD_status.ld_num;
     LD_status.state = LD_STATE_FREE;
     LD_status.ld_num = 0;
     LD_status.timeout = 0;
     LD_status.started = 0;
 
-    //return SATR_OK;
-    tc_tm_pkt *temp_pkt = 0;
-
-    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, LD_status.app_id);
-    if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
+    large_data_verifyPkt(&temp_pkt, LD_status.ld_num, app_id);
     route_pkt(temp_pkt);
+
+    temp_pkt = get_pkt();
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+    if(unpack_pkt(LD_status.buf, temp_pkt, size) == SATR_OK) { route_pkt(pkt); } 
+    else { verification_app(pkt); free_pkt(pkt); }
 
     return SATR_OK;
 }
