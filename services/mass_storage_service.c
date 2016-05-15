@@ -165,6 +165,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, uint32_t file) {
 
     res = mass_storage_downlinkFile(sid, file, temp_pkt->data, &size);
 
+    if(!C_ASSERT(size <= MAX_PKT_DATA) == true){ free_pkt(temp_pkt); return SATR_ERROR; }
     temp_pkt->len = size;
 
     mass_storage_updatePkt(temp_pkt, size, TC_MS_CONTENT);
@@ -328,7 +329,7 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
             cnv32_8(fno.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);  
 
-            if(*size >= MAX_PKT_DATA) {
+            if(*size >= MAX_PKT_DATA + (sizeof(uint32_t)*3)) {
                 f_closedir(&dir);
                 return SATR_OK; 
             }
