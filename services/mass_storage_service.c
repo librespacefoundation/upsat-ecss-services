@@ -53,13 +53,9 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
-    FRESULT res;
     FILINFO fno;
     DIR dir;
-    uint8_t *fn;
     uint8_t path[MS_MAX_PATH];
-    uint8_t temp_path[MS_MAX_PATH];
-    uint16_t i;
 
     if(!C_ASSERT(sid <= SU_SCRIPT_7) == true) { return SATR_ERROR; }
 
@@ -151,12 +147,8 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
 SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t file) {
 
     uint16_t size;
-    uint32_t from;
-    uint32_t to;
-    uint8_t subtype;
-    TC_TM_app_id app_id;
-    MS_mode mode;
     SAT_returnState res;
+    TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
@@ -222,7 +214,6 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint8_t *buf, uint16_t *size)
 
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
-    uint32_t fsize;
 
     if(!C_ASSERT(buf != NULL && size != NULL) == true)      { return SATR_ERROR; }
     if(!C_ASSERT(*size > 0) == true)                        { return SATR_ERROR; }

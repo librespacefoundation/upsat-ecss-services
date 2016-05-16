@@ -1,6 +1,5 @@
 #include "large_data_service.h"
 
-
 #undef __FILE_ID__
 #define __FILE_ID__ 7
 
@@ -26,7 +25,6 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     uint16_t ld_num;
     uint16_t size;
     TC_TM_app_id app_id;
-    MS_sid sid;
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
@@ -72,9 +70,7 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     uint16_t ld_num;
     uint16_t size;
     TC_TM_app_id app_id;
-    MS_sid sid;
     tc_tm_pkt *temp_pkt = 0;
-    MS_mode mode = NO_MODE;
     uint8_t lid;
 
     lid = pkt->data[0];
@@ -116,9 +112,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     uint16_t ld_num;
     uint16_t size;
     TC_TM_app_id app_id;
-    MS_sid sid;
     tc_tm_pkt *temp_pkt = 0;
-    MS_mode mode = NO_MODE;
     uint8_t lid;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)         { return SATR_ERROR; } 
@@ -167,8 +161,6 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
 SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     uint16_t size;
-    uint32_t from;
-    uint32_t to;
     uint8_t subtype;
     TC_TM_app_id app_id;
     MS_sid sid;
@@ -177,21 +169,27 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
-    app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
+    if(pkt->type == TC)         { app_id = pkt->app_id; } 
+    else if(pkt->type == TM)    { app_id = pkt->dest_id; }
+    else { SATR_ERROR; }
 
-    if(!C_ASSERT(LD_status.state == LD_STATE_FREE && app_id == GND_APP_ID) == true) {
+    //test
+    app_id = DBG_APP_ID;
+
+    /*if(!C_ASSERT(LD_status.state == LD_STATE_FREE && app_id == GND_APP_ID) == true) {
         return SATR_ERROR; 
-    }
+    }*/
 
-    if(!C_ASSERT(sid == FOTOS || sid == EVENT_LOG || sid == SU_LOG) == true)    { return SATR_ERROR; }
+    if(!C_ASSERT(sid < LAST_SID) == true)    { return SATR_ERROR; }
 
-    pack_pkt(LD_status.buf, temp_pkt, &size);
+    res = pack_pkt(LD_status.buf, pkt, &size);
+    if(!C_ASSERT(res == SATR_OK) == true)    { return SATR_ERROR; }
 
     LD_status.app_id = app_id;
 
     LD_status.ld_num = 0;
     LD_status.tx_size = size;
-    LD_status.tx_pkt = (float)size + (float)(LD_PKT_DATA / 2) / LD_PKT_DATA;
+    LD_status.tx_pkt = floor((float)LD_PKT_DATA / 2.0);
 
     LD_status.state = LD_STATE_TRANSMITING;
     LD_status.started = time_now();
@@ -206,7 +204,7 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
         size = LD_status.tx_size - (i * LD_PKT_DATA);
         if(size > LD_PKT_DATA) { size = LD_PKT_DATA; }
 
-        for(uint16_t b = LD_PKT_DATA_HDR_SIZE; b < size; b++) { pkt->data[b] = LD_status.buf[(i * LD_PKT_DATA) + b]; }
+        for(uint16_t b = 0; b < size; b++) { temp_pkt->data[b + LD_PKT_DATA_HDR_SIZE] = LD_status.buf[(i * LD_PKT_DATA) + b]; }
 
         temp_pkt->len = size;
 
@@ -225,10 +223,6 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
 
     uint16_t ld_num;
-    uint16_t size;
-    uint8_t subtype;
-    uint32_t fnext;
-    SAT_returnState res;
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
@@ -262,7 +256,6 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
 
     uint16_t ld_num;
     uint16_t size;
-    uint32_t fnext;
     uint8_t subtype;
     TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
@@ -274,9 +267,9 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     app_id = (TC_TM_app_id)pkt->dest_id;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                                             { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && LD_status.app_id == GND_APP_ID) == true)    { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.tx_pkt < ld_num) == true)                                               { return SATR_ERROR; }
+    //if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
+    //if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && LD_status.app_id == GND_APP_ID) == true)    { return SATR_ERROR; }
+    //if(!C_ASSERT(LD_status.tx_pkt < ld_num) == true)                                               { return SATR_ERROR; }
     if(!C_ASSERT(LD_status.tx_lid == lid) == true) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TC_LD_ABORT_RE_DOWNLINK); 
         if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
@@ -290,8 +283,7 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     size = LD_status.tx_size - (ld_num * LD_PKT_DATA);
     if(size > LD_PKT_DATA) { size = LD_PKT_DATA; }
 
-    for(uint16_t b = LD_PKT_DATA_HDR_SIZE; b < size; b++) { pkt->data[b] = LD_status.buf[(ld_num * LD_PKT_DATA) + b]; }
-
+    for(uint16_t b = 0; b < size; b++) { temp_pkt->data[b + LD_PKT_DATA_HDR_SIZE] = LD_status.buf[(ld_num * LD_PKT_DATA) + b]; }
     temp_pkt->len = size;
 
     if(ld_num== 0) { subtype = TM_LD_FIRST_DOWNLINK; }
@@ -302,8 +294,6 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     route_pkt(temp_pkt);
 
     LD_status.timeout = time_now();
-
-    route_pkt(temp_pkt);
 
     return SATR_OK;
 }
