@@ -34,7 +34,7 @@
 
 //needs to redifine
 #define MAX_PKT_DATA 2055 //random
-#define TC_MAX_PKT_SIZE 515 //random
+#define TC_MAX_PKT_SIZE 2055 //random
 #define TC_MIN_PKT_SIZE 6 //random
 
 #define ECSS_HEADER_SIZE        6
@@ -70,7 +70,8 @@ typedef enum {
     SATR_PKT_INIT              = 13,
     SATR_INV_STORE_ID          = 14,
     SATR_INV_DATA_LEN          = 15,
-    SATR_LAST                  = 16
+    SATR_FEXISTS               = 16,
+    SATR_LAST                  = 17
 }SAT_returnState;
 
 /*services types*/
@@ -148,7 +149,7 @@ typedef enum {
 #define TM_MONTH_NOVEMBER             ((uint8_t)0x11U)
 #define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
 
-#define UART_BUF_SIZE 1024
+#define UART_BUF_SIZE 4096
 
 typedef enum {  
     OBC_APP_ID      = 1,
