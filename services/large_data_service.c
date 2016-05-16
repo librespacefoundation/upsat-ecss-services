@@ -200,9 +200,12 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     for(uint8_t i = 0; i < LD_status.tx_pkt; i++) {
 
-        large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, 0, app_id);
+        large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, i, app_id);
 
-        for(uint16_t b = i * LD_PKT_DATA; b < pkt->len; b++) { LD_status.buf[(LD_status.ld_num * LD_PKT_DATA) + i] = pkt->data[i]; }
+        size = LD_status.tx_size - (i * LD_PKT_DATA);
+        if(size > LD_PKT_DATA) { size = LD_PKT_DATA; }
+
+        for(uint16_t b = LD_PKT_DATA_HDR_SIZE; b < size; b++) { pkt->data[b] = LD_status.buf[(i * LD_PKT_DATA) + b]; }
 
         temp_pkt->len = size;
 
@@ -244,6 +247,7 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
     if(!C_ASSERT(LD_status.tx_pkt == ld_num) == true) { return SATR_ERROR; }
 
     LD_status.state = LD_STATE_FREE;
+    LD_status.tx_lid++;
     LD_status.ld_num = 0;
     LD_status.timeout = 0;
     LD_status.started = 0;
@@ -273,16 +277,21 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-
     large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, ld_num, app_id);
 
-    for(uint16_t i = ld_num* LD_PKT_DATA; i < pkt->len; i++) { LD_status.buf[(ld_num * LD_PKT_DATA) + i] = pkt->data[i]; }
+    size = LD_status.tx_size - (ld_num * LD_PKT_DATA);
+    if(size > LD_PKT_DATA) { size = LD_PKT_DATA; }
+
+    for(uint16_t b = LD_PKT_DATA_HDR_SIZE; b < size; b++) { pkt->data[b] = LD_status.buf[(ld_num * LD_PKT_DATA) + b]; }
 
     temp_pkt->len = size;
 
-    large_data_updatePkt(temp_pkt, size, TM_LD_REPEATED_DOWNLINK);
-    route_pkt(temp_pkt);
+    if(ld_num== 0) { subtype = TM_LD_FIRST_DOWNLINK; }
+    else if(ld_num == LD_status.tx_pkt - 1) { subtype = TM_LD_LAST_DOWNLINK; }
+    else { subtype = TM_LD_INT_DOWNLINK; }
 
+    large_data_updatePkt(temp_pkt, size, subtype);
+    route_pkt(temp_pkt);
 
     LD_status.timeout = time_now();
 

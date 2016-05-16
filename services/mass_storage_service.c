@@ -502,3 +502,54 @@ SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, uint16_t dest_id) {
 
     return SATR_OK;
 }
+
+SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
+
+    FRESULT res;
+
+    /* UNregister work area (do not care about error) */
+    f_mount(0, "", 0);
+    /* Register work area (do not care about error) */
+    f_mount(&test, "", 0);
+
+    /* Create FAT volume with default cluster size */
+    res = f_mkfs("", 0, 0);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    HAL_Delay(1);
+
+    res = f_mkdir(MS_SU_LOG);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    res = f_mkdir(MS_WOD_LOG);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    res = f_mkdir(MS_EVENT_LOG);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    res = f_mkdir(MS_FOTOS);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    res = f_mkdir("/SU_SCR_1");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_2");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_3");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_4");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_5");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_6");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    
+    res = f_mkdir("/SU_SCR_7");
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    pkt->verification_state = SATR_OK;
+}
