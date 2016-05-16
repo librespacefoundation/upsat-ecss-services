@@ -11,7 +11,7 @@ tc_tm_pkt * get_pkt() {
     for(uint8_t i = 0; i < POOL_PKT_SIZE; i++) {
         if(pkt_pool.free[i] == true) {
             pkt_pool.free[i] = false;
-            pkt_pool.time[i] = time_now();
+            pkt_pool.time[i] = HAL_sys_GetTick();
             pkt_pool.pkt[i].verification_state = SATR_PKT_INIT;
             return &pkt_pool.pkt[i];
         }
@@ -20,6 +20,8 @@ tc_tm_pkt * get_pkt() {
     return NULL;
 }
 
+extern uint8_t uart_temp[];
+
 SAT_returnState free_pkt(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
@@ -27,6 +29,9 @@ SAT_returnState free_pkt(tc_tm_pkt *pkt) {
     for(uint8_t i = 0; i < POOL_PKT_SIZE; i++) {
         if(&pkt_pool.pkt[i] == pkt) {
             pkt_pool.free[i] = true;
+            uint32_t t = HAL_sys_GetTick() - pkt_pool.time[i];
+            snprintf(uart_temp, 400, "Time %d, %d, %d, %d, %d, %d\n", t, pkt->type, pkt->app_id, pkt->dest_id, pkt->ser_type, pkt->ser_subtype);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, strlen(uart_temp));
             return SATR_OK;
         }
     }
