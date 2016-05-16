@@ -52,7 +52,7 @@ void su_timeout_handler(uint8_t error) {
     }
 
     uint16_t size = SU_MAX_RSP_SIZE;
-    mass_storage_storeLogs(SU_LOG, obc_su_scripts.rx_buf, &size);
+    mass_storage_storeFile(SU_LOG, obc_su_scripts.rx_buf, &size);
     su_power_ctrl(P_RESET);
     obc_su_scripts.timeout = time_now();
 
@@ -89,7 +89,7 @@ SAT_returnState su_incoming_rx() {
             cnv16_8(flight_data.z_eci, &obc_su_scripts.rx_buf[20]);
 
             uint16_t size = SU_MAX_RSP_SIZE;
-            mass_storage_storeLogs(SU_LOG, obc_su_scripts.rx_buf, &size);
+            mass_storage_storeFile(SU_LOG, obc_su_scripts.rx_buf, &size);
         }
     }
     return SATR_OK;

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "services.h"
-#include "mass_storage_service.h"
 
 #define LD_PKT_DATA             512
 #define LD_PKT_DATA_HDR_SIZE    3
@@ -35,8 +34,12 @@ struct _ld_status {
     uint32_t from;          /**/
     uint32_t to;            /**/
 
-    uint8_t buf[MAX_DATA_PKT];         /**/
+    uint8_t buf[MAX_PKT_DATA];         /**/
     uint16_t size;         /**/
+    uint8_t rx_lid;         /**/
+    uint8_t tx_lid;         /**/
+    uint8_t tx_pkt;         /**/
+    uint16_t tx_size;         /**/
 };
 
 extern tc_tm_pkt * get_pkt();
@@ -85,7 +88,7 @@ SAT_returnState large_data_reportTx_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt);
 
-SAT_returnState large_data_intTx_api(tc_tm_pkt *pkt);
+SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt);
 
@@ -93,11 +96,12 @@ SAT_returnState large_data_abort_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subtype);
 
-SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint16_t n, MS_sid sid, uint16_t dest_id);
+SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, uint16_t dest_id);
 
-SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint16_t n, uint16_t dest_id);
+SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, uint16_t dest_id);
 
-SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint16_t dest_id, uint8_t subtype);
+SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t dest_id, uint8_t subtype);
 
 void large_data_INIT();
+
 #endif

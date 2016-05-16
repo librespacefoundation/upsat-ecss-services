@@ -121,8 +121,6 @@ typedef enum {
 #define TC_LD_ABORT_SE_UPLINK           13
 #define TC_LD_ABORT_RE_DOWNLINK         8
 #define TM_LD_ABORT_RE_UPLINK           16
-#define TM_LD_STANDALONE_DOWNLINK       17 /*custom*/
-#define TC_LD_STANDALONE_UPLINK         18 /*custom*/
 
 #define TC_MS_ENABLE                    1
 #define TC_MS_DISABLE                   2

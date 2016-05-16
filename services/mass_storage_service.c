@@ -37,9 +37,10 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         mass_storage_report_api(pkt, sid);
 
     } else if(pkt->ser_subtype == TC_MS_DOWNLINK) {
+        uint32_t file;
 
         cnv8_32(&pkt->data[1], &file);
-        mass_storage_downlink_api(tc_tm_pkt *pkt, file);
+        mass_storage_downlink_api(pkt, file);
 
     } else { return SATR_ERROR; }
 
@@ -181,7 +182,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(buf != NULL && size != NULL && size != NULL && part != NULL) == true)          { return SATR_ERROR; }
+    if(!C_ASSERT(buf != NULL && size != NULL) == true)          { return SATR_ERROR; }
     if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true)  { return SATR_ERROR; }
 
     /*cp dir belonging to sid*/
@@ -510,7 +511,7 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
     /* UNregister work area (do not care about error) */
     f_mount(0, "", 0);
     /* Register work area (do not care about error) */
-    f_mount(&test, "", 0);
+    f_mount(&MS_data.test, "", 0);
 
     /* Create FAT volume with default cluster size */
     res = f_mkfs("", 0, 0);
