@@ -11,7 +11,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT(pkt->ser_type == TC_MASS_STORAGE_SERVICE) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->ser_subtype == DISABLE || pkt->ser_subtype == TC_MS_DELETE || pkt->ser_subtype == TC_MS_REPORT || pkt->ser_subtype == TC_MS_DOWNLINK) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->ser_subtype == DISABLE || pkt->ser_subtype == TC_MS_DELETE || pkt->ser_subtype == TC_MS_REPORT || pkt->ser_subtype == TC_MS_DOWNLINK || pkt->ser_subtype == TC_MS_UPLINK) == true) { return SATR_ERROR; }
 
     MS_sid sid = (MS_sid)pkt->data[0];
 
@@ -40,7 +40,11 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         uint32_t file;
 
         cnv8_32(&pkt->data[1], &file);
-        mass_storage_downlink_api(pkt, file);
+        mass_storage_downlink_api(pkt, sid, file);
+
+    } else if(pkt->ser_subtype == TC_MS_UPLINK) {
+        uint16_t size = pkt->len -1;
+        mass_storage_storeFile(sid, &pkt->data[1], &size);
 
     } else { return SATR_ERROR; }
 
@@ -144,14 +148,13 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
     return SATR_OK;
 }
 
-SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, uint32_t file) {
+SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t file) {
 
     uint16_t size;
     uint32_t from;
     uint32_t to;
     uint8_t subtype;
     TC_TM_app_id app_id;
-    MS_sid sid;
     MS_mode mode;
     SAT_returnState res;
     tc_tm_pkt *temp_pkt = 0;
@@ -160,7 +163,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, uint32_t file) {
 
     app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
 
-    if(!C_ASSERT(sid == FOTOS || sid == EVENT_LOG || sid == SU_LOG || sid == WOD_LOG) == true)    { return SATR_ERROR; }
+    if(!C_ASSERT(sid < LAST_SID) == true)    { return SATR_ERROR; }
 
     mass_storage_crtPkt(&temp_pkt, app_id);
 
@@ -183,17 +186,24 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint8_t path[MS_MAX_PATH];
 
     if(!C_ASSERT(buf != NULL && size != NULL) == true)          { return SATR_ERROR; }
-    if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(sid < LAST_SID) == true)  { return SATR_ERROR; }
 
     /*cp dir belonging to sid*/
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, file); }
     else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, file); }
     else if(sid == EVENT_LOG)   { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, file); }
     else if(sid == FOTOS)       { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_FOTOS, file); }
+    else if(sid == SU_SCRIPT_1) { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_2) { strncpy((char*)path, MS_SU_SCRIPT_2, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_3) { strncpy((char*)path, MS_SU_SCRIPT_3, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_4) { strncpy((char*)path, MS_SU_SCRIPT_4, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_5) { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
+    else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
 
     *size = MAX_PKT_DATA;
 
-    if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_READ) != FR_OK) { return SATR_ERROR; }
+    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { return SATR_ERROR; }
 
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
@@ -240,7 +250,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint8_t *buf, uint16_t *size)
 
     if(sid <= SU_SCRIPT_7) {
 
-        SAT_returnState res = mass_storage_su_load_api(sid + (TMP_SU_SCRIPT_1 - 1), obc_su_scripts.temp_buf);
+        SAT_returnState res = mass_storage_su_load_api(sid, obc_su_scripts.temp_buf);
         if(res == SATR_ERROR || res == SATR_CRC_ERROR) { return SATR_ERROR; }
       
         su_populate_header(&obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);

@@ -151,7 +151,7 @@ void su_INIT() {
     for(MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         obc_su_scripts.scripts[(uint8_t)i-1].invalid = false;
         SAT_returnState res = mass_storage_su_load_api(i, obc_su_scripts.temp_buf);
-        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { obc_su_scripts.scripts[(uint8_t)i-1].invalid = true; break; }
+        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { obc_su_scripts.scripts[(uint8_t)i-1].invalid = true; continue; }
         su_populate_header(&obc_su_scripts.scripts[(uint8_t)i-1].header, obc_su_scripts.temp_buf);
         su_populate_scriptPointers(&obc_su_scripts.scripts[(uint8_t)i-1], obc_su_scripts.temp_buf);       
     }

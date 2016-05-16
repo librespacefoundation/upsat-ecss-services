@@ -76,7 +76,7 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode);
 
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid);
 
-SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, uint32_t file);
+SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t file) ;
 
 SAT_returnState mass_storage_store_api(MS_sid sid, MS_mode mode, uint8_t *buf, uint16_t *size, uint32_t part);
 

@@ -129,6 +129,7 @@ typedef enum {
 #define TC_MS_DELETE                    11
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
+#define TC_MS_UPLINK                    14
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
@@ -202,13 +203,6 @@ typedef enum {
     WOD_LOG         = 9,
     EVENT_LOG       = 10,
     FOTOS           = 11,
-    TMP_SU_SCRIPT_1 = 12,
-    TMP_SU_SCRIPT_2 = 13,
-    TMP_SU_SCRIPT_3 = 14,
-    TMP_SU_SCRIPT_4 = 15,
-    TMP_SU_SCRIPT_5 = 16,
-    TMP_SU_SCRIPT_6 = 17,
-    TMP_SU_SCRIPT_7 = 18,
     LAST_SID        = 19
 }MS_sid;
 
