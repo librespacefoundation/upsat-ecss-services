@@ -30,7 +30,7 @@ SAT_returnState free_pkt(tc_tm_pkt *pkt) {
         if(&pkt_pool.pkt[i] == pkt) {
             pkt_pool.free[i] = true;
             uint32_t t = HAL_sys_GetTick() - pkt_pool.time[i];
-            snprintf(uart_temp, 400, "Time %d, %d, %d, %d, %d, %d\n", t, pkt->type, pkt->app_id, pkt->dest_id, pkt->ser_type, pkt->ser_subtype);
+            snprintf(uart_temp, 400, "Time %d: %d, %d, %d\n", i, t, pkt->ser_type, pkt->ser_subtype);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, strlen(uart_temp));
             return SATR_OK;
         }
