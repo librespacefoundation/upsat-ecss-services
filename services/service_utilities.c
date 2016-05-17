@@ -218,7 +218,7 @@ SAT_returnState unpack_pkt(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t si
 SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
 
     union _cnv cnv;
-    uint8_t buf_pointer;
+    uint16_t buf_pointer;
 
     if(!C_ASSERT(buf != NULL && pkt != NULL && pkt->data != NULL  && size != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true) { return SATR_ERROR; }
