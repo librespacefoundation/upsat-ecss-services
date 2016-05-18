@@ -52,7 +52,7 @@ void su_timeout_handler(uint8_t error) {
     }
 
     uint16_t size = SU_MAX_RSP_SIZE;
-    mass_storage_storeLogs(SU_LOG, obc_su_scripts.rx_buf, &size);
+    mass_storage_storeFile(SU_LOG, obc_su_scripts.rx_buf, &size);
     su_power_ctrl(P_RESET);
     obc_su_scripts.timeout = time_now();
 
@@ -89,7 +89,7 @@ SAT_returnState su_incoming_rx() {
             cnv16_8(flight_data.z_eci, &obc_su_scripts.rx_buf[20]);
 
             uint16_t size = SU_MAX_RSP_SIZE;
-            mass_storage_storeLogs(SU_LOG, obc_su_scripts.rx_buf, &size);
+            mass_storage_storeFile(SU_LOG, obc_su_scripts.rx_buf, &size);
         }
     }
     return SATR_OK;
@@ -151,7 +151,7 @@ void su_INIT() {
     for(MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         obc_su_scripts.scripts[(uint8_t)i-1].invalid = false;
         SAT_returnState res = mass_storage_su_load_api(i, obc_su_scripts.temp_buf);
-        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { obc_su_scripts.scripts[(uint8_t)i-1].invalid = true; break; }
+        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { obc_su_scripts.scripts[(uint8_t)i-1].invalid = true; continue; }
         su_populate_header(&obc_su_scripts.scripts[(uint8_t)i-1].header, obc_su_scripts.temp_buf);
         su_populate_scriptPointers(&obc_su_scripts.scripts[(uint8_t)i-1], obc_su_scripts.temp_buf);       
     }
