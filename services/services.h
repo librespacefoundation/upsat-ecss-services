@@ -203,7 +203,8 @@ typedef enum {
     WOD_LOG         = 9,
     EVENT_LOG       = 10,
     FOTOS           = 11,
-    LAST_SID        = 19
+    SCHS            = 12,
+    LAST_SID        = 13
 }MS_sid;
 
 typedef enum {  

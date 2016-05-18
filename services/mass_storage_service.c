@@ -5,8 +5,13 @@
 
 struct _MS_data MS_data;
 
-/* entry point for incoming packets. */
-/*report downlink is handled from large data transfer.*/
+/**
+ * @brief      { entry point for incoming packets. }
+ *
+ * @param      pkt   The pkt
+ *
+ * @return     { description_of_the_return_value }
+ */
 SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
@@ -43,14 +48,23 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         mass_storage_downlink_api(pkt, sid, file);
 
     } else if(pkt->ser_subtype == TC_MS_UPLINK) {
+        SAT_returnState res;
         uint16_t size = pkt->len -1;
-        mass_storage_storeFile(sid, &pkt->data[1], &size);
 
+        res = mass_storage_storeFile(sid, &pkt->data[1], &size);
+        pkt->verification_state = res;
     } else { return SATR_ERROR; }
 
     return SATR_OK; 
 }
 
+/**
+ * @brief      { function_description }
+ *
+ * @param[in]  sid   The sid
+ *
+ * @return     { description_of_the_return_value }
+ */
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
     FILINFO fno;
@@ -171,6 +185,8 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t f
     return SATR_OK;
 }
 
+extern uint8_t uart_temp[];
+
 SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size) {
 
     FIL fp;
@@ -193,11 +209,11 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     else if(sid == SU_SCRIPT_5) { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
+    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file; }
 
     *size = MAX_PKT_DATA;
 
     if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { return SATR_ERROR; }
-
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
@@ -207,7 +223,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     return SATR_OK;
 }
 
-SAT_returnState mass_storage_storeFile(MS_sid sid, uint8_t *buf, uint16_t *size) {
+SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size) {
 
     FIL fp;
     FRESULT res;
@@ -231,8 +247,12 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint8_t *buf, uint16_t *size)
     else if(sid == SU_SCRIPT_5) { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
+    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file; }
 
-    if(res = f_stat((char*)path, &fno) != FR_NO_FILE) { return SATR_FEXISTS; }
+    if(sid <= SU_SCRIPT_7) {
+        res = f_stat((char*)path, &fno);
+        if(res != FR_NO_FILE) { return SATR_FEXISTS; }
+    }
 
     if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) { return SATR_ERROR; }
 
@@ -310,8 +330,14 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
     for (i = 0; i < MS_MAX_FILES; i++) {
 
         res = f_readdir(&dir, &fno);                   /* Read a directory item */
-        if(res != FR_OK) { f_closedir(&dir); return SATR_ERROR; }  /* Break on error */
-        else if(fno.fname[0] == 0) { f_closedir(&dir); return SATR_EOT;}  /* Break on end of dir */
+        if(res != FR_OK) { 
+            f_closedir(&dir); 
+            return SATR_ERROR; 
+        }  /* Break on error */
+        else if(fno.fname[0] == 0) { 
+            f_closedir(&dir); 
+            return SATR_EOT;
+        }  /* Break on end of dir */
         if (fno.fname[0] == '.') { continue; }             /* Ignore dot entry */
 #if _USE_LFN
         fn = *fno.lfname ? fno.lfname : fno.fname;
@@ -324,7 +350,10 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
         if(start_flag == 1) {
 
             sprintf(temp_path,"%s/%s", path, (char*)fn);
-            if(f_stat(temp_path, &fno) != FR_OK) { f_closedir(&dir); return SATR_ERROR; } 
+            if(f_stat(temp_path, &fno) != FR_OK) { 
+                f_closedir(&dir); 
+                return SATR_ERROR; 
+            } 
 
             cnv32_8(ret, &buf[(*size)]);
             *size += sizeof(uint32_t);
@@ -531,6 +560,9 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
     if(res != FR_OK) { pkt->verification_state = res; return res; }
 
     res = f_mkdir(MS_FOTOS);
+    if(res != FR_OK) { pkt->verification_state = res; return res; }
+
+    res = f_mkdir(SCHS);
     if(res != FR_OK) { pkt->verification_state = res; return res; }
 
     res = f_mkdir("/SU_SCR_1");

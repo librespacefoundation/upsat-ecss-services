@@ -21,9 +21,10 @@
 #define MS_SU_SCRIPT_7     "/SU_SCR_7/SCR7.bin"
 #define MS_EVENT_LOG       "/EVENT_LOG"
 #define MS_FOTOS           "/FOTOS"
+#define MS_SCHS            "/SCHS"
 
 #define MS_MAX_PATH             40 //random num
-#define MS_MAX_FILES            30 //random num
+#define MS_MAX_FILES            1000 //random num
 #define MS_MAX_FNAME            30 //random num
 #define MS_MAX_LOG_FILE_SIZE    512 //SD byte sectors 
 #define MS_MAX_SU_FILE_SIZE     2048 //2k
