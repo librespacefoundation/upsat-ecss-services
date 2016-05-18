@@ -16,6 +16,7 @@ struct _pkt_pool{
     uint8_t free[POOL_PKT_SIZE];
     uint32_t time[POOL_PKT_SIZE];
     uint8_t data[POOL_PKT_SIZE][MAX_PKT_DATA];
+    uint32_t time_delta[POOL_PKT_SIZE];
 };
 
 //ToDo
