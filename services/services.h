@@ -33,8 +33,8 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA 525
-#define TC_MAX_PKT_SIZE 515 //random
+#define MAX_PKT_DATA 2055 //random
+#define TC_MAX_PKT_SIZE 2055 //random
 #define TC_MIN_PKT_SIZE 6 //random
 
 #define ECSS_HEADER_SIZE        6
@@ -70,7 +70,8 @@ typedef enum {
     SATR_PKT_INIT              = 13,
     SATR_INV_STORE_ID          = 14,
     SATR_INV_DATA_LEN          = 15,
-    SATR_LAST                  = 16
+    SATR_FEXISTS               = 16,
+    SATR_LAST                  = 17
 }SAT_returnState;
 
 /*services types*/
@@ -120,15 +121,15 @@ typedef enum {
 #define TC_LD_ABORT_SE_UPLINK           13
 #define TC_LD_ABORT_RE_DOWNLINK         8
 #define TM_LD_ABORT_RE_UPLINK           16
-#define TM_LD_STANDALONE_DOWNLINK       17 /*custom*/
-#define TC_LD_STANDALONE_UPLINK         18 /*custom*/
 
 #define TC_MS_ENABLE                    1
 #define TC_MS_DISABLE                   2
+#define TC_MS_CONTENT                   8
 #define TC_MS_DOWNLINK                  9
 #define TC_MS_DELETE                    11
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
+#define TC_MS_UPLINK                    14
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
@@ -147,7 +148,7 @@ typedef enum {
 #define TM_MONTH_NOVEMBER             ((uint8_t)0x11U)
 #define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
 
-#define UART_BUF_SIZE 1024
+#define UART_BUF_SIZE 4096
 
 typedef enum {  
     OBC_APP_ID      = 1,
@@ -202,14 +203,8 @@ typedef enum {
     WOD_LOG         = 9,
     EVENT_LOG       = 10,
     FOTOS           = 11,
-    TMP_SU_SCRIPT_1 = 12,
-    TMP_SU_SCRIPT_2 = 13,
-    TMP_SU_SCRIPT_3 = 14,
-    TMP_SU_SCRIPT_4 = 15,
-    TMP_SU_SCRIPT_5 = 16,
-    TMP_SU_SCRIPT_6 = 17,
-    TMP_SU_SCRIPT_7 = 18,
-    LAST_SID        = 19
+    SCHS            = 12,
+    LAST_SID        = 13
 }MS_sid;
 
 typedef enum {  
