@@ -6,7 +6,8 @@
 mnlp_response_science_header flight_data;
 
 science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
-uint8_t su_inc_buffer[200];
+/*174 response data + 22 for obc extra header and */
+uint8_t su_inc_buffer[196];
 
 /*the state of the science unit*/
 SU_state su_state;
@@ -29,20 +30,20 @@ uint8_t active_script_sequence_command;
 
 SAT_returnState su_incoming_rx() {
 
-    SAT_returnState res;    
-    uint8_t c = 0;
+    SAT_returnState res;
 
-    res = HAL_su_uart_rx( &c);
-    if( res == SATR_OK ) {
-         if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
-            su_inc_buffer[ su_scripts[(uint8_t) active_script - 1].rx_cnt++] = c; }
+    res = HAL_su_uart_rx();
+    if( res == SATR_EOT ) {
+      
+//        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
+//            su_inc_buffer[ su_scripts[(uint8_t) active_script - 1].rx_cnt++] = c; }
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + SU_RSP_PCKT_SIZE) { 
 //            su_scripts[(uint8_t) active_script - 1].rx_buf[obc_su_scripts.rx_cnt++] = c; }
 //        else {
 //            su_scripts.rx_cnt = SU_SCI_HEADER;
 //            su_scripts.timeout = time_now();
 //            if(su_scripts.rx_buf[SU_SCI_HEADER] == SU_ERR_RSP_ID) { su_power_ctrl(P_RESET); }
-            
+//            
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
 //            su_scripts[(uint8_t) active_script - 1].rx_buf[obc_su_scripts.rx_cnt++] = c; }
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + SU_RSP_PCKT_SIZE) { 
@@ -51,8 +52,7 @@ SAT_returnState su_incoming_rx() {
 //            su_scripts.rx_cnt = SU_SCI_HEADER;
 //            su_scripts.timeout = time_now();
 //            if(su_scripts.rx_buf[SU_SCI_HEADER] == SU_ERR_RSP_ID) { su_power_ctrl(P_RESET); }
-
-            /*science header*/
+//            /*science header*/
 //            cnv32_8(time_now(), &su_scripts.rx_buf[0]);
 //            cnv16_8(flight_data.roll, &su_scripts.rx_buf[4]);
 //            cnv16_8(flight_data.pitch, &su_scripts.rx_buf[6]);
@@ -63,9 +63,25 @@ SAT_returnState su_incoming_rx() {
 //            cnv16_8(flight_data.x_eci, &su_scripts.rx_buf[16]);
 //            cnv16_8(flight_data.y_eci, &su_scripts.rx_buf[18]);
 //            cnv16_8(flight_data.z_eci, &su_scripts.rx_buf[20]);
-
+//
 //            uint16_t size = SU_MAX_RSP_SIZE;
-            //mass_storage_storeLogs(SU_LOG, su_scripts.rx_buf, &size);
+//           // mass_storage_storeLogs(SU_LOG, su_scripts.rx_buf, &size);
+
+            /*science header*/
+//            cnv32_8( time_now(), &su_inc_buffer[0]);
+//            cnv16_8(flight_data.roll, &su_inc_buffer[4]);
+//            cnv16_8(flight_data.pitch, &su_inc_buffer[6]);
+//            cnv16_8(flight_data.yaw, &su_inc_buffer[8]);
+//            cnv16_8(flight_data.roll_dot, &su_inc_buffer[10]);
+//            cnv16_8(flight_data.pitch_dot, &su_inc_buffer[12]);
+//            cnv16_8(flight_data.yaw_dot, &su_inc_buffer[14]);
+//            cnv16_8(flight_data.x_eci, &su_inc_buffer[16]);
+//            cnv16_8(flight_data.y_eci, &su_inc_buffer[18]);
+////            cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
+//            uint16_t t = 35000;
+//            cnv16_8( t, &su_inc_buffer[20]);
+//            uint16_t size = SU_LOG_SIZE;
+//            mass_storage_storeLogs( SU_LOG, su_inc_buffer, &size);
 //        }
     }
     return SATR_OK;
@@ -95,8 +111,8 @@ void su_load_scripts(){
         /*mark every script as non-active*/
 //        su_scripts[(uint8_t) i-1].active = false;
         /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
-//        SAT_returnState res = mass_storage_su_load_api( i, su_scripts[(uint8_t) i - 1].file_load_buf);
-        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_1, su_scripts[(uint8_t) i - 1].file_load_buf);
+        SAT_returnState res = mass_storage_su_load_api( i, su_scripts[(uint8_t) i - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_5, su_scripts[(uint8_t) i - 1].file_load_buf);
         if( res == SATR_ERROR || res == SATR_CRC_ERROR){
             //su_scripts[(uint8_t)i-1].valid = false;
             continue;
@@ -116,6 +132,8 @@ void su_SCH(){
             
             if( su_scripts[(uint8_t) i-1].valid == true && 
                 su_scripts[(uint8_t) i-1].scr_header.start_time >= time_lala &&
+                //TODO: add a check here for the following.
+                /*this script has not been executed on this day &&*/
                 su_scripts[(uint8_t) i-1].scr_header.start_time != 0) {
 
                 //TODO: check here on non-volatile mem that we are not executing the same script on the same day,
@@ -148,7 +166,8 @@ void su_SCH(){
                         /*go for next time table*/
                             break;
                         }
-                    else{/*call_state == SATR_OK*/
+                    else{
+                        /*call_state == SATR_OK*/
                         /*find the script sequence pointed by *time_table->script_index, and execute it */
                         /*start every search after current_tt_pointer, current_tt_pointer now points to the start of the next tt_header*/
                         current_ss_pointer = current_tt_pointer-1;
@@ -156,22 +175,23 @@ void su_SCH(){
                         su_goto_script_seq( &current_ss_pointer, 
                                             &su_scripts[(uint8_t) active_script - 1].tt_header.script_index);
                         if( ss_call_state == SATR_OK ){
-                            while(true){ /*start executing commands in a script sequence*/
+//                            scom_call_state = ss_call_state;
+                            while( true ){ /*start executing commands in a script sequence*/
                                 scom_call_state =
                                 su_next_cmd( su_scripts[(uint8_t) active_script - 1].file_load_buf, 
                                              &su_scripts[(uint8_t) active_script - 1].seq_header,
                                              &current_ss_pointer);
                                 if( scom_call_state == SATR_EOT){
-                                    /*no more commands on script sequences to be executed*/
-                                    /*or an unknown command has been encountered in the script sequences, so go for the next time table*/
+                                    /*no more commands on script sequences to be executed*/      
+                                        /*go for the next command in the same script sequence*/
                                     /*reset seq_header->cmd_if field to something else other than 0xFE*/
                                     su_scripts[(uint8_t) active_script - 1].seq_header.cmd_id = 0x0;
                                     break;
                                 }
                                 else
                                 if( scom_call_state == SATR_ERROR){
-                                    /*go for the next command in the same script sequence*/
-                                  break;
+                                    /*an unknown command has been encountered in the script sequences, so go for the next command*/
+                                    continue;
                                 }
                                 else{
                                     /*handle script sequence command*/
@@ -185,7 +205,7 @@ void su_SCH(){
                 //script handling for ends here, at this point every time table in the script has been served.
                 su_state = su_idle;
 //                su_scripts[(uint8_t) active_script - 1].active = false;
-            }//script if run validity if ends here
+            }//script run validity check if ends here
         }//go to take next script
     }
     
@@ -232,7 +252,7 @@ SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *s
     }/*now current_ss_pointer points to start of S1*/
     if( *ss_to_go == 0x41){ return SATR_OK;}
     
-    /*an alternative implemantaion can count how many 0xFE we are passing over*/
+    /*an alternative implementation can count how many 0xFE we are passing over*/
     for (uint8_t i = 0x41; i <*ss_to_go; i++) {
         while (su_scripts[(uint8_t) active_script - 1].file_load_buf[(*script_sequence_pointer)++] !=
                 /*su_scripts[(uint8_t) active_script - 1].tt_header.script_index*/ SU_OBC_EOT_CMD_ID) {
@@ -248,7 +268,25 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
     HAL_sys_delay( (cmd->dt_min * 60) + cmd->dt_sec);
     
-    HAL_su_uart_tx( cmd->command, 3 + (cmd->len-1));
+    if( cmd->cmd_id == 0x05){
+      HAL_su_uart_tx( cmd->command, cmd->len+1);
+        
+//        uint8_t su_out[105];
+//        su_out[0]= 0x05;
+//        su_out[1]= 0x63; //len
+//        su_out[2]= 2; //seq_coun
+//        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
+//        HAL_su_uart_tx( su_out, 102);  
+    }
+//    else
+//    if( cmd->cmd_id == 0x06 )
+//    {
+//        //don't send to hc sim, because it violates the state and leads to error dump.
+//        return SATR_OK;
+//    }
+//    else{
+      HAL_su_uart_tx( cmd->command, cmd->len+2);
+//    }
 //    HAL_su_uart_tx( &cmd->pointer, cmd->len);
 //    HAL_su_uart_tx( &cmd->cmd_id, cmd->len);
     
@@ -359,7 +397,11 @@ SAT_returnState polulate_next_time_table( uint8_t *file_buffer, science_unit_scr
 }
 
 SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *script_sequence, uint16_t *ss_pointer) {
-
+    
+//     for(uint8_t i = 0; i < 255; i++) {
+//        script_sequence->command[i] = 254;
+//     }
+    
     if(!C_ASSERT(file_buffer != NULL && script_sequence != NULL && ss_pointer != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT(script_sequence->cmd_id != SU_OBC_EOT_CMD_ID) == true) { return SATR_EOT; }
 
@@ -370,32 +412,51 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 //    script_sequence->pointer = *ss_pointer;
     script_sequence->len = file_buffer[(*ss_pointer)++];
     script_sequence->command[1] = script_sequence->len;
-    script_sequence->seq_cnt = file_buffer[(*ss_pointer)++];
-    script_sequence->command[2] = script_sequence->seq_cnt;
+    //script_sequence->seq_cnt = file_buffer[(*ss_pointer)++];
+    //script_sequence->command[2] = script_sequence->seq_cnt;
     
-    for(uint8_t i = 3; i < script_sequence->len; i++) {
-        script_sequence->command[i] = file_buffer[(*ss_pointer)++]; 
+    //if( script_sequence->cmd_id == 0x05) { script_sequence->len = script_sequence->len + 2; }
+    
+    for(uint8_t i = 0; i < script_sequence->len; i++) {
+        script_sequence->command[i+2] = file_buffer[(*ss_pointer)++]; 
     }
 
     if(!C_ASSERT(script_sequence->dt_sec < 59) == true) { return SATR_ERROR; }
     if(!C_ASSERT(script_sequence->dt_min < 59) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
-                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
-                 script_sequence->cmd_id == SU_HC_CMD_ID || \
-                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
-                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
-                 script_sequence->cmd_id == SU_HK_CMD_ID || \
-                 script_sequence->cmd_id == SU_STM_CMD_ID || \
-                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
-                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
+    /*invert the C_ASSERT here, because the assertion handling function, suffers from a b.ov*/
+    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_RESET_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_LDP_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_HC_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_CAL_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_SCI_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_HK_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_STM_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_DUMP_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_BIAS_ON_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_MTEE_ON_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID ) == true ) { return SATR_OK; }
+    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_OK; }
+//    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
+//                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
+//                 script_sequence->cmd_id == SU_HC_CMD_ID || \
+//                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
+//                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
+//                 script_sequence->cmd_id == SU_HK_CMD_ID || \
+//                 script_sequence->cmd_id == SU_STM_CMD_ID || \
+//                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
+//                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
     
-    return SATR_OK;
+//    return SATR_OK;
+    return SATR_ERROR;
 }
 
 SAT_returnState su_power_ctrl(FM_fun_id fid) {
