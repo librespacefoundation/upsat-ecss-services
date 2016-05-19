@@ -51,7 +51,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         SAT_returnState res;
         uint16_t size = pkt->len -1;
 
-        res = mass_storage_storeFile(sid, &pkt->data[1], &size);
+        res = mass_storage_storeFile(sid, 0,&pkt->data[1], &size);
         pkt->verification_state = res;
     } else { return SATR_ERROR; }
 
@@ -85,7 +85,7 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
     if(f_unlink((char*)path) != FR_OK) { return SATR_ERROR; }
 
-    obc_su_scripts.scripts[(uint8_t)sid-1].invalid = true;
+    //su_scripts.scripts[(uint8_t)sid-1].invalid = true;
 
     return SATR_OK;
 }
@@ -209,7 +209,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     else if(sid == SU_SCRIPT_5) { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
-    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file; }
+    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
 
     *size = MAX_PKT_DATA;
 
@@ -247,7 +247,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(sid == SU_SCRIPT_5) { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
-    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file; }
+    else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
 
     if(sid <= SU_SCRIPT_7) {
         res = f_stat((char*)path, &fno);
@@ -260,15 +260,15 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     f_close(&fp);
     if((byteswritten == 0) || (res != FR_OK)) { return SATR_ERROR; } 
 
-    if(sid <= SU_SCRIPT_7) {
-
-        SAT_returnState res = mass_storage_su_load_api(sid, obc_su_scripts.temp_buf);
-        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { return SATR_ERROR; }
-      
-        su_populate_header(&obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);
-        su_populate_scriptPointers(&obc_su_scripts.scripts[(uint8_t)sid-1], obc_su_scripts.temp_buf);
-        obc_su_scripts.scripts[(uint8_t)sid-1].invalid = false;
-    }
+    
+//    TODO: TO SEE SCRIPT UPDATE PROCEDEURE
+//        SAT_returnState res = mass_storage_su_load_api(sid, obc_su_scripts.temp_buf);
+//        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { return SATR_ERROR; }
+//      
+//        su_populate_header(&obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);
+//        su_populate_scriptPointers(&obc_su_scripts.scripts[(uint8_t)sid-1], obc_su_scripts.temp_buf);
+//        obc_su_scripts.scripts[(uint8_t)sid-1].invalid = false;
+//    }
 
     return SATR_OK;
 }
@@ -408,8 +408,8 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
 
         cnv32_8(fno.fsize, &buf[(*size)]);
         *size += sizeof(uint32_t);
-
-        buf[(*size)] = obc_su_scripts.scripts[(uint8_t)i-1].invalid;
+        
+        //buf[(*size)] = su_scripts.scripts[(uint8_t)i-1].invalid;
         *size += sizeof(uint8_t);
     }
     return SATR_EOT;
@@ -423,7 +423,7 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     uint16_t size = 0;
     uint16_t script_len = 0;
 
-    if(!C_ASSERT(sid <= SU_SCRIPT_7) == true) { return SATR_INV_STORE_ID; }
+    if(!C_ASSERT( sid <= SU_SCRIPT_7) == true) { return SATR_INV_STORE_ID; }
 
     if(sid == SU_SCRIPT_1)          { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_2)     { strncpy((char*)path, MS_SU_SCRIPT_2, MS_MAX_PATH); }
@@ -562,7 +562,7 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
     res = f_mkdir(MS_FOTOS);
     if(res != FR_OK) { pkt->verification_state = res; return res; }
 
-    res = f_mkdir(SCHS);
+    res = f_mkdir(MS_SCHS);
     if(res != FR_OK) { pkt->verification_state = res; return res; }
 
     res = f_mkdir("/SU_SCR_1");

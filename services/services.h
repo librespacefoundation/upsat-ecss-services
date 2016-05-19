@@ -33,8 +33,8 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA 2055 //random
-#define TC_MAX_PKT_SIZE 2055 //random
+#define MAX_PKT_DATA 500 //random
+#define TC_MAX_PKT_SIZE 500 //random
 #define TC_MIN_PKT_SIZE 6 //random
 
 #define ECSS_HEADER_SIZE        6
@@ -71,13 +71,29 @@ typedef enum {
     SATR_INV_STORE_ID          = 14,
     SATR_INV_DATA_LEN          = 15,
     SATR_FEXISTS               = 16,
-    SATR_LAST                  = 17
+    /* Scheduling Service Error State Codes
+    * from 
+    */
+    SATR_SCHEDULE_FULL         = 17, /* Schedule array is full */
+    SATR_SSCH_ID_INVALID       = 18, /* Subschedule ID invalid */
+    SATR_NMR_OF_TC_INVALID     = 19, /* Number of telecommands invalid */
+    SATR_INTRL_ID_INVALID      = 20, /* Interlock ID invalid */
+    SATR_ASS_INTRL_ID_INVALID  = 21, /* Assess Interlock ID invalid */
+    SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/        
+    SATR_RLS_TIMET_ID_INVALID  = 23, /* Relese time type ID invalid */
+    SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalids */
+    SATR_TIME_INVALID          = 25, /* Release time of TC is invalid */
+    SATR_TIME_SPEC_INVALID     = 26, /* Release time of TC is specified in a invalid representation*/
+    SATR_INTRL_LOGIC_ERROR     = 27, /* The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHEDULE_DISABLED     = 28,
+    /*LAST*/
+    SATR_LAST                  = 29
 }SAT_returnState;
 
 /*services types*/
 #define TC_VERIFICATION_SERVICE         1
 #define TC_HOUSEKEEPING_SERVICE         3
-#define TC_EVENT_SERVICE 		        5
+#define TC_EVENT_SERVICE                5
 #define TC_FUNCTION_MANAGEMENT_SERVICE  8
 #define TC_SCHEDULING_SERVICE           11
 #define TC_LARGE_DATA_SERVICE           13
@@ -218,10 +234,11 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    su_running     = 1,
-    su_idle       = 2,
-    su_finished   = 3,
-    LAST_SU_STATE = 4
+    su_off        = 1,
+    su_running    = 2,
+    su_idle       = 3,
+    su_finished   = 4,
+    LAST_SU_STATE = 5
 }SU_state;
 
 typedef enum {  

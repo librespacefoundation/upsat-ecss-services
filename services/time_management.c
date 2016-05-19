@@ -112,7 +112,6 @@ void get_time_QB50(uint32_t *qb) {
 
 }
 
-
 void get_time_UTC(struct time_utc *utc) {
 
     HAL_sys_getTime(&utc->hour, &utc->min, &utc->sec);

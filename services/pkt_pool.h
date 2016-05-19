@@ -8,7 +8,7 @@
 #define PKT_TIMEOUT 1000 /*in seconds*/
 
 #ifndef POOL_PKT_SIZE
-#define POOL_PKT_SIZE   10
+#define POOL_PKT_SIZE   2
 #endif
 
 struct _pkt_pool{
