@@ -5,7 +5,9 @@
 
 mnlp_response_science_header flight_data;
 
+//science_unit_script_inst su_scripts[1];
 science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
+
 /*174 response data + 22 for obc extra header and */
 uint8_t su_inc_buffer[196];
 
@@ -18,15 +20,8 @@ SAT_returnState scom_call_state;
 MS_sid active_script;
 /*points to the current start byte of a time's table begining, into the loaded script*/
 uint16_t current_tt_pointer;
-/*points to the next start byte of a time's table begining, into the loaded script*/
-uint16_t next_tt_pointer;
 /*points to the current start byte of a script's sequence begining, into the loaded script*/
 uint16_t current_ss_pointer;
-/*points to the next start byte of a time's table begining, into the loaded script*/
-uint16_t next_ss_pointer;
-
-uint8_t active_script_sequence;
-uint8_t active_script_sequence_command;
 
 SAT_returnState su_incoming_rx() {
 
@@ -68,20 +63,20 @@ SAT_returnState su_incoming_rx() {
 //           // mass_storage_storeLogs(SU_LOG, su_scripts.rx_buf, &size);
 
             /*science header*/
-//            cnv32_8( time_now(), &su_inc_buffer[0]);
-//            cnv16_8(flight_data.roll, &su_inc_buffer[4]);
-//            cnv16_8(flight_data.pitch, &su_inc_buffer[6]);
-//            cnv16_8(flight_data.yaw, &su_inc_buffer[8]);
-//            cnv16_8(flight_data.roll_dot, &su_inc_buffer[10]);
-//            cnv16_8(flight_data.pitch_dot, &su_inc_buffer[12]);
-//            cnv16_8(flight_data.yaw_dot, &su_inc_buffer[14]);
-//            cnv16_8(flight_data.x_eci, &su_inc_buffer[16]);
-//            cnv16_8(flight_data.y_eci, &su_inc_buffer[18]);
-////            cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
+            //cnv32_8( time_now(), &su_inc_buffer[0]);
+            cnv16_8(flight_data.roll, &su_inc_buffer[4]);
+            cnv16_8(flight_data.pitch, &su_inc_buffer[6]);
+            cnv16_8(flight_data.yaw, &su_inc_buffer[8]);
+            cnv16_8(flight_data.roll_dot, &su_inc_buffer[10]);
+            cnv16_8(flight_data.pitch_dot, &su_inc_buffer[12]);
+            cnv16_8(flight_data.yaw_dot, &su_inc_buffer[14]);
+            cnv16_8(flight_data.x_eci, &su_inc_buffer[16]);
+            cnv16_8(flight_data.y_eci, &su_inc_buffer[18]);
+            cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
 //            uint16_t t = 35000;
 //            cnv16_8( t, &su_inc_buffer[20]);
-//            uint16_t size = SU_LOG_SIZE;
-//            mass_storage_storeLogs( SU_LOG, su_inc_buffer, &size);
+            uint16_t size = SU_LOG_SIZE;
+            //mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
 //        }
     }
     return SATR_OK;
@@ -95,24 +90,22 @@ void su_INIT(){
     su_load_scripts();
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         su_populate_header( &(su_scripts[(uint8_t) i - 1].scr_header), su_scripts[(uint8_t) i - 1].file_load_buf);
-        
         /*sort the scripts by increasing T_STARTTIME field (?)*/
-        
-//        su_populate_scriptPointers( &obc_su_scripts.scripts[(uint8_t)i-1], obc_su_scripts.temp_buf);
-        continue;
     }
 }
 
 void su_load_scripts(){
-    
+//                                      SU_SCRIPT_7, SU_SCRIPT_6
     for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         /*mark every script as non-valid*/
         su_scripts[(uint8_t) i-1].valid = false;
         /*mark every script as non-active*/
 //        su_scripts[(uint8_t) i-1].active = false;
         /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
+
         SAT_returnState res = mass_storage_su_load_api( i, su_scripts[(uint8_t) i - 1].file_load_buf);
-//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_5, su_scripts[(uint8_t) i - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_1, su_scripts[(uint8_t) i - 1].file_load_buf);
+//        SAT_returnState res = SATR_OK;
         if( res == SATR_ERROR || res == SATR_CRC_ERROR){
             //su_scripts[(uint8_t)i-1].valid = false;
             continue;

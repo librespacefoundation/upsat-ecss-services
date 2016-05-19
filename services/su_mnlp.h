@@ -11,7 +11,7 @@
 #define SU_SCI_HEADER 22
 #define SU_EOT_CMD_HEADER_SIZE 5
 #define SU_TT_HEADER_SIZE 4
-#define SU_LOG_SIZE SU_MAX_FILE_SIZE + SU_SCI_HEADER
+#define SU_LOG_SIZE 196 //SU_MAX_RSP_SIZE + SU_SCI_HEADER
 
 /*  
 REQ: MNLP-013
@@ -224,9 +224,6 @@ typedef struct
     
 }science_unit_script_inst;
 
-extern science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
-extern mnlp_response_science_header flight_data;
-
 extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
   
@@ -235,7 +232,7 @@ extern SAT_returnState HAL_su_uart_rx();
 extern void HAL_su_uart_tx(uint8_t *buf, uint16_t size);
 extern void HAL_sys_delay(uint32_t sec);
 
-extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
+extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
 
 extern SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf);
 
