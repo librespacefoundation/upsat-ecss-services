@@ -16,7 +16,7 @@ void hk_SCH() {
     route_pkt(&hk_pkt);
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
-    HAL_sys_delay(59000);
+    HAL_sys_delay(3000);//TODO: return to normal timeout 59000
     wod_log();
     clear_wod();
     //write to mass storage

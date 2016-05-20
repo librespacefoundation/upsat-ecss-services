@@ -113,7 +113,7 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
     res = f_unlink((char*)path);
     if(res != FR_OK) { return res + SATRF_OK; } 
 
-    //su_scripts.scripts[(uint8_t)sid-1].invalid = true;
+    MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false;
 
     return SATR_OK;
 }
@@ -296,16 +296,22 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     if(res != FR_OK) { return res + SATRF_OK; } 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
-    
-//    TODO: TO SEE SCRIPT UPDATE PROCEDEURE
-//        SAT_returnState res = mass_storage_su_load_api(sid, obc_su_scripts.temp_buf);
-//        if(res == SATR_ERROR || res == SATR_CRC_ERROR) { return SATR_ERROR; }
-//      
-//        su_populate_header(&obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);
-//        su_populate_scriptPointers(&obc_su_scripts.scripts[(uint8_t)sid-1], obc_su_scripts.temp_buf);
+//    TODO: TO Test SCRIPT UPDATE PROCEDURE
+    MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false; /*stops if is executing*/
+    SAT_returnState sat_res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( sid, obc_su_scripts.temp_buf);
+    if(sat_res == SATR_ERROR || sat_res == SATR_CRC_ERROR){ 
+        /*faled to re-read freshly uploaded script, ???*/
+        return SATR_ERROR;
+    }
+    MNLP_data.su_scripts[(uint8_t) sid-1].valid_str = true;
+    su_populate_header( &(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+    MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = true;
+        
+//        su_populate_header( &obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);
+//        su_populate_scriptPointers( &obc_su_scripts.scripts[(uint8_t)sid-1], obc_su_scripts.temp_buf);
 //        obc_su_scripts.scripts[(uint8_t)sid-1].invalid = false;
-//    }
-
+    
     return SATR_OK;
 }
 
@@ -445,7 +451,7 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
         cnv32_8(fno.fsize, &buf[(*size)]);
         *size += sizeof(uint32_t);
         
-        buf[(*size)] = su_scripts[(uint8_t) i-1].valid;
+        buf[(*size)] = MNLP_data.su_scripts[(uint8_t) i-1].valid_logi;
         *size += sizeof(uint8_t);
     }
     return SATR_EOT;

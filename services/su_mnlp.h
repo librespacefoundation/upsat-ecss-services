@@ -206,8 +206,11 @@ typedef struct
     /*where the data will be kept after loading*/
     uint8_t file_load_buf[SU_MAX_FILE_SIZE];
     
-    /*a script is valid if it have passed the checksums checks */
-    uint8_t valid;
+    /*a script is valid_str(uctural) if it have passed the checksums checks */
+    uint8_t valid_str;
+    
+    /*a script is valid_logi(cal) if it is to be scheduled for execution by su scheduler*/
+    uint8_t valid_logi;
     
     /*a script is active if it is the now-running-active script*/
 //    uint8_t active;
@@ -223,6 +226,13 @@ typedef struct
     uint16_t script_pointer_curr;
     
 }science_unit_script_inst;
+
+struct _MNLP_data{
+    
+    mnlp_response_science_header mnlp_science_header;
+    
+    science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
+};
 
 extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
