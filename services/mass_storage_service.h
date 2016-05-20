@@ -41,6 +41,7 @@ struct _MS_data {
 };
 
 //extern script_handler su_scripts;
+extern science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 

@@ -206,8 +206,11 @@ typedef struct
     /*where the data will be kept after loading*/
     uint8_t file_load_buf[SU_MAX_FILE_SIZE];
     
-    /*a script is valid if it have passed the checksums checks */
-    uint8_t valid;
+    /*a script is valid_str(uctural) if it have passed the checksums checks */
+    uint8_t valid_str;
+    
+    /*a script is valid_logi(cal) if it is to be scheduled for execution by su scheduler*/
+    uint8_t valid_logi;
     
     /*a script is active if it is the now-running-active script*/
 //    uint8_t active;
