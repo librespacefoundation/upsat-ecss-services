@@ -33,9 +33,6 @@
 #define MS_SU_FSIZE             174
 #define MS_MIN_SU_FILE 			1	//min is the header.
 
-#define TASK_SUSPEND vTaskSuspendAll();
-#define TASK_RESUME xTaskResumeAll();
-
 struct _MS_data {
     FATFS test;
     uint32_t stores_fsize[3];   /*total file size in each store, fotos, su_log, ev_log */
@@ -52,6 +49,8 @@ extern uint32_t get_new_fileId();
 extern tc_tm_pkt * get_pkt();
 
 extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
+
+extern science_unit_script_inst su_scripts[];
 
 //extern SAT_returnState su_populate_scriptPointers( su_script *su_scr, uint8_t *buf);
 

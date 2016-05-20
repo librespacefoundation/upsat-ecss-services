@@ -82,13 +82,11 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
 
-    if(f_stat((char*)path, &fno) != FR_OK) { f_closedir(&dir); return SATR_ERROR; } 
+    res = f_stat((char*)path, &fno);
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
-    TASK_SUSPEND
     res = f_unlink((char*)path);
-    TASK_RESUME
-    if(res != FR_OK) { return SATR_ERROR; }
-
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
     //su_scripts.scripts[(uint8_t)sid-1].invalid = true;
 
@@ -218,15 +216,14 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     *size = MAX_PKT_DATA;
 
-
-    TASK_SUSPEND
-    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { TASK_RESUME return SATR_ERROR; }
-
+    res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ);
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
-    TASK_RESUME
 
-    if((byteswritten == 0) || (res != FR_OK)) {  return SATR_ERROR; } 
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    else if(byteswritten == 0) {  return SATR_ERROR; } 
     *size = byteswritten;
 
     return SATR_OK;
@@ -242,7 +239,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     uint8_t path[MS_MAX_PATH];
 
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
-    if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
+    //if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
     if(!C_ASSERT(sid <= LAST_SID) == true)              { return SATR_ERROR; }
 
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, get_new_fileId()); }
@@ -263,14 +260,14 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         if(res != FR_NO_FILE) { return SATR_FEXISTS; }
     }
 
-    TASK_SUSPEND
-    if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) { TASK_RESUME return SATR_ERROR; }
+    res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
     res = f_write(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
-    TASK_RESUME
 
-    if((byteswritten == 0) || (res != FR_OK)) { return SATR_ERROR; } 
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    else if(byteswritten == 0) { return SATR_ERROR; } 
 
     
 //    TODO: TO SEE SCRIPT UPDATE PROCEDEURE
@@ -421,7 +418,7 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
         cnv32_8(fno.fsize, &buf[(*size)]);
         *size += sizeof(uint32_t);
         
-        //buf[(*size)] = su_scripts.scripts[(uint8_t)i-1].invalid;
+        buf[(*size)] = su_scripts[(uint8_t) i-1].valid;
         *size += sizeof(uint8_t);
     }
     return SATR_EOT;
