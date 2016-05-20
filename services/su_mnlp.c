@@ -6,7 +6,15 @@
 mnlp_response_science_header flight_data;
 
 //science_unit_script_inst su_scripts[1];
-science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
+science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU] = { 
+    { .valid = false },
+    { .valid = false },
+    { .valid = false },
+    { .valid = false },
+    { .valid = false },
+    { .valid = false },
+    { .valid = false }
+};
 
 /*174 response data + 22 for obc extra header and */
 uint8_t su_inc_buffer[196];

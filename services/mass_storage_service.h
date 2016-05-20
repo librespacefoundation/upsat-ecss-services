@@ -50,6 +50,8 @@ extern tc_tm_pkt * get_pkt();
 
 extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
 
+extern science_unit_script_inst su_scripts[];
+
 //extern SAT_returnState su_populate_scriptPointers( su_script *su_scr, uint8_t *buf);
 
 //ToDo
