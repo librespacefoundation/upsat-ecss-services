@@ -187,7 +187,7 @@ SAT_returnState HAL_su_uart_rx() {
 
     if(huart->RxState == HAL_UART_STATE_READY) {
         //HAL_UART_Receive_IT(huart, &su_scripts.rx_buf[SU_SCI_HEADER], UART_SU_SIZE);
-      HAL_UART_Receive_IT(huart, &su_inc_buffer[23], 174);
+      HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 173);
       return SATR_EOT;
     }
     return SATR_OK;

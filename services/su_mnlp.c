@@ -9,7 +9,7 @@ mnlp_response_science_header flight_data;
 science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 
 /*174 response data + 22 for obc extra header and */
-uint8_t su_inc_buffer[196];
+uint8_t su_inc_buffer[197];//198
 
 /*the state of the science unit*/
 SU_state su_state;
@@ -63,7 +63,7 @@ SAT_returnState su_incoming_rx() {
 //           // mass_storage_storeLogs(SU_LOG, su_scripts.rx_buf, &size);
 
             /*science header*/
-            //cnv32_8( time_now(), &su_inc_buffer[0]);
+            cnv32_8( time_now(), &su_inc_buffer[0]);
             cnv16_8(flight_data.roll, &su_inc_buffer[4]);
             cnv16_8(flight_data.pitch, &su_inc_buffer[6]);
             cnv16_8(flight_data.yaw, &su_inc_buffer[8]);
@@ -73,9 +73,9 @@ SAT_returnState su_incoming_rx() {
             cnv16_8(flight_data.x_eci, &su_inc_buffer[16]);
             cnv16_8(flight_data.y_eci, &su_inc_buffer[18]);
             cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
-//            uint16_t t = 35000;
-//            cnv16_8( t, &su_inc_buffer[20]);
-            uint16_t size = SU_LOG_SIZE;
+            //uint16_t t = 35000;
+            //cnv16_8( t, &su_inc_buffer[20]);
+            //uint16_t size = SU_LOG_SIZE;
             //mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
 //        }
     }
