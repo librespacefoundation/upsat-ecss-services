@@ -9,6 +9,16 @@ mnlp_response_science_header flight_data;
 
 struct _MNLP_data MNLP_data;
 
+//science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU] = { 
+//    { .valid = false },
+//    { .valid = false },
+//    { .valid = false },
+//    { .valid = false },
+//    { .valid = false },
+//    { .valid = false },
+//    { .valid = false }
+//};
+
 /*174 response data + 22 for obc extra header and */
 uint8_t su_inc_buffer[197];//198
 
@@ -109,8 +119,8 @@ void su_load_scripts(){
 //        su_scripts[(uint8_t) i-1].active = false;
         /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
 
-//        SAT_returnState res = mass_storage_su_load_api( i, su_scripts[(uint8_t) i - 1].file_load_buf);
-        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_6, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+        SAT_returnState res = mass_storage_su_load_api( i, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_6, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
 //        SAT_returnState res = SATR_OK;
         if( res == SATR_ERROR || res == SATR_CRC_ERROR){
             /*script is kept marked as invalid.*/

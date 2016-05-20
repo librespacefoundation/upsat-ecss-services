@@ -67,6 +67,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
  */
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
+    FRESULT res;
     FILINFO fno;
     DIR dir;
     uint8_t path[MS_MAX_PATH];
@@ -81,9 +82,11 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
 
-    if(f_stat((char*)path, &fno) != FR_OK) { f_closedir(&dir); return SATR_ERROR; } 
+    res = f_stat((char*)path, &fno);
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
-    if(f_unlink((char*)path) != FR_OK) { return SATR_ERROR; }
+    res = f_unlink((char*)path);
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
     MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false;
 
@@ -194,8 +197,8 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(buf != NULL && size != NULL) == true)          { return SATR_ERROR; }
-    if(!C_ASSERT(sid < LAST_SID) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(sid < LAST_SID) == true)               { return SATR_ERROR; }
 
     /*cp dir belonging to sid*/
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, file); }
@@ -213,11 +216,14 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     *size = MAX_PKT_DATA;
 
-    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { return SATR_ERROR; }
+    res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ);
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
-    if((byteswritten == 0) || (res != FR_OK)) {  return SATR_ERROR; } 
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    else if(byteswritten == 0) {  return SATR_ERROR; } 
     *size = byteswritten;
 
     return SATR_OK;
@@ -232,9 +238,9 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(buf != NULL && size != NULL) == true)      { return SATR_ERROR; }
-    if(!C_ASSERT(*size > 0) == true)                        { return SATR_ERROR; }
-    if(!C_ASSERT(sid <= LAST_SID) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
+    //if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(sid <= LAST_SID) == true)              { return SATR_ERROR; }
 
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, get_new_fileId()); }
     else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, get_new_fileId()); }
@@ -251,14 +257,17 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
 
     if(sid <= SU_SCRIPT_7) {
         res = f_stat((char*)path, &fno);
-        if(res != FR_NO_FILE) { return SATR_FEXISTS; }
+        if(res != FR_NO_FILE) { return SATRF_EXIST; }
     }
 
-    if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) { return SATR_ERROR; }
+    res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
+    if(res != FR_OK) { return res + SATRF_OK; } 
 
     res = f_write(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
-    if((byteswritten == 0) || (res != FR_OK)) { return SATR_ERROR; }
+
+    if(res != FR_OK) { return res + SATRF_OK; } 
+    else if(byteswritten == 0) { return SATR_ERROR; } 
 
 //    TODO: TO Test SCRIPT UPDATE PROCEDURE
     MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false; /*stops if is executing*/
@@ -415,7 +424,7 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
         cnv32_8(fno.fsize, &buf[(*size)]);
         *size += sizeof(uint32_t);
         
-        //buf[(*size)] = su_scripts.scripts[(uint8_t)i-1].invalid;
+        buf[(*size)] = MNLP_data.su_scripts[(uint8_t) i-1].valid_logi;
         *size += sizeof(uint8_t);
     }
     return SATR_EOT;
@@ -593,4 +602,5 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
     if(res != FR_OK) { pkt->verification_state = res; return res; }
 
     pkt->verification_state = SATR_OK;
+
 }
