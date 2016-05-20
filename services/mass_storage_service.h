@@ -34,6 +34,7 @@
 #define MS_MIN_SU_FILE 			1	//min is the header.
 
 struct _MS_data {
+    
     FATFS test;
     uint32_t stores_fsize[3];   /*total file size in each store, fotos, su_log, ev_log */
     uint16_t stores_fcount[3];  /*file count in each store, fotos, su_log, ev_log */
@@ -41,8 +42,10 @@ struct _MS_data {
 };
 
 //extern script_handler su_scripts;
-extern science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
+//extern science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 
+extern struct _MNLP_data MNLP_data;
+        
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 
 extern uint32_t get_new_fileId();
