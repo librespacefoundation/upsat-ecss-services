@@ -67,6 +67,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
  */
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
+    FRESULT res;
     FILINFO fno;
     DIR dir;
     uint8_t path[MS_MAX_PATH];
@@ -83,7 +84,11 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
     if(f_stat((char*)path, &fno) != FR_OK) { f_closedir(&dir); return SATR_ERROR; } 
 
-    if(f_unlink((char*)path) != FR_OK) { return SATR_ERROR; }
+    TASK_SUSPEND
+    res = f_unlink((char*)path);
+    TASK_RESUME
+    if(res != FR_OK) { return SATR_ERROR; }
+
 
     //su_scripts.scripts[(uint8_t)sid-1].invalid = true;
 
@@ -194,8 +199,8 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(buf != NULL && size != NULL) == true)          { return SATR_ERROR; }
-    if(!C_ASSERT(sid < LAST_SID) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(sid < LAST_SID) == true)               { return SATR_ERROR; }
 
     /*cp dir belonging to sid*/
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, file); }
@@ -213,9 +218,13 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     *size = MAX_PKT_DATA;
 
-    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { return SATR_ERROR; }
+
+    TASK_SUSPEND
+    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { TASK_RESUME return SATR_ERROR; }
+
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
+    TASK_RESUME
 
     if((byteswritten == 0) || (res != FR_OK)) {  return SATR_ERROR; } 
     *size = byteswritten;
@@ -232,9 +241,9 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(buf != NULL && size != NULL) == true)      { return SATR_ERROR; }
-    if(!C_ASSERT(*size > 0) == true)                        { return SATR_ERROR; }
-    if(!C_ASSERT(sid <= LAST_SID) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
+    if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(sid <= LAST_SID) == true)              { return SATR_ERROR; }
 
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, get_new_fileId()); }
     else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, get_new_fileId()); }
@@ -254,10 +263,13 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         if(res != FR_NO_FILE) { return SATR_FEXISTS; }
     }
 
-    if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) { return SATR_ERROR; }
+    TASK_SUSPEND
+    if(f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE) != FR_OK) { TASK_RESUME return SATR_ERROR; }
 
     res = f_write(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
+    TASK_RESUME
+
     if((byteswritten == 0) || (res != FR_OK)) { return SATR_ERROR; } 
 
     
@@ -434,10 +446,12 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else { return SATR_ERROR; }
 
-    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { return SATR_ERROR; }
+    TASK_SUSPEND
+    if(f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ) != FR_OK) { TASK_RESUME return SATR_ERROR; }
 
     res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
     f_close(&fp);
+    TASK_RESUME
 
     if(res != FR_OK || size == 0) { return SATR_ERROR; } 
 
@@ -539,6 +553,7 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
 
     FRESULT res;
 
+    TASK_SUSPEND
     /* UNregister work area (do not care about error) */
     f_mount(0, "", 0);
     /* Register work area (do not care about error) */
@@ -546,45 +561,47 @@ SAT_returnState mass_storage_FORMAT(tc_tm_pkt *pkt) {
 
     /* Create FAT volume with default cluster size */
     res = f_mkfs("", 0, 0);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     HAL_Delay(1);
 
     res = f_mkdir(MS_SU_LOG);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir(MS_WOD_LOG);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir(MS_EVENT_LOG);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir(MS_FOTOS);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir(MS_SCHS);
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_1");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_2");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_3");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_4");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_5");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_6");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     res = f_mkdir("/SU_SCR_7");
-    if(res != FR_OK) { pkt->verification_state = res; return res; }
+    if(res != FR_OK) { pkt->verification_state = res; TASK_RESUME return res; }
 
     pkt->verification_state = SATR_OK;
+
+    TASK_RESUME
 }

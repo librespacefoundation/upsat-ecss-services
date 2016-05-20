@@ -33,6 +33,9 @@
 #define MS_SU_FSIZE             174
 #define MS_MIN_SU_FILE 			1	//min is the header.
 
+#define TASK_SUSPEND vTaskSuspendAll();
+#define TASK_RESUME xTaskResumeAll();
+
 struct _MS_data {
     FATFS test;
     uint32_t stores_fsize[3];   /*total file size in each store, fotos, su_log, ev_log */
