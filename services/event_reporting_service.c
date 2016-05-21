@@ -3,6 +3,8 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
+static uint8_t strNo[] = "No";
+
 SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e, uint16_t *size, SAT_returnState mode) {
 
     uint8_t sub_type;
@@ -21,6 +23,8 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
     buf[8] = TC_EVENT_SERVICE;
     buf[9] = sub_type;
     buf[10] = DBG_APP_ID;
+
+    if(strnlen(e, 200) > 200) { e = strNo; }
 
     if(mode == SATR_OK) { sprintf((char*)&buf[11], "Event %s,%d,%d,%s\n", f, fi, l, e); }
     else { sprintf((char*)&buf[11], "Error %s,%d,%d,%s\n", f, fi, l, e); }

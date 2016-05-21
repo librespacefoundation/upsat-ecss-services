@@ -460,41 +460,24 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 
     if(!C_ASSERT(script_sequence->dt_sec < 59) == true) { return SATR_ERROR; }
     if(!C_ASSERT(script_sequence->dt_min < 59) == true) { return SATR_ERROR; }
-    /*invert the C_ASSERT here, because the assertion handling function, suffers from a b.ov*/
-    /*multiple assertions will be printed here until we reach the right command*/
-    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_RESET_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_LDP_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_HC_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_CAL_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_SCI_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_HK_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_STM_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_DUMP_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_BIAS_ON_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_MTEE_ON_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID ) == true ) { return SATR_OK; }
-    if(C_ASSERT(script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_OK; }
-//    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
-//                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
-//                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
-//                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
-//                 script_sequence->cmd_id == SU_HC_CMD_ID || \
-//                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
-//                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
-//                 script_sequence->cmd_id == SU_HK_CMD_ID || \
-//                 script_sequence->cmd_id == SU_STM_CMD_ID || \
-//                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
-//                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
-//                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
-//                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
-//                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
-//                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
     
-//    return SATR_OK;
-    return SATR_ERROR;
+    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
+                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
+                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
+                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
+                 script_sequence->cmd_id == SU_HC_CMD_ID || \
+                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
+                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
+                 script_sequence->cmd_id == SU_HK_CMD_ID || \
+                 script_sequence->cmd_id == SU_STM_CMD_ID || \
+                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
+                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
+                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
+                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
+                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
+                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
+    
+    return SATR_OK;
 }
 
 SAT_returnState su_power_ctrl(FM_fun_id fid) {

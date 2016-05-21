@@ -185,7 +185,7 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
     else { SATR_ERROR; }
 
     //test
-    app_id = DBG_APP_ID;
+    //app_id = DBG_APP_ID;
 
     /*if(!C_ASSERT(LD_status.state == LD_STATE_FREE && (app_id == GND_APP_ID || app_id == DBG_APP_ID)) == true) {
         return SATR_ERROR; 
