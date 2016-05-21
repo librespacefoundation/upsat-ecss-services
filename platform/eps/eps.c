@@ -65,3 +65,7 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
     return SATR_OK;
 }
+
+SAT_returnState check_timeouts() {
+    
+}

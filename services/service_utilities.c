@@ -1,4 +1,5 @@
 #include "service_utilities.h"
+#include "time_management.h"
 
 
 #undef __FILE_ID__
@@ -76,6 +77,7 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
         res_deframe = HLDLC_deframe(data->uart_unpkt_buf, data->deframed_buf, &size);
         if(res_deframe == SATR_EOT) {
             
+            data->last_com_time = HAL_sys_GetTick();/*update the last communication time, to be used for timeout discovery*/
             pkt = get_pkt();
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
             if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 

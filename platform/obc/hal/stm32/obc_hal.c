@@ -148,7 +148,6 @@ void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
 
 uint16_t err;
 
-
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
 
