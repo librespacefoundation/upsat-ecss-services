@@ -150,31 +150,15 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
         fn = (uint8_t*)fno.fname;
 
         uint32_t ret = strtol((char*)fn, NULL, 10);
-        if(mode == ALL) {
+        if((mode == ALL) || (mode == TO && ret <= to) || (mode == SPECIFIC && ret == to)) {
 
             sprintf(temp_path,"%s/%s", path, (char*)fn);
 
-            if((res = f_stat((char*)fn, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; } 
-
-            if((res = f_unlink((char*)fn)) != FR_OK)     { f_closedir(&dir); return res + SATRF_OK; } 
-
-        } else if(mode == TO && ret <= to) {
-
-            sprintf(temp_path,"%s/%s", path, (char*)fn);
-
-            if((res = f_stat((char*)fn, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }
-
-            if((res = f_unlink((char*)fn)) != FR_OK)     { f_closedir(&dir); return res + SATRF_OK; }
-
-        } else if(mode == SPECIFIC && ret == to) {
-
-            sprintf(temp_path,"%s/%s", path, (char*)fn);
-            
             if((res = f_stat((char*)temp_path, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }
 
             if((res = f_unlink((char*)temp_path)) != FR_OK)     { f_closedir(&dir); return res + SATRF_OK; }
 
-            break;
+            if((mode == TO && ret == to) || (mode == SPECIFIC && ret == to)) { break; }
 
         }
     }
