@@ -89,8 +89,8 @@ SAT_returnState su_incoming_rx() {
             cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
             //uint16_t t = 35000;
             //cnv16_8( t, &su_inc_buffer[20]);
-            //uint16_t size = SU_LOG_SIZE;
-            //mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
+            uint16_t size = SU_LOG_SIZE;
+            mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
 //        }
     }
     return SATR_OK;
@@ -291,27 +291,39 @@ SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *s
 
 SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
-    HAL_sys_delay( (cmd->dt_min * 60) + cmd->dt_sec);
+    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
     
-    if( cmd->cmd_id == 0x05){
+    if( cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)         { su_power_ctrl(P_ON); } 
+    else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); }
+    else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
+    else{
+            if(cmd->cmd_id == 0x05)                     {
+                HAL_su_uart_tx( cmd->command, cmd->len+1);
+            }
+            else
+                HAL_su_uart_tx( cmd->command, cmd->len+2); 
+    }
+    
+//    HAL_sys_delay( 10);
+//    if( cmd->cmd_id == 0x05){
 //      HAL_su_uart_tx( cmd->command, cmd->len+1);
         
-        uint8_t su_out[105];
-        su_out[0]= 0x05;
-        su_out[1]= 0x63; //len
-        su_out[2]= 2; //seq_coun
+//        uint8_t su_out[105];
+//        su_out[0]= 0x05;
+//        su_out[1]= 0x63; //len
+//        su_out[2]= 2; //seq_coun
 //        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
-        HAL_su_uart_tx( su_out, 102);  
-    }
-    else
+//        HAL_su_uart_tx( su_out, 102);  
+//    }
+//    else
 //    if( cmd->cmd_id == 0x06 )
-    {
+//    {
 //        //don't send to hc sim, because it violates the state and leads to error dump.
 //        return SATR_OK;
 //    }
 //    else{
-      HAL_su_uart_tx( cmd->command, cmd->len+2);
-    }
+//      HAL_su_uart_tx( cmd->command, cmd->len+2);
+//    }
 //    HAL_su_uart_tx( &cmd->pointer, cmd->len);
 //    HAL_su_uart_tx( &cmd->cmd_id, cmd->len);
     

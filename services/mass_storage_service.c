@@ -270,17 +270,19 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
 //    TODO: TO Test SCRIPT UPDATE PROCEDURE
-    MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false; /*stops if is executing*/
-    SAT_returnState sat_res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-//        SAT_returnState res = mass_storage_su_load_api( sid, obc_su_scripts.temp_buf);
-    if(sat_res == SATR_ERROR || sat_res == SATR_CRC_ERROR){ 
-        /*faled to re-read freshly uploaded script, ???*/
-        return SATR_ERROR;
-    }
-    MNLP_data.su_scripts[(uint8_t) sid-1].valid_str = true;
-    su_populate_header( &(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-    MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = true;
-        
+    if (sid <= SU_SCRIPT_7) {
+        MNLP_data.su_scripts[(uint8_t) sid - 1].valid_logi = false; /*stops if is executing*/
+        SAT_returnState sat_res = mass_storage_su_load_api(sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+        //        SAT_returnState res = mass_storage_su_load_api( sid, obc_su_scripts.temp_buf);
+        if (sat_res == SATR_ERROR || sat_res == SATR_CRC_ERROR) {
+            /*faled to re-read freshly uploaded script, so mark it as invalid ???*/
+            MNLP_data.su_scripts[(uint8_t) sid - 1].valid_logi = true;
+            return SATR_ERROR;
+        }
+        MNLP_data.su_scripts[(uint8_t) sid - 1].valid_str = true;
+        su_populate_header(&(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+        MNLP_data.su_scripts[(uint8_t) sid - 1].valid_logi = true;
+    }   
 //        su_populate_header( &obc_su_scripts.scripts[(uint8_t)sid-1].header, obc_su_scripts.temp_buf);
 //        su_populate_scriptPointers( &obc_su_scripts.scripts[(uint8_t)sid-1], obc_su_scripts.temp_buf);
 //        obc_su_scripts.scripts[(uint8_t)sid-1].invalid = false;

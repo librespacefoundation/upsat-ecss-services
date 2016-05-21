@@ -50,7 +50,7 @@ SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app
 
     *pkt = get_pkt();
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
-    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TEST_SERVICE, TC_FM_PERFORM_FUNCTION, dest_id);
+    crt_pkt(*pkt, dest_id , TC, TC_ACK_NO, TC_FUNCTION_MANAGEMENT_SERVICE, TC_FM_PERFORM_FUNCTION, SYSTEM_APP_ID);
 
     (*pkt)->data[0] = fun_id;
 
