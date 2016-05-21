@@ -79,7 +79,6 @@ SAT_returnState obc_data_INIT() {
     return SATR_OK;
 }
 
-
 void bkup_sram_INIT() {
 
     obc_data.log_cnt = HAL_obc_BKPSRAM_BASE();
@@ -208,4 +207,27 @@ SAT_returnState wod_log_load(uint8_t *buf) {
         if(rev_wod_cnt == 0) { rev_wod_cnt = WOD_MAX_BUFFER; }
    }
    return SATR_OK;
+}
+
+SAT_returnState check_timeouts() {
+    
+    uint32_t sys_t_now = HAL_sys_GetTick();
+    
+    if( (sys_t_now - obc_data.adcs_uart.last_com_time) >= TIMEOUT_V_ADCS ) { 
+        /*Handle ADCS subsystem's timeout*/
+    }
+    
+    if( (sys_t_now - obc_data.comms_uart.last_com_time) >= TIMEOUT_V_COMMS ) { 
+        /*Handle COMMS subsystem's timeout*/
+    }
+    
+    if( (sys_t_now - obc_data.eps_uart.last_com_time) >= TIMEOUT_V_EPS ) { 
+        /*Handle EPS subsystem's timeout*/
+    }
+
+    if( (sys_t_now - obc_data.dbg_uart.last_com_time) >= TIMEOUT_V_DBG ) { 
+        /*Handle UMBILICAL (dbg's port) subsystem's timeout*/
+    }
+    
+    return SATR_OK;
 }

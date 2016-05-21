@@ -80,7 +80,7 @@ typedef enum {
     SATR_ASS_INTRL_ID_INVALID  = 21, /* Assess Interlock ID invalid */
     SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/        
     SATR_RLS_TIMET_ID_INVALID  = 23, /* Relese time type ID invalid */
-    SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalids */
+    SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalid */
     SATR_TIME_INVALID          = 25, /* Release time of TC is invalid */
     SATR_TIME_SPEC_INVALID     = 26, /* Release time of TC is specified in a invalid representation*/
     SATR_INTRL_LOGIC_ERROR     = 27, /* The release time of telecommand is in the execution window of its interlocking telecommand.*/
@@ -169,6 +169,14 @@ typedef enum {
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
+
+/*cubesat subsystem's timeouts*/
+#define TIMEOUT_V_COMMS     5000
+#define TIMEOUT_V_ADCS      5000
+#define TIMEOUT_V_IAC       5000
+#define TIMEOUT_V_EPS       5000
+#define TIMEOUT_V_SU_BYTE   5000
+#define TIMEOUT_V_DBG       5000
 
 /*taken from stm32f4xx_hal_rtc.h*/
 #define TM_MONTH_JANUARY              ((uint8_t)0x01U)
@@ -368,18 +376,31 @@ extern const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2];
 //  add pack functions in each service.
 
 struct uart_data {
+    
     uint8_t uart_buf[UART_BUF_SIZE];
     uint8_t uart_unpkt_buf[UART_BUF_SIZE];
     uint8_t deframed_buf[TC_MAX_PKT_SIZE];
     uint8_t uart_pkted_buf[UART_BUF_SIZE];
     uint8_t framed_buf[UART_BUF_SIZE];
     uint16_t uart_size;
+    
+    uint32_t last_com_time;
 };
 
 struct _sys_data {
     uint8_t seq_cnt[LAST_APP_ID];
     uint8_t rsrc;
     uint32_t *boot_counter;
+};
+
+/* These values represent the time of last complete packet
+ * received by the OBC subsystem.
+ */
+struct _subs_last_comm {
+    uint32_t last_com_comms;
+    uint32_t last_com_adcs;
+    uint32_t last_com_iac;
+    uint32_t last_com_eps;
 };
 
 struct time_utc {

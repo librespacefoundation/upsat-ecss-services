@@ -30,7 +30,7 @@ struct _obc_data
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;
-    struct uart_data eps_uart;
+    struct uart_data eps_uart;   
 };
 
 struct _sat_status {
@@ -82,5 +82,7 @@ SAT_returnState event_log_IDLE();
 SAT_returnState wod_log();
 
 SAT_returnState wod_log_load(uint8_t *buf);
+
+SAT_returnState check_timeouts();
 
 #endif
