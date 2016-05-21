@@ -472,51 +472,6 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     return SATR_OK;
 }
 
-SAT_returnState mass_storage_findLog(MS_sid sid, uint32_t *fn) {
-
-    DIR dir;
-    FRESULT res;
-    FILINFO fno;
-    uint32_t ret;
-    uint8_t path[MS_MAX_PATH];
-    uint8_t *temp_fn;
-    uint32_t min = 0;
-    uint16_t i;
-
-    if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EVENT_LOG) == true)    { return SATR_ERROR; }
-    if(!C_ASSERT(fn != NULL) == true)                                             { return SATR_ERROR; }
-
-    if(sid == SU_LOG)           { strncpy((char*)path, MS_SU_LOG, MS_MAX_PATH); }
-    else if(sid == WOD_LOG)     { strncpy((char*)path, MS_WOD_LOG, MS_MAX_PATH); }
-    else if(sid == EVENT_LOG)   { strncpy((char*)path, MS_EVENT_LOG, MS_MAX_PATH); }
-
-    if ((res = f_opendir(&dir,(char*) path)) != FR_OK) { return res + SATRF_OK; }
-    for (i = 0; i < MS_MAX_FILES; i++) {
-
-        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }  /* Break on error */
-        else if(fno.fname[0] == 0) { break; }  /* Break on end of dir */
-        else if (fno.fname[0] == '.') continue;             /* Ignore dot entry */
-
-        temp_fn = (uint8_t*)fno.fname;
-
-        ret = strtol((char*)temp_fn, NULL, 10);
-        if(*fn == 0 && min == 0) { min = ret; }
-        else if(*fn == 0 && ret < min) { min = ret; } 
-        else if(*fn != 0 && *fn < ret && min == 0) { min = ret; }
-        else if(*fn != 0 && *fn < ret && ret < min) { min = ret; } 
-
-    }
-    f_closedir(&dir);
- 
-    if(min == 0) { return SATR_EOT; }
-
-    *fn = min;
-
-	if(i == MS_MAX_FILES - 1) { return SATR_MS_MAX_FILES; }
-
-    return SATR_OK;
-}
-
 SAT_returnState mass_storage_init() {
 
     FRESULT res = 0;
