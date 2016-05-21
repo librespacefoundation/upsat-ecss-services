@@ -40,10 +40,24 @@ uint16_t current_ss_pointer;
 
 SAT_returnState su_incoming_rx() {
 
+    uint16_t size = 0;
     SAT_returnState res;
     res = HAL_su_uart_rx();
     if( res == SATR_EOT ) {
-      
+        
+        if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
+            event_crt_pkt_api(uart_temp, "SU_ERR", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+        }
+        else if( su_inc_buffer[23] == OBC_SU_ERR_RSP_ID ) {
+            event_crt_pkt_api(uart_temp, "SU_ERR_", 696,696, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+        }
+        else{
+            event_crt_pkt_api(uart_temp, "SU_RESP", 696,696, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+        }
+        
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
 //            su_inc_buffer[ su_scripts[(uint8_t) active_script - 1].rx_cnt++] = c; }
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + SU_RSP_PCKT_SIZE) { 
@@ -292,7 +306,32 @@ SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *s
 SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
     HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
+//    HAL_sys_delay( 1000 );
+    uint8_t temp = 1;//to be removed
     
+    if ( temp ==1 ){
+    if( cmd->cmd_id == 0x05){
+      HAL_su_uart_tx( cmd->command, cmd->len+1);
+        
+//        uint8_t su_out[105];
+//        su_out[0]= 0x05;
+//        su_out[1]= 0x63; //len
+//        su_out[2]= 2; //seq_coun
+//        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
+//        HAL_su_uart_tx( su_out, 102);  
+    }
+//    else
+//    if( cmd->cmd_id == 0x06 )
+//    {
+//        //don't send to hc sim, because it violates the state and leads to error dump.
+//        return SATR_OK;
+//    }
+    else{
+      HAL_su_uart_tx( cmd->command, cmd->len+2);
+    }
+    }
+    else{
+    //-------------------------------------------------------------------------
     if( cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)         { su_power_ctrl(P_ON); } 
     else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); }
     else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
@@ -303,7 +342,7 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
             else
                 HAL_su_uart_tx( cmd->command, cmd->len+2); 
     }
-    
+    }
 //    HAL_sys_delay( 10);
 //    if( cmd->cmd_id == 0x05){
 //      HAL_su_uart_tx( cmd->command, cmd->len+1);
@@ -461,21 +500,21 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
     if(!C_ASSERT(script_sequence->dt_sec < 59) == true) { return SATR_ERROR; }
     if(!C_ASSERT(script_sequence->dt_min < 59) == true) { return SATR_ERROR; }
     
-    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
-                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
-                 script_sequence->cmd_id == SU_HC_CMD_ID || \
-                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
-                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
-                 script_sequence->cmd_id == SU_HK_CMD_ID || \
-                 script_sequence->cmd_id == SU_STM_CMD_ID || \
-                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
-                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
-                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
-                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
+//    if(!C_ASSERT(script_sequence->cmd_id == SU_OBC_SU_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_OBC_SU_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_RESET_CMD_ID || \
+//                 script_sequence->cmd_id == SU_LDP_CMD_ID || \
+//                 script_sequence->cmd_id == SU_HC_CMD_ID || \
+//                 script_sequence->cmd_id == SU_CAL_CMD_ID || \
+//                 script_sequence->cmd_id == SU_SCI_CMD_ID || \
+//                 script_sequence->cmd_id == SU_HK_CMD_ID || \
+//                 script_sequence->cmd_id == SU_STM_CMD_ID || \
+//                 script_sequence->cmd_id == SU_DUMP_CMD_ID || \
+//                 script_sequence->cmd_id == SU_BIAS_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_BIAS_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_MTEE_ON_CMD_ID || \
+//                 script_sequence->cmd_id == SU_MTEE_OFF_CMD_ID || \
+//                 script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) == true) { return SATR_ERROR; }
     
     return SATR_OK;
 }
