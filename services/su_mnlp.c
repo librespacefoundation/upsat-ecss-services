@@ -89,8 +89,8 @@ SAT_returnState su_incoming_rx() {
             cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
             //uint16_t t = 35000;
             //cnv16_8( t, &su_inc_buffer[20]);
-            //uint16_t size = SU_LOG_SIZE;
-            //mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
+            uint16_t size = SU_LOG_SIZE;
+            mass_storage_storeFile(SU_LOG, 0 ,su_inc_buffer, &size);
 //        }
     }
     return SATR_OK;
