@@ -33,9 +33,11 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA 700//random
-#define TC_MAX_PKT_SIZE 700 //random
-#define TC_MIN_PKT_SIZE 6 //random
+#define MAX_PKT_DATA        200  //random
+#define TC_MAX_PKT_SIZE     200  //random
+#define TC_MIN_PKT_SIZE     6    //random
+#define MAX_PKT_EXT_DATA    2048
+#define TC_MAX_PKT_EXT_SIZE 2048  //random
 
 #define ECSS_HEADER_SIZE        6
 #define ECSS_DATA_HEADER_SIZE   4

@@ -10,6 +10,10 @@
 #define MIN_PKT_SIZE 5
 #define MAX_PKT_SIZE 1024
 
+#ifdef POOL_PKT_EXT
+extern tc_tm_pkt * get_pkt_ext();
+#endif
+
 extern tc_tm_pkt * get_pkt();
 extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
 
