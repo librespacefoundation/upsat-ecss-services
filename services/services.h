@@ -381,7 +381,11 @@ struct uart_data {
     
     uint8_t uart_buf[UART_BUF_SIZE];
     uint8_t uart_unpkt_buf[UART_BUF_SIZE];
+#ifdef POOL_PKT_EXT
+    uint8_t deframed_buf[TC_MAX_PKT_EXT_SIZE];
+#else
     uint8_t deframed_buf[TC_MAX_PKT_SIZE];
+#endif
     uint8_t uart_pkted_buf[UART_BUF_SIZE];
     uint8_t framed_buf[UART_BUF_SIZE];
     uint16_t uart_size;
