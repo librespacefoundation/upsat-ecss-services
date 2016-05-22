@@ -194,7 +194,7 @@ typedef enum {
 #define TM_MONTH_NOVEMBER             ((uint8_t)0x11U)
 #define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
 
-#define UART_BUF_SIZE 4096
+#define UART_BUF_SIZE (MAX_PKT_DATA*2)
 
 typedef enum {  
     OBC_APP_ID      = 1,

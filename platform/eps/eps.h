@@ -15,7 +15,7 @@
 
 struct _eps_data
 {   
-    struct uart_data dbg_uart;
+
     struct uart_data obc_uart;
 };
 
