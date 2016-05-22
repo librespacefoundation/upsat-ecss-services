@@ -127,3 +127,19 @@ uint32_t get_time_ELAPSED() {
 uint32_t time_cmp_elapsed(uint32_t t1, uint32_t t2) {
     return t2 - t1;
 }
+
+SAT_returnState time_management_app(tc_tm_pkt *pkt) {
+
+    struct time_utc temp_time;
+
+    temp_time.day = pkt->data[1];
+    temp_time.month = pkt->data[2];
+    temp_time.year = pkt->data[3];
+
+    temp_time.hour = pkt->data[4];
+    temp_time.min = pkt->data[5];
+    temp_time.sec = pkt->data[6];
+    set_time_UTC(temp_time);
+
+    return SATR_OK;
+}

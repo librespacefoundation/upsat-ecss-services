@@ -70,3 +70,7 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
 SAT_returnState check_timeouts() {
     
 }
+
+SAT_returnState time_management_app(tc_tm_pkt *pkt) {
+    return SATR_ERROR;
+}
