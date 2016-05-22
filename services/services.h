@@ -196,6 +196,8 @@ typedef enum {
 #define TM_SU_ERR                       22 //subservice 15
 #define TM_OBC_SU_ERR                   23 //subservice 16
 #define TC_OBC_EOT                      24 //subservice 17
+#define TC_SU_SCHE_ON                   25 //subservice 24
+#define TC_SU_SCHE_OFF                  26 //subservice 25
 
 /*cubesat subsystem's timeouts*/
 #define TIMEOUT_V_COMMS     5000
@@ -220,6 +222,12 @@ typedef enum {
 #define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
 
 #define UART_BUF_SIZE 4096
+
+/* Definitions for debugging messages levels
+ * Set the definitions for which you don't want
+ * debugging verbosity to 0 (zero)
+ */
+#define nMNLP_DEBUGGING_ACTIVE 1
 
 typedef enum {  
     OBC_APP_ID      = 1,
