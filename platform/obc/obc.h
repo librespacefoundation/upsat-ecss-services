@@ -59,7 +59,7 @@ extern SAT_returnState hk_app(tc_tm_pkt *pkt);
 extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
-extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
+//extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 //extern uint8_t su_inc_buffer[200];

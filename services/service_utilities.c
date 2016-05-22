@@ -78,7 +78,12 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
         if(res_deframe == SATR_EOT) {
             
             data->last_com_time = HAL_sys_GetTick();/*update the last communication time, to be used for timeout discovery*/
+#ifdef POOL_PKT_EXT
+            if(size < MAX_PKT_SIZE) { pkt = get_pkt(); }
+            else { pkt = get_pkt_ext(); }
+#else
             pkt = get_pkt();
+#endif
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
             if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 
             else { verification_app(pkt); free_pkt(pkt); }

@@ -182,12 +182,12 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t f
 
     if(!C_ASSERT(sid < LAST_SID) == true)    { return SATR_ERROR; }
 
-    mass_storage_crtPkt(&temp_pkt, app_id);
+    mass_storage_crtPkt_ext(&temp_pkt, app_id);
 
     res = mass_storage_downlinkFile(sid, file, temp_pkt->data, &size);
 
-    if(res != SATR_OK)                          { free_pkt(temp_pkt); return res; }
-    if(!C_ASSERT(size <= MAX_PKT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
+    if(res != SATR_OK)                              { free_pkt(temp_pkt); return res; }
+    if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
     temp_pkt->len = size;
 
     mass_storage_updatePkt(temp_pkt, size, TC_MS_CONTENT);
@@ -222,7 +222,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
 
-    *size = MAX_PKT_DATA;
+    *size = MAX_PKT_EXT_DATA;
 
     if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { return res + SATRF_OK; } 
     
@@ -485,6 +485,15 @@ SAT_returnState mass_storage_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t su
 
     pkt->ser_subtype = subtype;
     pkt->len = size;
+
+    return SATR_OK;
+}
+
+SAT_returnState mass_storage_crtPkt_ext(tc_tm_pkt **pkt, uint16_t dest_id) {
+
+    *pkt = get_pkt_ext();
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+    crt_pkt(*pkt, OBC_APP_ID, TM, TC_ACK_NO, TC_MASS_STORAGE_SERVICE, 0, dest_id); //what dest_id ?
 
     return SATR_OK;
 }
