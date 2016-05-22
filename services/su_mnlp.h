@@ -247,6 +247,8 @@ extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t
 
 extern SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf);
 
+extern SAT_returnState su_nmlp_app( tc_tm_pkt *spacket);
+
 //ToDo
 //  add check for su status off
 //  add calendar
@@ -290,5 +292,7 @@ SAT_returnState polulate_next_time_table(uint8_t *buf, science_unit_script_time_
 SAT_returnState su_next_cmd(uint8_t *buf,  science_unit_script_sequence *cmd, uint16_t *pointer);
 
 SAT_returnState su_power_ctrl(FM_fun_id fid);
+
+SAT_returnState generate_obc_su_error(uint8_t *buffer);
 
 #endif

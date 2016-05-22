@@ -38,18 +38,30 @@ uint16_t current_tt_pointer;
 /*points to the current start byte of a script's sequence begining, into the loaded script*/
 uint16_t current_ss_pointer;
 
+SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
+    
+    uint8_t ff = 0;
+    
+}
+
 SAT_returnState su_incoming_rx() {
 
     uint16_t size = 0;
     SAT_returnState res;
+    uint8_t error_array[SU_RSP_PCKT_SIZE];
+    
     res = HAL_su_uart_rx();
     if( res == SATR_EOT ) {
         
         if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
+            
             event_crt_pkt_api(uart_temp, "SU_ERR", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
         }
         else if( su_inc_buffer[23] == OBC_SU_ERR_RSP_ID ) {
+            /*here to generate the error packet as described on page 43 of mNLP doc*/
+            generate_obc_su_error(error_array);
+            
             event_crt_pkt_api(uart_temp, "SU_ERR_", 696,696, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
         }
@@ -531,6 +543,15 @@ SAT_returnState su_power_ctrl(FM_fun_id fid) {
     return SATR_OK;
 }
 
+SAT_returnState generate_obc_su_error(uint8_t *buffer) {
+    uint8_t point =  22;
+    buffer[point] = su_inc_buffer[point++];
+    buffer[point] = su_inc_buffer[point++];
+    buffer[point] = su_inc_buffer[point++];
+    buffer[point] = su_inc_buffer[point++];
+    
+    
+}
 //void su_timeout_handler(uint8_t error) {
 //    
 //    //cnv32_8(time_now(), &obc_su_scripts.rx_buf[0]);

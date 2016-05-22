@@ -33,7 +33,7 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA 700//random
+#define MAX_PKT_DATA 300//random
 #define TC_MAX_PKT_SIZE 700 //random
 #define TC_MIN_PKT_SIZE 6 //random
 
@@ -119,6 +119,7 @@ typedef enum {
 #define TC_LARGE_DATA_SERVICE           13
 #define TC_MASS_STORAGE_SERVICE         15
 #define TC_TEST_SERVICE                 17
+#define TC_SU_MNLP_SERVICE              18 /*service number out of ECSS standard, mission specific for mnlp su*/
 
 /*services subtypes*/
 #define TM_VR_ACCEPTANCE_SUCCESS        1
@@ -170,6 +171,32 @@ typedef enum {
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
 
+/*mNLP science unit sub-service definitions*/
+#define TC_SU_ON                        1
+#define TC_SU_OFF                       2
+#define TC_SU_RESET                     3
+#define TC_SU_LOAD_P                    4 //subservice 4
+#define TM_SU_LOAD_P                    5
+#define TC_SU_HC                        6 //subservice 5
+#define TM_SU_HC                        7
+#define TC_SU_CAL                       8 //subservice 6
+#define TM_SU_CAL                       9
+#define TC_SU_SCI                       10 //subservice 7
+#define TM_SU_SCI                       11
+#define TC_SU_HK                        12 //subservice 8
+#define TM_SU_HK                        13
+#define TC_SU_STM                       14 //subservice 9
+#define TM_SU_STM                       15
+#define TC_SU_DUMP                      16 //subservice 10
+#define TM_SU_DUMP                      17
+#define TC_SU_BIAS_ON                   18 //subservice 11
+#define TC_SU_BIAS_OFF                  19 //subservice 12
+#define TC_SU_MTEE_ON                   20 //subservice 13
+#define TC_SU_MTEE_OFF                  21 //subservice 14
+#define TM_SU_ERR                       22 //subservice 15
+#define TM_OBC_SU_ERR                   23 //subservice 16
+#define TC_OBC_EOT                      24 //subservice 17
+
 /*cubesat subsystem's timeouts*/
 #define TIMEOUT_V_COMMS     5000
 #define TIMEOUT_V_ADCS      5000
@@ -202,7 +229,8 @@ typedef enum {
     IAC_APP_ID      = 5,
     GND_APP_ID      = 6,
     DBG_APP_ID      = 7,
-    LAST_APP_ID     = 8
+    SU_APID         = 8,
+    LAST_APP_ID     = 9
 }TC_TM_app_id;
 
 typedef enum {  
