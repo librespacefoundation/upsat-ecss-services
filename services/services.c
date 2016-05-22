@@ -34,8 +34,8 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
 //stub
 uint32_t time_now() {
     
-    uint32_t time_p;
-    get_time_QB50( &time_p);
+    uint32_t time_p=0;
+    //get_time_QB50( &time_p);
     
     return time_p;
 //    return 0;

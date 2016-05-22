@@ -1,43 +1,55 @@
 #include "eps_hal.h"
 
+#include "eps_state.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 13
+
+extern EPS_State eps_board_state;
 
 void HAL_sys_delay(uint32_t sec) {
 	HAL_Delay(sec);
 }
 
 void HAL_eps_OBC_ON() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_OBC_SWITCH_Pin, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_OBC_SWITCH_Pin, GPIO_PIN_RESET);
+	EPS_set_rail_switch(OBC, EPS_SWITCH_RAIL_ON, &eps_board_state);
+
 }
 
 void HAL_eps_OBC_OFF() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_OBC_SWITCH_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_OBC_SWITCH_Pin, GPIO_PIN_SET);
+    EPS_set_rail_switch(OBC, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 }
 
 void HAL_eps_ADCS_ON() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_ADCS_SWITCH_Pin, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_ADCS_SWITCH_Pin, GPIO_PIN_RESET);
+    EPS_set_rail_switch(ADCS, EPS_SWITCH_RAIL_ON, &eps_board_state);
 }
 
 void HAL_eps_ADCS_OFF() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_ADCS_SWITCH_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_ADCS_SWITCH_Pin, GPIO_PIN_SET);
+    EPS_set_rail_switch(ADCS, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 }
 
 void HAL_eps_COMMS_ON() {
-    HAL_GPIO_WritePin(GPIOH, GPIO_COMM_SWITCH_Pin, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOH, GPIO_COMM_SWITCH_Pin, GPIO_PIN_RESET);
+	EPS_set_rail_switch(COMM, EPS_SWITCH_RAIL_ON, &eps_board_state);
 }
 
 void HAL_eps_COMMS_OFF() {
-    HAL_GPIO_WritePin(GPIOH, GPIO_COMM_SWITCH_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(GPIOH, GPIO_COMM_SWITCH_Pin, GPIO_PIN_SET);
+    EPS_set_rail_switch(COMM, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 }
 
 void HAL_eps_SU_ON() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_SU_SWITCH_Pin, GPIO_PIN_RESET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_SU_SWITCH_Pin, GPIO_PIN_RESET);
+    EPS_set_rail_switch(SU, EPS_SWITCH_RAIL_ON, &eps_board_state);
 }
 
 void HAL_eps_SU_OFF() {
-    HAL_GPIO_WritePin(GPIOC, GPIO_SU_SWITCH_Pin, GPIO_PIN_SET);
+    //HAL_GPIO_WritePin(GPIOC, GPIO_SU_SWITCH_Pin, GPIO_PIN_SET);
+	EPS_set_rail_switch(SU, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
