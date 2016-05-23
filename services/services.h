@@ -33,7 +33,7 @@
 #define TC_ACK_ALL          0x0F
 
 //needs to redifine
-#define MAX_PKT_DATA        200  //random
+#define MAX_PKT_DATA        250  //random
 #define TC_MAX_PKT_SIZE     200  //random
 #define TC_MIN_PKT_SIZE     6    //random
 #define MAX_PKT_EXT_DATA    2048
@@ -168,6 +168,7 @@ typedef enum {
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
 #define TC_MS_UPLINK                    14
+#define TC_MS_FORMAT                    15 /* custom service*/
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
@@ -194,7 +195,11 @@ typedef enum {
 #define TM_MONTH_NOVEMBER             ((uint8_t)0x11U)
 #define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
 
-#define UART_BUF_SIZE (MAX_PKT_DATA*2)
+#ifdef POOL_PKT_EXT
+#define UART_BUF_SIZE 4096 //(POOL_PKT_EXT*2)
+#else
+#define UART_BUF_SIZE 500 //(MAX_PKT_DATA*2)
+#endif
 
 typedef enum {  
     OBC_APP_ID      = 1,
@@ -212,7 +217,8 @@ typedef enum {
     EX_HEALTH_REP   = 2,
     EVENTS_REP      = 3,
     WOD_REP         = 4,
-    LAST_STRUCT_ID  = 5
+    EX_WOD_REP      = 5,
+    LAST_STRUCT_ID  = 6
 }HK_struct_id;
 
 typedef enum {
@@ -247,10 +253,11 @@ typedef enum {
     SU_SCRIPT_7     = 7,
     SU_LOG          = 8,
     WOD_LOG         = 9,
-    EVENT_LOG       = 10,
-    FOTOS           = 11,
-    SCHS            = 12,
-    LAST_SID        = 13
+    EXT_WOD_LOG     = 10,
+    EVENT_LOG       = 11,
+    FOTOS           = 12,
+    SCHS            = 13,
+    LAST_SID        = 14
 }MS_sid;
 
 typedef enum {  

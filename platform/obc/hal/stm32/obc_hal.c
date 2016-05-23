@@ -9,11 +9,11 @@ void HAL_sys_delay(uint32_t sec) {
 }
 
 void HAL_obc_SD_ON() {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
 }
 
 void HAL_obc_SD_OFF() {
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
 }
 
 void HAL_obc_IAC_ON() {
