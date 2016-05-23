@@ -83,17 +83,76 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
 #endif
             break;
         case 3: /*Power Reset mnlp unit*/
-            
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                su_power_ctrl(P_RESET); }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_POWER_RESET_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
-        case 6: 
+        case 4: /*su load parameters*/
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                su_power_ctrl(P_RESET); }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_LOAD_PARAMETERS", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
-        case 7:
+        case 6: /*su hc*/
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_HEALTH_CHECK_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
         case 8:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_IN_FLIGHT_CALIBRATION_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
-        case 15:
+        case 10:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_SCIENCE_DATA_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
-    }
+        case 18:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_BIAS_ON_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
+            break;            
+        case 19:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_BIAS_OFF_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
+            break;
+    }//switch ends here
     
     return SATR_OK;
 }
@@ -181,6 +240,9 @@ uint8_t time_lala = 5; //keep for fun and profit
 void su_INIT(){
 
     su_state = su_off;
+    MNLP_data.su_nmlp_sche_active = false;
+    mnlp_sim_active = true;
+    
     su_load_scripts();
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         
@@ -220,8 +282,9 @@ void su_load_scripts(){
 
 void su_SCH(){
 
-    if( su_state == su_off || su_state == su_idle) {
-
+    if( (su_state == su_off || su_state == su_idle) &&  !mnlp_sim_active  ) {
+        MNLP_data.su_nmlp_sche_active = true;
+        
         for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
             
             if( MNLP_data.su_scripts[(uint8_t) i - 1].valid_str == true && 
