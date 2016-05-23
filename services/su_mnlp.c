@@ -151,6 +151,26 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             event_crt_pkt_api(uart_temp, "SU_BIAS_OFF_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
+            break;            
+        case 20:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_MTEE_ON_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
+            break;            
+        case 21:
+            if(mnlp_sim_active){ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            else{ 
+                break; }
+#if nMNLP_DEBUGGING_ACTIVE == 1
+            event_crt_pkt_api(uart_temp, "SU_MTEE_OFF_SEND", 969,969, "", &size, SATR_OK);
+            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
             break;
     }//switch ends here
     
