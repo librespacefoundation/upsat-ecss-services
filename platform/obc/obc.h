@@ -6,13 +6,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "mass_storage_service.h"
 
 //temp
 #define TEST_ARRAY 1024
 
 #define EV_MAX_BUFFER 1024
 
-#define WOD_MAX_BUFFER 64
+#define WOD_MAX_BUFFER 256
 
 /*restriction for 8 char filename, for conversion from num to file name*/
 #define MAX_FILE_NUM 0x5F5E0FF
@@ -20,11 +21,14 @@
 struct _obc_data
 {
     uint16_t obc_seq_cnt;
-    uint32_t *file_id;
-    uint32_t *log;
+    uint32_t *file_id_su;
+    uint32_t *file_id_wod;
+    uint32_t *file_id_ext;
+    uint32_t *file_id_ev;
+    uint8_t *log;
     uint32_t *log_cnt;
     uint32_t *log_state;
-    uint32_t *wod_log;
+    uint8_t *wod_log;
     uint32_t *wod_cnt;
     
     struct uart_data dbg_uart;
@@ -66,12 +70,12 @@ extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-SAT_returnState obc_data_INIT();
+SAT_returnState obc_INIT();
 
 
 void bkup_sram_INIT();
 
-uint32_t get_new_fileId();
+uint32_t get_new_fileId(MS_sid sid);
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 

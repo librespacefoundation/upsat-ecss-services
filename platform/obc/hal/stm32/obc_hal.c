@@ -4,25 +4,34 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
-void HAL_sys_delay(uint32_t sec) {
-	osDelay(sec);
+void HAL_sys_delay(uint32_t msec) {
+	osDelay(msec);
 }
 
 void HAL_obc_SD_ON() {
+
+    for(uint16_t i = 0; i < 1000; i++){
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
+        osDelay(1);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+        osDelay(1);
+    }
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
 }
 
 void HAL_obc_SD_OFF() {
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+    osDelay(200);
 }
 
 void HAL_obc_IAC_ON() {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); /*DART*/
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET); /*CAM*/
 }
 
 void HAL_obc_IAC_OFF() {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-}
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET); /*DART*/
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); /*CAM*/}
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     
@@ -256,6 +265,10 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
 
 }
 
+uint32_t HAL_sys_GetTick() {
+  return HAL_GetTick();
+}
+
 void HAL_obc_enableBkUpAccess() {
   HAL_PWR_EnableBkUpAccess();
   HAL_PWREx_EnableBkUpReg();
@@ -265,8 +278,4 @@ void HAL_obc_enableBkUpAccess() {
 
 uint32_t * HAL_obc_BKPSRAM_BASE() {
   return (uint32_t *)BKPSRAM_BASE;
-}
-
-uint32_t HAL_sys_GetTick() {
-  return HAL_GetTick();
 }

@@ -108,8 +108,10 @@ typedef enum {
     SATRF_NOT_ENOUGH_CORE      = 46, /* (17) LFN working buffer could not be allocated */
     SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
     SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
+    
+    SATRF_DIR_ERROR            = 49, 
     /*LAST*/
-    SATR_LAST                  = 49
+    SATR_LAST                  = 50
 }SAT_returnState;
 
 /*services types*/
@@ -217,7 +219,7 @@ typedef enum {
     EX_HEALTH_REP   = 2,
     EVENTS_REP      = 3,
     WOD_REP         = 4,
-    EX_WOD_REP      = 5,
+    EXT_WOD_REP     = 5,
     LAST_STRUCT_ID  = 6
 }HK_struct_id;
 
