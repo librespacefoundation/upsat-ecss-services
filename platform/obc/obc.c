@@ -63,6 +63,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SU_MNLP_SERVICE) {
         //TODO: ADD C_ASSERT
         res = su_nmlp_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
+        //TODO: ADD C_ASSERT
+        res = time_managment_app(pkt);
     }
     else if(id == EPS_APP_ID)      { export_pkt(EPS_APP_ID, pkt, &obc_data.eps_uart); }
     else if(id == ADCS_APP_ID)     { export_pkt(ADCS_APP_ID, pkt, &obc_data.adcs_uart); }

@@ -186,11 +186,11 @@ SAT_returnState su_incoming_rx() {
     res = HAL_su_uart_rx();
     if( res == SATR_EOT ) {
         
-        switch( su_inc_buffer[23] )
-        {
-            case (uint8_t)SU_ERR_RSP_ID:
-                break;
-        }
+//        switch( su_inc_buffer[23] )
+//        {
+//            case (uint8_t)SU_ERR_RSP_ID:
+//                break;
+//        }
 //        }
 //        if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
 //            

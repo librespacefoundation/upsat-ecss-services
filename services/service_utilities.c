@@ -285,7 +285,6 @@ SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8
     pkt->type = type;
     pkt->app_id = app_id;
     pkt->dest_id = dest_id;
-
     pkt->ser_type = ser_type;
     pkt->ser_subtype = ser_subtype;
     pkt->verification_state = SATR_PKT_INIT;

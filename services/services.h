@@ -120,6 +120,7 @@ typedef enum {
 #define TC_MASS_STORAGE_SERVICE         15
 #define TC_TEST_SERVICE                 17
 #define TC_SU_MNLP_SERVICE              18 /*service number out of ECSS standard, mission specific for mnlp su*/
+#define TC_TIME_MANAGEMENT_SERVICE      19 
 
 /*services subtypes*/
 #define TM_VR_ACCEPTANCE_SUCCESS        1
@@ -199,6 +200,12 @@ typedef enum {
 #define TC_SU_SCHE_ON                   25 //subservice 24
 #define TC_SU_SCHE_OFF                  26 //subservice 25
 
+/*TIME MANAGEMENT SERVICE*/
+#define TM_TIME_SET_TIME_UTC            1 //subservice 1
+#define TM_TIME_SET_TIME_QB50           2 //subservice 2
+#define TM_REPORT_TIME_IN_UTC           3 //subservice 3
+#define TM_REPORT_TIME_IN_QB50          4 //subservice 4
+
 /*cubesat subsystem's timeouts*/
 #define TIMEOUT_V_COMMS     5000
 #define TIMEOUT_V_ADCS      5000
@@ -225,7 +232,7 @@ typedef enum {
 
 /* Definitions for debugging messages levels
  * Set the definitions for which you don't want
- * debugging verbosity to 0 (zero)
+ * debugging verbosity to 0 (zero), (the pre-processor will parse them completely out)
  */
 #define nMNLP_DEBUGGING_ACTIVE 1
 
