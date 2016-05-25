@@ -298,7 +298,7 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    su_off        = 1,
+    su_power_off  = 1,
     su_running    = 2,
     su_idle       = 3,
     su_finished   = 4,
@@ -314,6 +314,14 @@ typedef enum {
     ev_owr_2      = 6,
     LAST_EV_STATE = 7
 }EV_state;
+
+typedef enum {
+    SET_DTIME_UTC       = 1,
+    SET_DTIME_QB50      = 2,
+    REPORT_TIME_IN_UTC  = 3,
+    REPORT_TIME_IN_QB50 = 4,
+    LAST_TIME_ID        = 5
+}TIME_MAN_MODE;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 

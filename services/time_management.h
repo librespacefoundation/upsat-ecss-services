@@ -45,4 +45,6 @@ uint32_t get_time_ELAPSED();
 
 uint32_t time_cmp_elapsed(uint32_t t1, uint32_t t2);
 
+SAT_returnState time_managment_app( tc_tm_pkt *pck );
+
 #endif

@@ -88,6 +88,45 @@ const uint32_t UTC_QB50_H[25] = { 0,
                                 };
 
 
+SAT_returnState time_managment_app( tc_tm_pkt *pkt ){
+    
+    TIME_MAN_MODE t_set_mode;
+    uint32_t time_value;
+    struct time_utc temp_time;
+    
+    if(!C_ASSERT(t_set_mode < LAST_TIME_ID) == true)         { return SATR_ERROR; }
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)  { return SATR_ERROR; }
+    
+    t_set_mode = (TIME_MAN_MODE) pkt->data[0];
+    
+    if( t_set_mode == SET_DTIME_QB50){
+        /*set time from 2000 epoch*/
+    }
+    else if( t_set_mode == SET_DTIME_UTC ){
+        
+        /*set time in utc mode*/
+        temp_time.day = pkt->data[1];
+        temp_time.month = pkt->data[2];
+        temp_time.year = pkt->data[3];
+        
+        temp_time.hour = pkt->data[4];
+        temp_time.min = pkt->data[5];
+        temp_time.sec = pkt->data[6];
+        set_time_UTC(temp_time);
+
+        pkt->verification_state = SATR_OK;
+    }
+    else if( t_set_mode == REPORT_TIME_IN_QB50 ){
+        get_time_QB50(&time_value);
+    }
+    else if( t_set_mode == REPORT_TIME_IN_UTC){
+        get_time_UTC( &temp_time);
+        /*make the packet to send*/
+    }
+    
+    return SATR_OK;
+}
+
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb) {
     *qb = UTC_QB50_YM[utc.year][utc.month] + UTC_QB50_D[utc.day] + UTC_QB50_H[utc.hour] + utc.min * 60 + utc.sec;  
 }
@@ -97,6 +136,7 @@ void set_time_QB50(uint32_t qb) {
 }
 
 void set_time_UTC(struct time_utc utc) {
+    
     HAL_sys_setDate(utc.month, utc.day, utc.year);
     HAL_sys_setTime(utc.hour, utc.min, utc.sec);
 }

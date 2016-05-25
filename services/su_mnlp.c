@@ -186,22 +186,28 @@ SAT_returnState su_incoming_rx() {
     res = HAL_su_uart_rx();
     if( res == SATR_EOT ) {
         
-        if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
-            
-            event_crt_pkt_api(uart_temp, "SU_ERR", 969,969, "", &size, SATR_OK);
-            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+        switch( su_inc_buffer[23] )
+        {
+            case (uint8_t)SU_ERR_RSP_ID:
+                break;
         }
-        else if( su_inc_buffer[23] == OBC_SU_ERR_RSP_ID ) {
-            /*here to generate the error packet as described on page 43 of mNLP doc*/
-            generate_obc_su_error(error_array);
-            
-            event_crt_pkt_api(uart_temp, "SU_ERR_", 696,696, "", &size, SATR_OK);
-            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-        }
-        else{
-            event_crt_pkt_api(uart_temp, "SU_RESP", 696,696, "", &size, SATR_OK);
-            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-        }
+//        }
+//        if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
+//            
+//            event_crt_pkt_api(uart_temp, "SU_ERROR", 969,969, "", &size, SATR_OK);
+//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+//        }
+//        else if( su_inc_buffer[23] == OBC_SU_ERR_RSP_ID ) {
+//            /*here to generate the error packet as described on page 43 of mNLP doc*/
+//            generate_obc_su_error(error_array);
+//            
+//            event_crt_pkt_api(uart_temp, "SU_ERR_", 696,696, "", &size, SATR_OK);
+//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+//        }
+//        else{
+//            event_crt_pkt_api(uart_temp, "SU_RESP", 696,696, "", &size, SATR_OK);
+//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+//        }
         
 //        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
 //            su_inc_buffer[ su_scripts[(uint8_t) active_script - 1].rx_cnt++] = c; }
@@ -255,11 +261,11 @@ SAT_returnState su_incoming_rx() {
     return SATR_OK;
 }
 
-uint8_t time_lala = 5; //keep for fun and profit
+uint8_t time_lala = 5;
 
 void su_INIT(){
 
-    su_state = su_off;
+    su_state = su_power_off;
     MNLP_data.su_nmlp_sche_active = false;
     mnlp_sim_active = true;
     
@@ -302,8 +308,8 @@ void su_load_scripts(){
 
 void su_SCH(){
 
-    if( (su_state == su_off || su_state == su_idle) &&  !mnlp_sim_active  ) {
-        MNLP_data.su_nmlp_sche_active = true;
+    if( (su_state == su_power_off || su_state == su_idle) &&  !mnlp_sim_active  ) {
+//        MNLP_data.su_nmlp_sche_active = true;
         
         for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
             
@@ -360,7 +366,7 @@ void su_SCH(){
                         if( ss_call_state == SATR_OK ){
 //                            scom_call_state = ss_call_state;
 //                            while( true ){ /*start executing commands in a script sequence*/
-                            for(uint8_t p=0; p<SU_MAX_FILE_SIZE; p++){ /*start executing commands in a script sequence*/
+                            for(uint16_t p=0; p<SU_MAX_FILE_SIZE; p++){ /*start executing commands in a script sequence*/
                                 
                                 /*if the script has been deleted/updated abort this old instance of it*/
                                 if(MNLP_data.su_scripts[(uint8_t) active_script - 1].valid_logi != true ){ break;}
