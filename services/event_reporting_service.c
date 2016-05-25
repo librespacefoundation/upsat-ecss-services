@@ -5,6 +5,14 @@
 
 static uint8_t strNo[] = "No";
 
+SAT_returnState event_app(tc_tm_pkt * pkt) {
+
+    //event_log(pkt->data, EV_DATA_SIZE);
+
+    return SATR_OK;
+}
+
+
 SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e, uint16_t *size, SAT_returnState mode) {
 
     uint8_t sub_type;
@@ -45,3 +53,8 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
 
     return SATR_OK;
 }
+
+//SAT_returnState event_crt_api(uint8_t *buf, uint16_t *size) {
+
+
+

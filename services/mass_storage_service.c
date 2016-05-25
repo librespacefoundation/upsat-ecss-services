@@ -284,7 +284,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, get_new_fileId(sid)); }
     else if(sid == EXT_WOD_LOG) { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, get_new_fileId(sid)); }
     else if(sid == EVENT_LOG)   { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, get_new_fileId(sid)); }
-    else if(sid == FOTOS)       { strncpy((char*)path, MS_FOTOS, MS_MAX_PATH); }
+    else if(sid == FOTOS)       { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_FOTOS, get_new_fileId(sid)); }
     else if(sid == SU_SCRIPT_1) { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_2) { strncpy((char*)path, MS_SU_SCRIPT_2, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_3) { strncpy((char*)path, MS_SU_SCRIPT_3, MS_MAX_PATH); }
@@ -407,9 +407,15 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
             *size += sizeof(uint32_t);
 
             cnv32_8(fno.fsize, &buf[(*size)]);
-            *size += sizeof(uint32_t);  
+            *size += sizeof(uint32_t);
 
-            if(*size >= MAX_PKT_DATA + (sizeof(uint32_t) * 3)) { f_closedir(&dir); return SATR_OK; }
+            cnv16_8(fno.fdate, &buf[(*size)]);
+            *size += sizeof(uint16_t);
+
+            cnv16_8(fno.ftime, &buf[(*size)]);
+            *size += sizeof(uint16_t);
+ 
+            if(*size >= MAX_PKT_DATA + (sizeof(uint32_t) * 4)) { f_closedir(&dir); return SATR_OK; }
         } 
 
     }
@@ -454,6 +460,12 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
 
         cnv32_8(fno.fsize, &buf[(*size)]);
         *size += sizeof(uint32_t);
+
+        cnv16_8(fno.fdate, &buf[(*size)]);
+        *size += sizeof(uint16_t);
+
+        cnv16_8(fno.ftime, &buf[(*size)]);
+        *size += sizeof(uint16_t);
         
         buf[(*size)] = MNLP_data.su_scripts[(uint8_t) i-1].valid_logi;
         *size += sizeof(uint8_t);

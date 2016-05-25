@@ -16,7 +16,13 @@ void hk_SCH() {
     route_pkt(&hk_pkt);
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
-    HAL_sys_delay(30000);
+
+    wdg.hk_valid = true;
+    HAL_sys_delay(15000);
+
+    wdg.hk_valid = true;
+    HAL_sys_delay(15000);
+
     wod_log();
     clear_wod();
     hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, WOD_REP);
@@ -28,8 +34,13 @@ void hk_SCH() {
     route_pkt(&hk_pkt);
     hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
-    HAL_sys_delay(30000);
-    
+
+    wdg.hk_valid = true;
+    HAL_sys_delay(15000);
+
+    wdg.hk_valid = true;
+    HAL_sys_delay(15000);  
+
     hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     clear_ext_wod();

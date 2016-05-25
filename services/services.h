@@ -281,14 +281,18 @@ typedef enum {
 }SU_state;
 
 typedef enum {  
-    ev_free_1     = 1,
-    ev_free_2     = 2,
-    ev_wr_1       = 3,
-    ev_wr_2       = 4,
-    ev_owr_1      = 5,
-    ev_owr_2      = 6,
-    LAST_EV_STATE = 7
-}EV_state;
+    inc_pkt       = 1,
+    pkt_ack_er    = 2,
+    sys_boot      = 3,
+    pwr_level     = 4,
+    comms_tx_off  = 5,
+    sys_timeout   = 6,
+    sys_shutdown  = 7,
+    assertion     = 8,
+    su_error      = 9,
+    su_scr_start  = 10,
+    LAST_EV_EVENT = 11
+}EV_event;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 

@@ -2,7 +2,7 @@
 #define __HOUSEKEEPING_H
 
 #include <stdint.h>
-#include "../../../ecss_services/services/services.h"
+#include "services.h"
 #include "obc.h"
 
 extern void HAL_sys_delay(uint32_t sec);
