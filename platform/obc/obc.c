@@ -45,6 +45,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
     if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
+        res = event_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
+        //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = hk_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
         res = function_management_app(pkt);
@@ -158,6 +161,19 @@ uint32_t get_new_fileId(MS_sid sid) {
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
   
+    uint32_t tmp_time;
+
+    union _cnv cnv;
+
+    get_time_QB50(&tmp_time);
+
+    cnv.cnv32 = tmp_time;
+
+    for(uint16_t i = 0; i < 4; i++) {
+        obc_data.log[*obc_data.log_cnt] = cnv.cnv8[i];
+        if(++(*obc_data.log_cnt) >= EV_MAX_BUFFER) { *obc_data.log_cnt = 0; }
+    }
+
     for(uint16_t i = 0; i < size; i++) {
         obc_data.log[*obc_data.log_cnt] = buf[i];
         (*obc_data.log_cnt)++;

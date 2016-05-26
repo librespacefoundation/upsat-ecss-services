@@ -7,7 +7,13 @@ static uint8_t strNo[] = "No";
 
 SAT_returnState event_app(tc_tm_pkt * pkt) {
 
-    //event_log(pkt->data, EV_DATA_SIZE);
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+
+    uint8_t ev_id = pkt->data[0];
+
+    if(!C_ASSERT(ev_id < LAST_EV_EVENT) == true) { return SATR_ERROR; }
+
+    event_log(pkt->data, EV_DATA_SIZE);
 
     return SATR_OK;
 }
@@ -54,7 +60,45 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
     return SATR_OK;
 }
 
-//SAT_returnState event_crt_api(uint8_t *buf, uint16_t *size) {
+SAT_returnState event_boot(uint8_t reset_source) {
+
+    tc_tm_pkt *temp_pkt = 0;
 
 
+    if(event_crt_pkt(&temp_pkt, EV_sys_boot) != SATR_OK) { return SATR_ERROR; }
+    temp_pkt->data[5] = reset_source;
 
+    /*zero padding for fixed length*/
+    temp_pkt->data[6] = 0;
+    temp_pkt->data[7] = 0;
+    temp_pkt->data[8] = 0;
+    temp_pkt->data[9] = 0;
+    temp_pkt->data[10] = 0;
+    temp_pkt->data[11] = 0;
+    
+
+    if(SYSTEM_APP_ID == OBC_APP_ID) {
+        event_log(temp_pkt->data, EV_DATA_SIZE);
+    } else {
+        route_pkt(temp_pkt);
+
+    }
+    return SATR_OK;
+}
+
+
+SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, EV_event event) {
+
+    *pkt = get_pkt();
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+
+    crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, SYSTEM_APP_ID);
+
+    uint32_t time_temp = HAL_sys_GetTick();
+    (*pkt)->data[0] = event;
+    cnv32_8(time_temp, &((*pkt)->data[1]));
+
+    (*pkt)->len = 12;
+
+    return SATR_OK;
+}
