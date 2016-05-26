@@ -4,25 +4,34 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
-void HAL_sys_delay(uint32_t sec) {
-	osDelay(sec);
+void HAL_sys_delay(uint32_t msec) {
+	osDelay(msec);
 }
 
 void HAL_obc_SD_ON() {
+
+    for(uint16_t i = 0; i < 1000; i++){
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
+        osDelay(1);
+        HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+        osDelay(1);
+    }
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);
 }
 
 void HAL_obc_SD_OFF() {
     HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
+    osDelay(200);
 }
 
 void HAL_obc_IAC_ON() {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); /*DART*/
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_RESET); /*CAM*/
 }
 
 void HAL_obc_IAC_OFF() {
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-}
+    HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET); /*DART*/
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); /*CAM*/}
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     
@@ -192,6 +201,27 @@ SAT_returnState HAL_su_uart_rx() {
     return SATR_OK;
 }
 
+SAT_returnState import_spi() {
+  static uint8_t cnt;
+  HAL_StatusTypeDef res;
+
+  if(obc_data.iac_flag == true) {
+      uint16_t size = 200;
+      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      obc_data.iac_out[0] = cnt++;
+      obc_data.iac_out[1] = cnt++;
+      //obc_data.iac_in[0] = 0xFA;
+      //obc_data.iac_in[1] = 0xAF;
+      obc_data.iac_flag = false;
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  } else if( hspi3.State == HAL_SPI_STATE_READY) {
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+  }
+
+}
+
 void HAL_reset_source(uint8_t *src) {
 
     *src = __HAL_RCC_GET_FLAG(RCC_FLAG_BORRST);
@@ -256,6 +286,10 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
 
 }
 
+uint32_t HAL_sys_GetTick() {
+  return HAL_GetTick();
+}
+
 void HAL_obc_enableBkUpAccess() {
   HAL_PWR_EnableBkUpAccess();
   HAL_PWREx_EnableBkUpReg();
@@ -267,6 +301,13 @@ uint32_t * HAL_obc_BKPSRAM_BASE() {
   return (uint32_t *)BKPSRAM_BASE;
 }
 
-uint32_t HAL_sys_GetTick() {
-  return HAL_GetTick();
+void wdg_reset() {
+
+  if(wdg.hk_valid == true && \
+     wdg.uart_valid == true ) {
+      
+      HAL_IWDG_Refresh(&hiwdg);
+      wdg.hk_valid = false;
+      wdg.uart_valid = false; 
+  }
 }

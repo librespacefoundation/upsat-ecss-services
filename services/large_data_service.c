@@ -336,7 +336,7 @@ SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 
 SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, uint16_t dest_id) {
 
-    *pkt = get_pkt();
+    *pkt = get_pkt_ext();
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
     crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_LARGE_DATA_SERVICE, TM_LD_ACK_UPLINK, dest_id);
 

@@ -6,6 +6,7 @@
 #include <cmsis_os.h>
 #include "services.h"
 #include "task.h"
+#include "obc.h"
 
 //ToDo
 //  improve return types
@@ -16,10 +17,16 @@ extern UART_HandleTypeDef huart2;
 extern UART_HandleTypeDef huart3;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart6;
+extern SPI_HandleTypeDef  hspi3;
 extern RTC_HandleTypeDef hrtc;
 extern TaskHandle_t xTask_UART;
+extern IWDG_HandleTypeDef hiwdg;
 
 extern uint8_t su_inc_buffer[197];
+
+extern struct _obc_data obc_data;
+
+extern struct _wdg_state wdg;
 
 void HAL_obc_SD_ON();
 
@@ -56,5 +63,7 @@ void HAL_obc_enableBkUpAccess();
 uint32_t * HAL_obc_BKPSRAM_BASE();
 
 uint32_t HAL_sys_GetTick();
+
+void wdg_reset();
 
 #endif

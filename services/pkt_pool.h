@@ -8,7 +8,7 @@
 #define PKT_TIMEOUT 1000 /*in seconds*/
 
 #ifndef POOL_PKT_SIZE
-#define POOL_PKT_SIZE   30
+#define POOL_PKT_SIZE   25
 #endif
 
 #ifdef POOL_PKT_EXT

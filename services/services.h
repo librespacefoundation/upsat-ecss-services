@@ -108,8 +108,10 @@ typedef enum {
     SATRF_NOT_ENOUGH_CORE      = 46, /* (17) LFN working buffer could not be allocated */
     SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
     SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
+    
+    SATRF_DIR_ERROR            = 49, 
     /*LAST*/
-    SATR_LAST                  = 49
+    SATR_LAST                  = 50
 }SAT_returnState;
 
 /*services types*/
@@ -217,7 +219,7 @@ typedef enum {
     EX_HEALTH_REP   = 2,
     EVENTS_REP      = 3,
     WOD_REP         = 4,
-    EX_WOD_REP      = 5,
+    EXT_WOD_REP     = 5,
     LAST_STRUCT_ID  = 6
 }HK_struct_id;
 
@@ -279,14 +281,18 @@ typedef enum {
 }SU_state;
 
 typedef enum {  
-    ev_free_1     = 1,
-    ev_free_2     = 2,
-    ev_wr_1       = 3,
-    ev_wr_2       = 4,
-    ev_owr_1      = 5,
-    ev_owr_2      = 6,
-    LAST_EV_STATE = 7
-}EV_state;
+    EV_inc_pkt       = 1,
+    EV_pkt_ack_er    = 2,
+    EV_sys_boot      = 3,
+    EV_pwr_level     = 4,
+    EV_comms_tx_off  = 5,
+    EV_sys_timeout   = 6,
+    EV_sys_shutdown  = 7,
+    EV_assertion     = 8,
+    EV_su_error      = 9,
+    EV_su_scr_start  = 10,
+    LAST_EV_EVENT    = 11
+}EV_event;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 

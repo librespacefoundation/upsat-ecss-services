@@ -48,7 +48,7 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
         res = function_management_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_LARGE_DATA_SERVICE) {
-        res = large_data_app(pkt);
+        //res = large_data_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TEST_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = test_app(pkt);
@@ -58,8 +58,8 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == GND_APP_ID)      { 
-      if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
-      else { tx_test(pkt); } //we need to fix this
+      //if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
+      //else { tx_test(pkt); } //we need to fix this
     }
     else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &comms_data.obc_uart); }
 

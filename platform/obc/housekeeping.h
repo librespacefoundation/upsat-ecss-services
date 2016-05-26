@@ -2,7 +2,7 @@
 #define __HOUSEKEEPING_H
 
 #include <stdint.h>
-#include "../../../ecss_services/services/services.h"
+#include "services.h"
 #include "obc.h"
 
 extern void HAL_sys_delay(uint32_t sec);
@@ -19,6 +19,8 @@ void hk_SCH();
 void hk_INIT();
 
 void clear_wod();
+
+void clear_ext_wod();
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data);
 

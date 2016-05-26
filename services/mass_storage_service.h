@@ -12,6 +12,7 @@
 
 #define MS_SU_LOG          "/SU_LOG"
 #define MS_WOD_LOG         "/WOD_LOG"
+#define MS_EXT_WOD_LOG     "/EXT_WOD"
 #define MS_SU_SCRIPT_1     "/SU_SCR_1/SCR1.bin"
 #define MS_SU_SCRIPT_2     "/SU_SCR_2/SCR2.bin"
 #define MS_SU_SCRIPT_3     "/SU_SCR_3/SCR3.bin"
@@ -19,7 +20,7 @@
 #define MS_SU_SCRIPT_5     "/SU_SCR_5/SCR5.bin"
 #define MS_SU_SCRIPT_6     "/SU_SCR_6/SCR6.bin"
 #define MS_SU_SCRIPT_7     "/SU_SCR_7/SCR7.bin"
-#define MS_EVENT_LOG       "/EVENT_LOG"
+#define MS_EVENT_LOG       "/EV_LOG"
 #define MS_FOTOS           "/FOTOS"
 #define MS_SCHS            "/SCHS"
 
@@ -36,7 +37,8 @@
 
 struct _MS_data {
     
-    FATFS test;
+    FATFS Fs;
+    uint8_t enabled;
     uint32_t stores_fsize[3];   /*total file size in each store, fotos, su_log, ev_log */
     uint16_t stores_fcount[3];  /*file count in each store, fotos, su_log, ev_log */
     //uint32_t ev_temp_log;
@@ -49,7 +51,7 @@ extern struct _MNLP_data MNLP_data;
         
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 
-extern uint32_t get_new_fileId();
+extern uint32_t get_new_fileId(MS_sid sid);
 
 extern tc_tm_pkt * get_pkt();
 
@@ -121,5 +123,10 @@ SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, uint16_t dest_id);
 SAT_returnState mass_storage_crtPkt_ext(tc_tm_pkt **pkt, uint16_t dest_id);
 
 SAT_returnState mass_storage_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subtype);
+
+
+SAT_returnState mass_storage_FORMAT();
+
+SAT_returnState mass_storage_dirCheck();
 
 #endif

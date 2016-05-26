@@ -6,27 +6,47 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "mass_storage_service.h"
 
 //temp
 #define TEST_ARRAY 1024
 
-#define EV_MAX_BUFFER 1024
+#define EV_MAX_BUFFER  1024
+#define EV_BUFFER_PART 205
 
-#define WOD_MAX_BUFFER 64
+#define WOD_MAX_BUFFER 256
+
+#define IAC_PKT_SIZE 205 /*1 cmd, 4 fname, 200 data*/
 
 /*restriction for 8 char filename, for conversion from num to file name*/
 #define MAX_FILE_NUM 0x5F5E0FF
 
+typedef enum {  
+    EV_P0         = 0,
+    EV_P1         = 1,
+    EV_P2         = 2,
+    EV_P3         = 3,
+    EV_P4         = 4,
+    LAST_EV_STATE = 5
+}EV_state;
+
 struct _obc_data
 {
     uint16_t obc_seq_cnt;
-    uint32_t *file_id;
-    uint32_t *log;
+    uint32_t *file_id_su;
+    uint32_t *file_id_wod;
+    uint32_t *file_id_ext;
+    uint32_t *file_id_ev;
+    uint32_t *file_id_fotos;
+    uint8_t *log;
     uint32_t *log_cnt;
     uint32_t *log_state;
-    uint32_t *wod_log;
+    uint8_t *wod_log;
     uint32_t *wod_cnt;
     
+    uint8_t iac_in[IAC_PKT_SIZE];
+    uint8_t iac_out[IAC_PKT_SIZE];
+    uint8_t iac_flag;
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;
@@ -44,9 +64,14 @@ struct _sat_status {
     uint8_t temp_comms;
 };
 
-extern struct _sat_status sat_status;
+struct _wdg_state {
+    uint8_t hk_valid;
+    uint8_t uart_valid; 
+};
 
+extern struct _sat_status sat_status;
 extern struct _obc_data obc_data;
+extern struct _wdg_state wdg;
 
 extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
 
@@ -59,19 +84,18 @@ extern SAT_returnState hk_app(tc_tm_pkt *pkt);
 extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
-//extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 //extern uint8_t su_inc_buffer[200];
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-SAT_returnState obc_data_INIT();
+SAT_returnState obc_INIT();
 
 
 void bkup_sram_INIT();
 
-uint32_t get_new_fileId();
+uint32_t get_new_fileId(MS_sid sid);
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
