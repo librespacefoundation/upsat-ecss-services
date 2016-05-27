@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "upsat.h"
 #include "mass_storage_service.h"
 #include "wdg.h"
 
@@ -55,6 +56,11 @@ struct _sat_status {
     uint8_t temp_comms;
 };
 
+struct _sys_data {
+    uint8_t rsrc;
+    uint32_t *boot_counter;
+};
+
 extern struct _sat_status sat_status;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
@@ -93,6 +99,12 @@ SAT_returnState wod_log();
 
 SAT_returnState wod_log_load(uint8_t *buf);
 
-SAT_returnState check_timeouts();
+void set_reset_source(const uint8_t rsrc);
+
+void get_reset_source(uint8_t *rsrc);
+
+void update_boot_counter();
+
+void get_boot_counter(uint32_t *cnt);
 
 #endif

@@ -3,8 +3,6 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 1
 
-struct _sys_data sys_data;
-
 /*Lookup table that returns if a service with its subtype with TC or TM is supported and valid*/
 const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = { 
 /*       0       1       2       3       4       5       6       7       8       9      10      11      12      13      14      15      16      17      18      19      20      21      22      23      24      25   */
@@ -57,9 +55,4 @@ uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e) {
   //event_log(uart_temp, 6);
 
   return false;
-}
-
-SAT_returnState sys_data_INIT() {
-  for(uint8_t i = 0; i < LAST_APP_ID; i++) { sys_data.seq_cnt[i] = 0; }
-  return SATR_OK;
 }

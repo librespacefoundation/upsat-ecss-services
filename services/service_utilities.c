@@ -5,6 +5,8 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 2
 
+static struct _pkt_state pkt_state;
+
 // need to check endiannes
 void cnv32_8(const uint32_t from, uint8_t *to) {
 
@@ -57,53 +59,6 @@ SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_
     for(int i=0; i<=size; i++){
         *res_crc = *res_crc ^ data[i];
     }
-
-    return SATR_OK;
-}
-
-SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
-
-    tc_tm_pkt *pkt;
-    uint16_t size = 0;
-
-    SAT_returnState res;    
-    SAT_returnState res_deframe;
-
-    res = HAL_uart_rx(app_id, data);
-    if( res == SATR_EOT ) {
-        
-        size = data->uart_size;
-        res_deframe = HLDLC_deframe(data->uart_unpkt_buf, data->deframed_buf, &size);
-        if(res_deframe == SATR_EOT) {
-            
-            data->last_com_time = HAL_sys_GetTick();/*update the last communication time, to be used for timeout discovery*/
-
-            pkt = get_pkt(size);
-
-            if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
-            if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 
-            else { verification_app(pkt); free_pkt(pkt); }
-        }
-    }
-
-    return SATR_OK;
-}
-
-//WIP
-SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data) {
-
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
-
-    uint16_t size = 0;
-    SAT_returnState res;    
-
-    pack_pkt(data->uart_pkted_buf, pkt, &size);
-    res = HLDLC_frame(data->uart_pkted_buf, data->framed_buf, &size);
-    if(res == SATR_ERROR) { return SATR_ERROR; }
-
-    if(!C_ASSERT(size > 0) == true) { return SATR_ERROR; }
-
-    HAL_uart_tx(app_id, data->framed_buf, size);
 
     return SATR_OK;
 }
@@ -162,6 +117,11 @@ SAT_returnState unpack_pkt(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t si
     if(!C_ASSERT(tmp_crc[0] == tmp_crc[1]) == true) {
         pkt->verification_state = SATR_PKT_INC_CRC;
         return SATR_PKT_INC_CRC; 
+    }
+
+    if(!C_ASSERT(pkt->ser_type < MAX_SERVICES && pkt->ser_subtype < MAX_SUBTYPES && pkt->type <= TC) == true) { 
+        pkt->verification_state = SATR_PKT_ILLEGAL_PKT_TP;
+        return SATR_PKT_ILLEGAL_PKT_TP; 
     }
 
     if(!C_ASSERT(services_verification_TC_TM[pkt->ser_type][pkt->ser_subtype][pkt->type] == 1) == true) { 
@@ -234,8 +194,8 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
     buf[1] = cnv.cnv8[0];
 
     /*if the pkt was created in OBC, it updates the counter*/
-    if(pkt->type == TC && pkt->dest_id == SYSTEM_APP_ID)      { pkt->seq_count = sys_data.seq_cnt[pkt->dest_id]++; } 
-    else if(pkt->type == TM && pkt->app_id == SYSTEM_APP_ID)  { pkt->seq_count = sys_data.seq_cnt[pkt->app_id]++; }
+    if(pkt->type == TC && pkt->dest_id == SYSTEM_APP_ID)      { pkt->seq_count = pkt_state.seq_cnt[pkt->dest_id]++; } 
+    else if(pkt->type == TM && pkt->app_id == SYSTEM_APP_ID)  { pkt->seq_count = pkt_state.seq_cnt[pkt->app_id]++; }
 
     pkt->seq_flags = TC_TM_SEQ_SPACKET;
     cnv.cnv16[0] = pkt->seq_count;
@@ -294,10 +254,7 @@ SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8
     return SATR_OK;
 }
 
-void update_boot_counter() {
-    (*sys_data.boot_counter)++;
-}
-
-void get_boot_counter(uint32_t *cnt) {
-    *cnt = *sys_data.boot_counter;
+SAT_returnState sys_data_INIT() {
+  for(uint8_t i = 0; i < LAST_APP_ID; i++) { pkt_state.seq_cnt[i] = 0; }
+  return SATR_OK;
 }

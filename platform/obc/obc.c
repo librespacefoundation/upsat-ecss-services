@@ -30,6 +30,7 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 struct _obc_data obc_data;
 struct _sat_status sat_status;
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
+static struct _sys_data sys_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
@@ -310,4 +311,20 @@ SAT_returnState check_subsystems_timeouts() {
     }
 
     return SATR_OK;
+}
+
+void set_reset_source(const uint8_t rsrc) {
+    sys_data.rsrc = rsrc;
+}
+
+void get_reset_source(uint8_t *rsrc) {
+    *rsrc = sys_data.rsrc;
+}
+
+void update_boot_counter() {
+    (*sys_data.boot_counter)++;
+}
+
+void get_boot_counter(uint32_t *cnt) {
+    *cnt = *sys_data.boot_counter;
 }

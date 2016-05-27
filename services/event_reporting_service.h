@@ -6,6 +6,7 @@
 #include "system.h"
 #include "service_utilities.h"
 #include "pkt_pool.h"
+#include "hldlc.h"
 
 #define EV_DATA_SIZE 12
 
