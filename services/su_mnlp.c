@@ -79,97 +79,70 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 4: /*su load parameters*/
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); } //to check it !!!
-            else{ 
-                ; }
+        case 4: /*su load parameters*/ 
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); } //to check it !!!
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_LOAD_PARAMETERS", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
         case 6: /*su health check*/
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_HEALTH_CHECK_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 8:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 8: /*su calibrate*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_CAL(IBRATION)_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 10:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 10: /*su science*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_SCI(ENCE_DATA)_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 12:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 12: /*su housekeep*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_HK(HOUSEKEEP)_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 14:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 14: /*su stm*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_STM_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 16:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 16:/*su dump*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_DUMP_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
-        case 18:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 18: /*bias on*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_BIAS_ON_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;            
-        case 19:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 19: /*bias off*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_BIAS_OFF_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;            
-        case 20:
+        case 20: /*mtee on*/
             if(mnlp_sim_active){ 
                 HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
             else{ 
@@ -179,11 +152,8 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;            
-        case 21:
-            if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
-                ; }
+        case 21: /*mtee off*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_MTEE_OFF_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
@@ -291,7 +261,8 @@ SAT_returnState su_incoming_rx() {
 #endif
                 break;
             case (uint8_t)SU_ERR_RSP_ID: /*indicates tha nmlp is in reset state, power cycle must be done*/
-                handle_su_error();
+//                handle_su_error();
+                mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_ERROR_RECEIVED(0xBB)", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
