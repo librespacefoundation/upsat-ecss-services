@@ -51,7 +51,7 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     size -= LD_PKT_DATA_HDR_SIZE;
 
     LD_status.ld_num = ld_num;
-    LD_status.size += size;
+    LD_status.rx_size += size;
 
     LD_status.ld_num = ld_num;
     LD_status.rx_lid = lid;
@@ -101,7 +101,7 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     size -= LD_PKT_DATA_HDR_SIZE;
 
     LD_status.ld_num = ld_num;
-    LD_status.size += size;
+    LD_status.rx_size += size;
 
     for(uint16_t i = 0; i < size; i++) { 
         LD_status.buf[(LD_status.ld_num * LD_PKT_DATA) + i] = pkt->data[i + LD_PKT_DATA_HDR_SIZE]; 
@@ -147,7 +147,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     size -= LD_PKT_DATA_HDR_SIZE;
 
     LD_status.ld_num = ld_num;
-    LD_status.size += size;
+    LD_status.rx_size += size;
 
     for(uint16_t i = 0; i < size; i++) { 
         LD_status.buf[(LD_status.ld_num * LD_PKT_DATA) + i] = pkt->data[i + LD_PKT_DATA_HDR_SIZE]; 
@@ -161,9 +161,9 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     LD_status.timeout = 0;
     LD_status.started = 0;
 
-    temp_pkt = get_pkt((LD_status.size);
+    temp_pkt = get_pkt(LD_status.rx_size);
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
-    if(unpack_pkt(LD_status.buf, temp_pkt, LD_status.size) == SATR_OK) { route_pkt(pkt); } 
+    if(unpack_pkt(LD_status.buf, temp_pkt, LD_status.rx_size) == SATR_OK) { route_pkt(pkt); } 
     else { verification_app(pkt); free_pkt(pkt); }
 
     return SATR_OK;
