@@ -98,23 +98,24 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
     uint8_t c;
 
     c = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    uart_timeout_check(huart);
     if(huart->RxXferSize == huart->RxXferCount && c == HLDLC_START_FLAG) {
       *huart->pRxBuffPtr++ = c;
       huart->RxXferCount--;
-      //start timeout
+      uart_timeout_start(huart);
     } else if(c == HLDLC_START_FLAG && (huart->RxXferSize - huart->RxXferCount) < TC_MIN_PKT_SIZE) {
       err++;
       huart->pRxBuffPtr -= huart->RxXferSize - huart->RxXferCount;
       huart->RxXferCount = huart->RxXferSize - 1;
       *huart->pRxBuffPtr++ = c;
-      //error
-      //event log
-      //reset buffers & pointers
-      //start timeout
+
+      uart_timeout_start(huart);
     } else if(c == HLDLC_START_FLAG) {
       *huart->pRxBuffPtr++ = c;
       huart->RxXferCount--;
       
+      uart_timeout_stop(huart);
+
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
 
       /* Disable the UART Parity Error Interrupt */
@@ -138,8 +139,43 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
 
     if(huart->RxXferCount == 0U) // errror
     {
-      
+        huart->pRxBuffPtr -= huart->RxXferSize - huart->RxXferCount;
+        huart->RxXferCount = huart->RxXferSize;
+        err++;
     }
+}
+
+void uart_timeout_start(UART_HandleTypeDef *huart) {
+
+  uint32_t t = HAL_GetTick();
+  if(huart = &huart1) {  }
+  else if(huart == &huart2) { }
+  else if(huart == &huart3) { }
+  else if(huart == &huart4) { }
+  else if(huart == &huart6) { }
+
+}
+
+void uart_timeout_stop(UART_HandleTypeDef *huart) {
+
+  uint32_t t = HAL_GetTick();
+  if(huart = &huart1) {  }
+  else if(huart == &huart2) { }
+  else if(huart == &huart3) { }
+  else if(huart == &huart4) { }
+  else if(huart == &huart6) { }
+
+}
+
+void uart_timeout_check(UART_HandleTypeDef *huart) {
+
+  uint32_t t = HAL_GetTick();
+  if(huart == &huart1) {  } //&& != 0 
+  else if(huart == &huart2) { }
+  else if(huart == &huart3) { }
+  else if(huart == &huart4) { }
+  else if(huart == &huart6) { }
+
 }
 
 void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
@@ -160,10 +196,14 @@ uint16_t err;
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
 
+    uart_timeout_start(huart);
     *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
-    //timeout
+    uart_timeout_check(huart);
     if(--huart->RxXferCount == 0U)
     {
+
+      uart_timeout_stop(huart);
+
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
 
       /* Disable the UART Parity Error Interrupt */
@@ -206,7 +246,7 @@ SAT_returnState import_spi() {
   HAL_StatusTypeDef res;
 
   if(obc_data.iac_flag == true) {
-      uint16_t size = 200;
+      uint16_t size = 198;
       if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
       obc_data.iac_out[0] = cnt++;
@@ -301,13 +341,10 @@ uint32_t * HAL_obc_BKPSRAM_BASE() {
   return (uint32_t *)BKPSRAM_BASE;
 }
 
-void wdg_reset() {
+void HAL_obc_IWDG_Start() {
+  HAL_IWDG_Start(&hiwdg);;
+}
 
-  if(wdg.hk_valid == true && \
-     wdg.uart_valid == true ) {
-      
-      HAL_IWDG_Refresh(&hiwdg);
-      wdg.hk_valid = false;
-      wdg.uart_valid = false; 
-  }
+void HAL_obc_IWDG_Refresh() {
+  HAL_IWDG_Refresh(&hiwdg);
 }

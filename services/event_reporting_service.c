@@ -60,22 +60,16 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
     return SATR_OK;
 }
 
-SAT_returnState event_boot(uint8_t reset_source) {
+SAT_returnState event_boot(const uint8_t reset_source, const uint8_t boot_counter) {
 
     tc_tm_pkt *temp_pkt = 0;
 
-
     if(event_crt_pkt(&temp_pkt, EV_sys_boot) != SATR_OK) { return SATR_ERROR; }
     temp_pkt->data[5] = reset_source;
+    temp_pkt->data[6] = boot_counter;
 
     /*zero padding for fixed length*/
-    temp_pkt->data[6] = 0;
-    temp_pkt->data[7] = 0;
-    temp_pkt->data[8] = 0;
-    temp_pkt->data[9] = 0;
-    temp_pkt->data[10] = 0;
-    temp_pkt->data[11] = 0;
-    
+    for(uint8_t i = 7; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
 
     if(SYSTEM_APP_ID == OBC_APP_ID) {
         event_log(temp_pkt->data, EV_DATA_SIZE);
@@ -86,10 +80,27 @@ SAT_returnState event_boot(uint8_t reset_source) {
     return SATR_OK;
 }
 
+SAT_returnState event_pkt_pool_timeout() {
 
-SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, EV_event event) {
+    tc_tm_pkt *temp_pkt = 0;
 
-    *pkt = get_pkt();
+    if(event_crt_pkt(&temp_pkt, EV_pkt_pool_timeout) != SATR_OK) { return SATR_ERROR; }
+
+    /*zero padding for fixed length*/
+    for(uint8_t i = 6; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+    
+    if(SYSTEM_APP_ID == OBC_APP_ID) {
+        event_log(temp_pkt->data, EV_DATA_SIZE);
+    } else {
+        route_pkt(temp_pkt);
+
+    }
+    return SATR_OK;
+}
+
+SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, const EV_event event) {
+
+    *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
 
     crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, SYSTEM_APP_ID);

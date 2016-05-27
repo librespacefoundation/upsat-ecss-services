@@ -50,8 +50,8 @@ void cnv8_16(uint8_t *from, uint16_t *to) {
 
 SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_crc) {
 
-    if(!C_ASSERT(data != NULL && size != 0) == true)                        { return SATR_ERROR; }
-    if(!C_ASSERT(size > MIN_PKT_SIZE-2 && size < MAX_PKT_SIZE-2) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(data != NULL && size != 0) == true)                         { return SATR_ERROR; }
+    if(!C_ASSERT(size > TC_MIN_PKT_SIZE-2 && size < MAX_PKT_SIZE-2) == true) { return SATR_ERROR; }
 
     *res_crc = 0;
     for(int i=0; i<=size; i++){
@@ -61,7 +61,6 @@ SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_
     return SATR_OK;
 }
 
-//WIP
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
     tc_tm_pkt *pkt;
@@ -78,12 +77,9 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
         if(res_deframe == SATR_EOT) {
             
             data->last_com_time = HAL_sys_GetTick();/*update the last communication time, to be used for timeout discovery*/
-#ifdef POOL_PKT_EXT
-            if(size < MAX_PKT_SIZE) { pkt = get_pkt(); }
-            else { pkt = get_pkt_ext(); }
-#else
-            pkt = get_pkt();
-#endif
+
+            pkt = get_pkt(size);
+
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
             if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 
             else { verification_app(pkt); free_pkt(pkt); }
@@ -121,7 +117,7 @@ SAT_returnState unpack_pkt(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t si
     uint8_t ver, dfield_hdr, ccsds_sec_hdr, tc_pus;
 
     if(!C_ASSERT(buf != NULL && pkt != NULL && pkt->data != NULL) == true)  { return SATR_ERROR; }
-    if(!C_ASSERT(size > MIN_PKT_SIZE && size < MAX_PKT_SIZE) == true)       { return SATR_ERROR; }
+    if(!C_ASSERT(size > TC_MIN_PKT_SIZE && size < MAX_PKT_SIZE) == true)    { return SATR_ERROR; }
 
     tmp_crc[0] = buf[size - 1];
     checkSum(buf, size-2, &tmp_crc[1]); /* -2 for excluding the checksum bytes*/
@@ -229,8 +225,8 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
     uint16_t buf_pointer;
 
     if(!C_ASSERT(buf != NULL && pkt != NULL && pkt->data != NULL  && size != NULL) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                               { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->app_id < LAST_APP_ID) == true)                                        { return SATR_ERROR; }
 
     cnv.cnv16[0] = pkt->app_id;
 
@@ -275,7 +271,7 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
     checkSum(buf, buf_pointer-2, &buf[buf_pointer]);
     *size = buf_pointer + 1;
 
-    if(!C_ASSERT(*size > MIN_PKT_SIZE && *size < MAX_PKT_SIZE) == true)       { return SATR_ERROR; }
+    if(!C_ASSERT(*size > TC_MIN_PKT_SIZE && *size < MAX_PKT_SIZE) == true)       { return SATR_ERROR; }
 
     return SATR_OK;
 }
@@ -298,12 +294,10 @@ SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8
     return SATR_OK;
 }
 
-SAT_returnState update_boot_counter() {
+void update_boot_counter() {
     (*sys_data.boot_counter)++;
-    return SATR_OK;
 }
 
-SAT_returnState get_boot_counter(uint32_t *cnt) {
+void get_boot_counter(uint32_t *cnt) {
     *cnt = *sys_data.boot_counter;
-    return SATR_OK;
 }

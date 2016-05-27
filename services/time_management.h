@@ -24,12 +24,7 @@ extern uint32_t HAL_sys_GetTick();
 //ToDo
 //  Set assertions everywhere
 
-/*calculate uint size, and perform calculations*/
-extern const uint32_t UTC_QB50_YM[MAX_YEAR][13];
-
-extern const uint32_t UTC_QB50_D[32];
-
-extern const uint32_t UTC_QB50_H[25];
+SAT_returnState time_management_app(tc_tm_pkt *pkt);
 
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb);
 

@@ -3,19 +3,10 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "pkt_pool.h"
 
 //temp
 #define TEST_ARRAY 1024
-
-#define MIN_PKT_SIZE 5
-#define MAX_PKT_SIZE 1024
-
-#ifdef POOL_PKT_EXT
-extern tc_tm_pkt * get_pkt_ext();
-#endif
-
-extern tc_tm_pkt * get_pkt();
-extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
 
 extern SAT_returnState verification_app(tc_tm_pkt *pkt);
 extern SAT_returnState hk_app(tc_tm_pkt *pkt);
@@ -24,9 +15,6 @@ extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
-
-extern SAT_returnState HLDLC_deframe(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size);
-extern SAT_returnState HLDLC_frame(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size);
 
 extern void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
@@ -53,9 +41,10 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size);
 
 SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, TC_TM_app_id dest_id);
 
-SAT_returnState update_boot_counter();
 
-SAT_returnState get_boot_counter(uint32_t *cnt);
+void update_boot_counter();
+
+void get_boot_counter(uint32_t *cnt);
 
 void cnv32_8(const uint32_t from, uint8_t *to);
 

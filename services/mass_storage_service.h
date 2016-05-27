@@ -7,6 +7,7 @@
 #include "fatfs.h"
 #include "services.h"
 #include "su_mnlp.h"
+#include "pkt_pool.h"
 
 #define MS_SD_PATH "0:"
 
@@ -27,7 +28,7 @@
 #define MS_MAX_PATH             40 //random num
 #define MS_MAX_FILES            1000 //random num
 #define MS_MAX_FNAME            30 //random num
-#define MS_MAX_LOG_FILE_SIZE    512 //SD byte sectors 
+#define MS_MAX_LOG_FILE_SIZE    198 /*MAX_PKT_DATA*/ 
 #define MS_MAX_SU_FILE_SIZE     2048 //2k
 #define MS_FILE_SECTOR          512
 #define MS_STORES               3
@@ -36,32 +37,17 @@
 #define MAX_F_RETRIES			3
 
 struct _MS_data {
-    
     FATFS Fs;
     uint8_t enabled;
-    uint32_t stores_fsize[3];   /*total file size in each store, fotos, su_log, ev_log */
-    uint16_t stores_fcount[3];  /*file count in each store, fotos, su_log, ev_log */
-    //uint32_t ev_temp_log;
 };
 
-//extern script_handler su_scripts;
-//extern science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
-
 extern struct _MNLP_data MNLP_data;
-        
-extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 
 extern uint32_t get_new_fileId(MS_sid sid);
-
-extern tc_tm_pkt * get_pkt();
-
-extern tc_tm_pkt * get_pkt_ext();
 
 extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
 
 extern science_unit_script_inst su_scripts[];
-
-//extern SAT_returnState su_populate_scriptPointers( su_script *su_scr, uint8_t *buf);
 
 //ToDo
 //  add format for sd
@@ -118,9 +104,7 @@ SAT_returnState mass_storage_getFileName(uint8_t *fn);
 SAT_returnState mass_storage_getFileSizeCount(MS_sid sid);
 
 
-SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, uint16_t dest_id);
-
-SAT_returnState mass_storage_crtPkt_ext(tc_tm_pkt **pkt, uint16_t dest_id);
+SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, const uint16_t dest_id, const uint16_t size);
 
 SAT_returnState mass_storage_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subtype);
 
@@ -128,5 +112,7 @@ SAT_returnState mass_storage_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t su
 SAT_returnState mass_storage_FORMAT();
 
 SAT_returnState mass_storage_dirCheck();
+
+void mass_storage_getState(uint8_t *state);
 
 #endif
