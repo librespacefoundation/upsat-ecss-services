@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "upsat.h"
 
 struct _adcs_data
 {
@@ -17,6 +18,11 @@ struct _adcs_data
     uint32_t *log_state;
 
     struct uart_data obc_uart;
+};
+
+struct _sys_data {
+    uint8_t rsrc;
+    uint32_t *boot_counter;
 };
 
 extern struct _adcs_data adcs_data;
@@ -42,4 +48,5 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt);
 SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
 SAT_returnState check_timeouts();
+
 #endif
