@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "upsat.h"
 
 //temp
 #define TEST_ARRAY 1024

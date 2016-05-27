@@ -5,6 +5,20 @@
 
 static uint8_t strNo[] = "No";
 
+SAT_returnState event_app(tc_tm_pkt * pkt) {
+
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+
+    uint8_t ev_id = pkt->data[0];
+
+    if(!C_ASSERT(ev_id < LAST_EV_EVENT) == true) { return SATR_ERROR; }
+
+    event_log(pkt->data, EV_DATA_SIZE);
+
+    return SATR_OK;
+}
+
+
 SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e, uint16_t *size, SAT_returnState mode) {
 
     uint8_t sub_type;
@@ -44,6 +58,60 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
     buf[(*size)+2] = HLDLC_START_FLAG;
 
     *size += 3;
+
+    return SATR_OK;
+}
+
+SAT_returnState event_boot(const uint8_t reset_source, const uint8_t boot_counter) {
+
+    tc_tm_pkt *temp_pkt = 0;
+
+    if(event_crt_pkt(&temp_pkt, EV_sys_boot) != SATR_OK) { return SATR_ERROR; }
+    temp_pkt->data[5] = reset_source;
+    temp_pkt->data[6] = boot_counter;
+
+    /*zero padding for fixed length*/
+    for(uint8_t i = 7; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+
+    if(SYSTEM_APP_ID == OBC_APP_ID) {
+        event_log(temp_pkt->data, EV_DATA_SIZE);
+    } else {
+        route_pkt(temp_pkt);
+
+    }
+    return SATR_OK;
+}
+
+SAT_returnState event_pkt_pool_timeout() {
+
+    tc_tm_pkt *temp_pkt = 0;
+
+    if(event_crt_pkt(&temp_pkt, EV_pkt_pool_timeout) != SATR_OK) { return SATR_ERROR; }
+
+    /*zero padding for fixed length*/
+    for(uint8_t i = 6; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+    
+    if(SYSTEM_APP_ID == OBC_APP_ID) {
+        event_log(temp_pkt->data, EV_DATA_SIZE);
+    } else {
+        route_pkt(temp_pkt);
+
+    }
+    return SATR_OK;
+}
+
+SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, const EV_event event) {
+
+    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+
+    crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, SYSTEM_APP_ID);
+
+    uint32_t time_temp = HAL_sys_GetTick();
+    (*pkt)->data[0] = event;
+    cnv32_8(time_temp, &((*pkt)->data[1]));
+
+    (*pkt)->len = 12;
 
     return SATR_OK;
 }

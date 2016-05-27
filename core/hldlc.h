@@ -3,11 +3,10 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "upsat.h"
 
-//ToDo
-
-//Finished
-//	need to check C_ASSERT(cnt == 0 && c != HLDLC_START_FLAG)
+#define HLDLC_START_FLAG        0x7E
+#define HLDLC_CONTROL_FLAG      0x7D
 
 SAT_returnState HLDLC_deframe(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size);
 

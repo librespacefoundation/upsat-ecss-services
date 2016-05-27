@@ -28,7 +28,7 @@ const uint8_t services_verification_ADCS_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 };
 
 struct _adcs_data adcs_data;
-
+static struct _sys_data sys_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
@@ -70,3 +70,16 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
 SAT_returnState check_timeouts() {
     
 }
+
+SAT_returnState time_management_app(tc_tm_pkt *pkt) {
+    return SATR_ERROR;
+}
+
+void set_reset_source(const uint8_t rsrc) {
+    sys_data.rsrc = rsrc;
+}
+
+void get_reset_source(uint8_t *rsrc) {
+    *rsrc = sys_data.rsrc;
+}
+
