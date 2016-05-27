@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "time_management.h"
+#include "upsat.h"
+#include "uart_hal.h"
 
 #define SU_MAX_SCRIPTS_POPU 7
 #define SU_MAX_RSP_SIZE 174
@@ -77,7 +80,7 @@ when 0x00 is undefined
 #define SU_BIAS_OFF_RSP_ID  0x00
 #define SU_MTEE_ON_RSP_ID   0x00
 #define SU_MTEE_OFF_RSP_ID  0x00
-#define SU_ERR_RSP_ID       0xBB
+#define SU_ERR_RSP_ID       0xBB 
 #define OBC_SU_ERR_RSP_ID   0xFA
 #define OBC_EOT_RSP_ID      0x00
 
@@ -228,13 +231,15 @@ typedef struct
 }science_unit_script_inst;
 
 struct _MNLP_data{
+    /*True is mNLP schedule is active, false otherwise*/
+    uint8_t su_nmlp_sche_active;
     
-    mnlp_response_science_header mnlp_science_header;
-    
+    mnlp_response_science_header mnlp_science_header;\
     science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 };
 
 extern uint8_t uart_temp[];
+
 extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
@@ -246,6 +251,8 @@ extern void HAL_sys_delay(uint32_t sec);
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
 
 extern SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf);
+
+extern SAT_returnState su_nmlp_app( tc_tm_pkt *spacket);
 
 //ToDo
 //  add check for su status off
@@ -261,6 +268,7 @@ void su_load_scripts();
 /*this is to be called from a freeRTOS task, continually*/
 void su_SCH();
 
+void handle_su_error();
 /* 
  * traverses the script sequences to find the one requested by
  * *ss_to_go parameter, the resulting offset is stored on 
@@ -290,5 +298,7 @@ SAT_returnState polulate_next_time_table(uint8_t *buf, science_unit_script_time_
 SAT_returnState su_next_cmd(uint8_t *buf,  science_unit_script_sequence *cmd, uint16_t *pointer);
 
 SAT_returnState su_power_ctrl(FM_fun_id fid);
+
+SAT_returnState generate_obc_su_error(uint8_t *buffer);
 
 #endif
