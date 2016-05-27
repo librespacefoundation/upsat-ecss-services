@@ -6,20 +6,12 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "upsat.h"
 #include "mass_storage_service.h"
+#include "wdg.h"
 
 //temp
 #define TEST_ARRAY 1024
-
-#define EV_MAX_BUFFER  1024
-#define EV_BUFFER_PART 205
-
-#define WOD_MAX_BUFFER 256
-
-#define IAC_PKT_SIZE 205 /*1 cmd, 4 fname, 200 data*/
-
-/*restriction for 8 char filename, for conversion from num to file name*/
-#define MAX_FILE_NUM 0x5F5E0FF
 
 typedef enum {  
     EV_P0         = 0,
@@ -64,9 +56,9 @@ struct _sat_status {
     uint8_t temp_comms;
 };
 
-struct _wdg_state {
-    uint8_t hk_valid;
-    uint8_t uart_valid; 
+struct _sys_data {
+    uint8_t rsrc;
+    uint32_t *boot_counter;
 };
 
 extern struct _sat_status sat_status;
@@ -107,6 +99,12 @@ SAT_returnState wod_log();
 
 SAT_returnState wod_log_load(uint8_t *buf);
 
-SAT_returnState check_timeouts();
+void set_reset_source(const uint8_t rsrc);
+
+void get_reset_source(uint8_t *rsrc);
+
+void update_boot_counter();
+
+void get_boot_counter(uint32_t *cnt);
 
 #endif

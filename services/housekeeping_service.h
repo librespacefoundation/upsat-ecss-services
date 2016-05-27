@@ -3,14 +3,11 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "service_utilities.h"
+#include "pkt_pool.h"
+#include "housekeeping.h"
 
-extern tc_tm_pkt * get_pkt();
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
-
-extern SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, TC_TM_app_id dest_id);
-
-extern SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data);
-extern SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt);
 
 //ToDo
 //	verify sid reports

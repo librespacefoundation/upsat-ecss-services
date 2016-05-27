@@ -32,18 +32,11 @@
 #define TC_ACK_EXE_COMP     0x08
 #define TC_ACK_ALL          0x0F
 
-//needs to redifine
-#define MAX_PKT_DATA        250  //random
-#define TC_MAX_PKT_SIZE     200  //random
-#define TC_MIN_PKT_SIZE     6    //random
-#define MAX_PKT_EXT_DATA    2048
-#define TC_MAX_PKT_EXT_SIZE 2048  //random
-
 #define ECSS_HEADER_SIZE        6
 #define ECSS_DATA_HEADER_SIZE   4
 #define ECSS_CRC_SIZE           2
 
-#define ECSS_DATA_OFFSET        ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE
+#define ECSS_DATA_OFFSET        10  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE*/
 
 #define MAX_APP_ID      20
 #define MAX_SERVICES    20
@@ -52,8 +45,41 @@
 #define TC 1
 #define TM 0
 
-#define HLDLC_START_FLAG        0x7E
-#define HLDLC_CONTROL_FLAG      0x7D
+//needs to redifine
+#define MAX_PKT_LEN         210 /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + MAX_PKT_DATA + ECSS_CRC_SIZE*/
+
+#define MAX_PKT_DATA        198 
+#define TC_MAX_PKT_SIZE     210
+#define TC_MIN_PKT_SIZE     12  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + ECSS_CRC_SIZE*/
+
+#define MAX_PKT_EXT_DATA    2048
+#define TC_MAX_PKT_EXT_SIZE 2060
+
+#if (SYSTEM_APP_ID == _EPS_APP_ID_)
+#define MAX_PKT_SIZE  210
+#else
+#define MAX_PKT_SIZE  2060
+#endif
+
+#define _OBC_APP_ID_   1
+#define _EPS_APP_ID_   2
+#define _ADCS_APP_ID_  3
+#define _COMMS_APP_ID_ 4
+#define _IAC_APP_ID_   5
+#define _GND_APP_ID_   6
+#define _DBG_APP_ID_   7
+#define _LAST_APP_ID_  8
+
+typedef enum {  
+    OBC_APP_ID      = _OBC_APP_ID_,
+    EPS_APP_ID      = _EPS_APP_ID_,
+    ADCS_APP_ID     = _ADCS_APP_ID_,
+    COMMS_APP_ID    = _COMMS_APP_ID_,
+    IAC_APP_ID      = _IAC_APP_ID_,
+    GND_APP_ID      = _GND_APP_ID_,
+    DBG_APP_ID      = _DBG_APP_ID_,
+    LAST_APP_ID     = _LAST_APP_ID_
+}TC_TM_app_id;
 
 typedef enum {  
     SATR_PKT_ILLEGAL_APPID     = 0,
@@ -175,45 +201,6 @@ typedef enum {
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
 
-/*cubesat subsystem's timeouts*/
-#define TIMEOUT_V_COMMS     5000
-#define TIMEOUT_V_ADCS      5000
-#define TIMEOUT_V_IAC       5000
-#define TIMEOUT_V_EPS       5000
-#define TIMEOUT_V_SU_BYTE   5000
-#define TIMEOUT_V_DBG       5000
-
-/*taken from stm32f4xx_hal_rtc.h*/
-#define TM_MONTH_JANUARY              ((uint8_t)0x01U)
-#define TM_MONTH_FEBRUARY             ((uint8_t)0x02U)
-#define TM_MONTH_MARCH                ((uint8_t)0x03U)
-#define TM_MONTH_APRIL                ((uint8_t)0x04U)
-#define TM_MONTH_MAY                  ((uint8_t)0x05U)
-#define TM_MONTH_JUNE                 ((uint8_t)0x06U)
-#define TM_MONTH_JULY                 ((uint8_t)0x07U)
-#define TM_MONTH_AUGUST               ((uint8_t)0x08U)
-#define TM_MONTH_SEPTEMBER            ((uint8_t)0x09U)
-#define TM_MONTH_OCTOBER              ((uint8_t)0x10U)
-#define TM_MONTH_NOVEMBER             ((uint8_t)0x11U)
-#define TM_MONTH_DECEMBER             ((uint8_t)0x12U)
-
-#ifdef POOL_PKT_EXT
-#define UART_BUF_SIZE 4096 //(POOL_PKT_EXT*2)
-#else
-#define UART_BUF_SIZE 500 //(MAX_PKT_DATA*2)
-#endif
-
-typedef enum {  
-    OBC_APP_ID      = 1,
-    EPS_APP_ID      = 2,
-    ADCS_APP_ID     = 3,
-    COMMS_APP_ID    = 4,
-    IAC_APP_ID      = 5,
-    GND_APP_ID      = 6,
-    DBG_APP_ID      = 7,
-    LAST_APP_ID     = 8
-}TC_TM_app_id;
-
 typedef enum {  
     HEALTH_REP      = 1,
     EX_HEALTH_REP   = 2,
@@ -281,17 +268,18 @@ typedef enum {
 }SU_state;
 
 typedef enum {  
-    EV_inc_pkt       = 1,
-    EV_pkt_ack_er    = 2,
-    EV_sys_boot      = 3,
-    EV_pwr_level     = 4,
-    EV_comms_tx_off  = 5,
-    EV_sys_timeout   = 6,
-    EV_sys_shutdown  = 7,
-    EV_assertion     = 8,
-    EV_su_error      = 9,
-    EV_su_scr_start  = 10,
-    LAST_EV_EVENT    = 11
+    EV_inc_pkt           = 1,
+    EV_pkt_ack_er        = 2,
+    EV_sys_boot          = 3,
+    EV_pwr_level         = 4,
+    EV_comms_tx_off      = 5,
+    EV_sys_timeout       = 6,
+    EV_sys_shutdown      = 7,
+    EV_assertion         = 8,
+    EV_su_error          = 9,
+    EV_su_scr_start      = 10,
+    EV_pkt_pool_timeout  = 11,
+    LAST_EV_EVENT        = 12
 }EV_event;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
@@ -305,11 +293,6 @@ union _cnv {
 extern void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
 extern SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 extern SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e, uint16_t *size, SAT_returnState mode);
-
-extern void cnv32_8(const uint32_t from, uint8_t *to);
-extern void cnv16_8(const uint16_t from, uint8_t *to);
-extern void cnv8_32(uint8_t *from, uint32_t *to);
-extern void cnv8_16(uint8_t *from, uint16_t *to);
 
 typedef struct {
     /* packet id */
@@ -370,74 +353,9 @@ extern const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2];
 //  architecture overview
 //  add definitions for packet len calculations
 
-//finished
-//  update verification lookup table
-//  CRC in 8bits instead of 16 but use it anyway. the high byte should be 0.
-//  there is no support for verification for obc, do we need that?
-//  SAT_returnState renaming to UPS_OK?
-//  what to do with verification service, after route or after its service.
-//  should we move all utilities functions, like pack, route etc in one big function file?
-//  migrate verification on pkt status bit: add status byte in tc_tm pkt, add support for each service, make sure route works
-//  when to free the packets.
-//  definitions of subtypes.
-//  modify route & verification.
-//  add function management service.
-//  add serial.
-//  use cnv functions.
-//  use packet len instead of individual service pack, for pack.
-//  rename tc_tm.h, use it as a header only, move .c in service_utilities.
-//  add seq count in pack and global memory.
-//  use pkt->len for data?
-//  add pack functions in each service.
-
-struct uart_data {
-    
-    uint8_t uart_buf[UART_BUF_SIZE];
-    uint8_t uart_unpkt_buf[UART_BUF_SIZE];
-#ifdef POOL_PKT_EXT
-    uint8_t deframed_buf[TC_MAX_PKT_EXT_SIZE];
-#else
-    uint8_t deframed_buf[TC_MAX_PKT_SIZE];
-#endif
-    uint8_t uart_pkted_buf[UART_BUF_SIZE];
-    uint8_t framed_buf[UART_BUF_SIZE];
-    uint16_t uart_size;
-    
-    uint32_t last_com_time;
-};
-
-struct _sys_data {
-    uint8_t seq_cnt[LAST_APP_ID];
-    uint8_t rsrc;
-    uint32_t *boot_counter;
-};
-
-/* These values represent the time of last complete packet
- * received by the OBC subsystem.
- */
-struct _subs_last_comm {
-    uint32_t last_com_comms;
-    uint32_t last_com_adcs;
-    uint32_t last_com_iac;
-    uint32_t last_com_eps;
-};
-
-struct time_utc {
-    uint8_t day;
-    uint8_t month;
-    uint8_t year;
-    uint8_t hour;
-    uint8_t min;
-    uint8_t sec;
-};
-
-extern struct _sys_data sys_data;
-
 //stub
 uint32_t time_now();
 
 uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e);
-
-SAT_returnState sys_data_INIT();
 
 #endif

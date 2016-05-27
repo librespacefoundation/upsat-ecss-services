@@ -30,6 +30,7 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 struct _obc_data obc_data;
 struct _sat_status sat_status;
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
+static struct _sys_data sys_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
@@ -81,6 +82,10 @@ SAT_returnState obc_INIT() {
 
     HAL_reset_source(&sys_data.rsrc);
     update_boot_counter();
+
+    uint32_t cnt = 0;
+    get_boot_counter(&cnt);
+    event_boot(sys_data.rsrc, cnt);
 
     HAL_obc_SD_ON();
    
@@ -267,25 +272,59 @@ SAT_returnState wod_log_load(uint8_t *buf) {
    return SATR_OK;
 }
 
-SAT_returnState check_timeouts() {
+SAT_returnState check_subsystems_timeouts() {
     
     uint32_t sys_t_now = HAL_sys_GetTick();
     
     if( (sys_t_now - obc_data.adcs_uart.last_com_time) >= TIMEOUT_V_ADCS ) { 
         /*Handle ADCS subsystem's timeout*/
+        tc_tm_pkt *tmp_pkt = 0;
+
+        SAT_returnState res = function_management_pctrl_crt_pkt_api(&tmp_pkt, EPS_APP_ID, P_RESET, ADCS_DEV_ID);
+        if(res == SATR_OK) { 
+            route_pkt(tmp_pkt); 
+            obc_data.adcs_uart.last_com_time = sys_t_now;
+        }
+        else { free_pkt(tmp_pkt); }
     }
     
     if( (sys_t_now - obc_data.comms_uart.last_com_time) >= TIMEOUT_V_COMMS ) { 
         /*Handle COMMS subsystem's timeout*/
+        tc_tm_pkt *tmp_pkt = 0;
+
+        SAT_returnState res = function_management_pctrl_crt_pkt_api(&tmp_pkt, EPS_APP_ID, P_RESET, COMMS_DEV_ID);
+        if(res == SATR_OK) { 
+            route_pkt(tmp_pkt); 
+            obc_data.comms_uart.last_com_time = sys_t_now;
+        }
+        else { free_pkt(tmp_pkt); }
     }
     
     if( (sys_t_now - obc_data.eps_uart.last_com_time) >= TIMEOUT_V_EPS ) { 
         /*Handle EPS subsystem's timeout*/
+        //here we drink it, nothing we can do.
     }
 
     if( (sys_t_now - obc_data.dbg_uart.last_com_time) >= TIMEOUT_V_DBG ) { 
         /*Handle UMBILICAL (dbg's port) subsystem's timeout*/
+        //no need for handling
     }
-    
+
     return SATR_OK;
+}
+
+void set_reset_source(const uint8_t rsrc) {
+    sys_data.rsrc = rsrc;
+}
+
+void get_reset_source(uint8_t *rsrc) {
+    *rsrc = sys_data.rsrc;
+}
+
+void update_boot_counter() {
+    (*sys_data.boot_counter)++;
+}
+
+void get_boot_counter(uint32_t *cnt) {
+    *cnt = *sys_data.boot_counter;
 }

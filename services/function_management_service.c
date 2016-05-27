@@ -23,7 +23,7 @@ SAT_returnState function_management_app(tc_tm_pkt *pkt) {
         //if(!C_ASSERT(pkt->len < PKT_LEN_FM_PWRCTRL) == true) { return SATR_INV_DATA_LEN; }
       
         pkt->verification_state = SATR_OK; 
-        power_control_api((FM_dev_id)pkt->data[4], fun_id); 
+        power_control_api((FM_dev_id)pkt->data[1], fun_id); 
     }
     else if(fun_id == SET_TIME) { /*time management*/
 
@@ -38,18 +38,14 @@ SAT_returnState function_management_app(tc_tm_pkt *pkt) {
 
 SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did) {
 
-    *pkt = get_pkt();
+    *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
     crt_pkt(*pkt, dest_id , TC, TC_ACK_NO, TC_FUNCTION_MANAGEMENT_SERVICE, TC_FM_PERFORM_FUNCTION, SYSTEM_APP_ID);
 
     (*pkt)->data[0] = fun_id;
+    (*pkt)->data[1] = did;
 
-    (*pkt)->data[1] = 0;
-    (*pkt)->data[2] = 0;
-    (*pkt)->data[3] = 0;
-    (*pkt)->data[4] = did;
-
-    (*pkt)->len = 5;
+    (*pkt)->len = 2;
 
     return SATR_OK;
 }

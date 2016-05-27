@@ -4,48 +4,40 @@
 #include <stdint.h>
 #include <math.h>
 #include "services.h"
+#include "service_utilities.h"
+#include "pkt_pool.h"
 
-#define LD_PKT_DATA             10 // for test
+#define LD_PKT_DATA             198 /*MAX_PKT_DATA*/
 #define LD_PKT_DATA_HDR_SIZE    3
 
-#define LD_TX_TYPE_REPORT       1
-#define LD_TX_TYPE_DOWNLINK     2
+#define LD_TIMEOUT              1000 /*sec*/
+
+#define LD_MAX_TRANSFER_TIME    1000 //random
 
 typedef enum {
-LD_STATE_FREE           = 1,
-LD_STATE_RECEIVING      = 2,
-LD_STATE_TRANSMITING    = 3,
-LD_STATE_REPORT         = 4,
-LD_STATE_DOWNLINK       = 5,
-LAST_STATE              = 6
+    LD_STATE_FREE           = 1,
+    LD_STATE_RECEIVING      = 2,
+    LD_STATE_TRANSMITING    = 3,
+    LD_STATE_REPORT         = 4,
+    LD_STATE_DOWNLINK       = 5,
+    LAST_STATE              = 6
 }LD_states;
 
 struct _ld_status {
     LD_states state;        /*service state machine, state variable*/
-    MS_sid sid;            /*sid */
     TC_TM_app_id app_id;    /*destination app id*/
     uint8_t ld_num;         /**/
     uint32_t timeout;       /**/
-    uint32_t fcurr;         /**/
-    uint32_t fnext;         /**/
-    uint8_t txType;         /**/
     uint8_t started;        /**/
-    uint8_t lpacket_flag;   /**/
-    MS_mode mode;           /**/
-    uint32_t from;          /**/
-    uint32_t to;            /**/
 
     uint8_t buf[MAX_PKT_DATA];         /**/
-    uint16_t size;         /**/
+    uint16_t rx_size;         /**/
     uint8_t rx_lid;         /**/
     uint8_t tx_lid;         /**/
     uint8_t tx_pkt;         /**/
     uint16_t tx_size;         /**/
 };
 
-extern tc_tm_pkt * get_pkt();
-
-extern SAT_returnState crt_pkt(tc_tm_pkt *pkt, uint16_t app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, uint16_t dest_id);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 //ToDo
@@ -70,9 +62,8 @@ extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 //  check sequence numbers.
 //  in tx when to make it FREE, maybe should ack every packet and then send it free.
 
-SAT_returnState large_data_timeout();
-
 SAT_returnState large_data_app(tc_tm_pkt *pkt);
+
 
 SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt);
 
@@ -80,12 +71,6 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt);
 
-SAT_returnState large_data_retryRx_api(tc_tm_pkt *pkt);
-
-SAT_returnState large_data_standaloneRx_api(tc_tm_pkt *pkt);
-
-
-SAT_returnState large_data_reportTx_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt);
 
@@ -94,6 +79,7 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt);
 SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt);
 
 SAT_returnState large_data_abort_api(tc_tm_pkt *pkt);
+
 
 SAT_returnState large_data_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subtype);
 
@@ -104,5 +90,9 @@ SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, u
 SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t dest_id, uint8_t subtype);
 
 void large_data_INIT();
+
+void large_data_IDLE();
+
+SAT_returnState large_data_timeout();
 
 #endif

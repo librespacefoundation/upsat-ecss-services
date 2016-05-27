@@ -8,18 +8,8 @@
 #include "task.h"
 #include "obc.h"
 
-//ToDo
-//  improve return types
-//  need to make the change from the two different typedefs
-
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart4;
-extern UART_HandleTypeDef huart6;
-extern SPI_HandleTypeDef  hspi3;
+extern SPI_HandleTypeDef hspi3;
 extern RTC_HandleTypeDef hrtc;
-extern TaskHandle_t xTask_UART;
 extern IWDG_HandleTypeDef hiwdg;
 
 extern uint8_t su_inc_buffer[197];
@@ -28,25 +18,13 @@ extern struct _obc_data obc_data;
 
 extern struct _wdg_state wdg;
 
+
+
 void HAL_obc_SD_ON();
 
 void HAL_obc_SD_OFF();
 
 void HAL_sys_delay(uint32_t sec);
-
-void HAL_OBC_UART_IRQHandler(UART_HandleTypeDef *huart);
-
-void UART_OBC_Receive_IT(UART_HandleTypeDef *huart);
-
-HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart);
-
-void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
-
-SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
-
-void HAL_su_uart_tx(uint8_t *buf, uint16_t size);
-
-SAT_returnState HAL_su_uart_rx();
 
 void HAL_reset_source(uint8_t *src);
 

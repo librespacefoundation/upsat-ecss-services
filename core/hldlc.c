@@ -8,11 +8,8 @@ SAT_returnState HLDLC_deframe(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size)
 
     if(!C_ASSERT(buf_in != 0 && buf_out != 0) == true)    { return SATR_ERROR; }
     if(!C_ASSERT(buf_in[0] == HLDLC_START_FLAG) == true)  { return SATR_ERROR; } /*the first char should be a start flag*/
-#ifdef POOL_PKT_EXT
-    if(!C_ASSERT(*size <= TC_MAX_PKT_EXT_SIZE) == true)       { return SATR_ERROR; } //hard limits, check
-#else
-    if(!C_ASSERT(*size <= TC_MAX_PKT_SIZE) == true)       { return SATR_ERROR; } //hard limits, check
-#endif
+    if(!C_ASSERT(*size <= UART_BUF_SIZE) == true)         { return SATR_ERROR; } //hard limits, check
+
     uint16_t cnt = 0;
 
     for(uint16_t i = 1; i < *size; i++) {
@@ -35,7 +32,9 @@ SAT_returnState HLDLC_deframe(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size)
 //used for DMA
 SAT_returnState HLDLC_frame(uint8_t *buf_in, uint8_t *buf_out, uint16_t *size) {
 
-    if(!C_ASSERT(buf_in != NULL && buf_out != NULL && size != NULL) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(buf_in != NULL && buf_out != NULL && size != NULL) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(*size <= MAX_PKT_SIZE) == true)                      { return SATR_ERROR; }
+
     uint16_t cnt = 2;
 
     for(uint16_t i = 0; i < *size; i++) {
