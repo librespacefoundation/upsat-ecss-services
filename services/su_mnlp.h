@@ -77,7 +77,7 @@ when 0x00 is undefined
 #define SU_BIAS_OFF_RSP_ID  0x00
 #define SU_MTEE_ON_RSP_ID   0x00
 #define SU_MTEE_OFF_RSP_ID  0x00
-#define SU_ERR_RSP_ID       0xBB
+#define SU_ERR_RSP_ID       0xBB 
 #define OBC_SU_ERR_RSP_ID   0xFA
 #define OBC_EOT_RSP_ID      0x00
 
@@ -265,6 +265,7 @@ void su_load_scripts();
 /*this is to be called from a freeRTOS task, continually*/
 void su_SCH();
 
+void handle_su_error();
 /* 
  * traverses the script sequences to find the one requested by
  * *ss_to_go parameter, the resulting offset is stored on 

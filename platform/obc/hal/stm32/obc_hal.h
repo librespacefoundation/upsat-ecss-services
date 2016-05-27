@@ -19,7 +19,7 @@ extern UART_HandleTypeDef huart6;
 extern RTC_HandleTypeDef hrtc;
 extern TaskHandle_t xTask_UART;
 
-extern uint8_t su_inc_buffer[197];
+extern uint8_t su_inc_buffer[210];
 
 void HAL_obc_SD_ON();
 

@@ -109,13 +109,13 @@ SAT_returnState time_managment_app( tc_tm_pkt *pkt ){
     else if( t_set_mode == SET_DTIME_UTC ){
         
         /*set time in utc mode*/
-        temp_time.day = pkt->data[1];
-        temp_time.month = pkt->data[2];
-        temp_time.year = pkt->data[3];
+        temp_time.day = pkt->data[0];
+        temp_time.month = pkt->data[1];
+        temp_time.year = pkt->data[2];
         
-        temp_time.hour = pkt->data[4];
-        temp_time.min = pkt->data[5];
-        temp_time.sec = pkt->data[6];
+        temp_time.hour = pkt->data[3];
+        temp_time.min = pkt->data[4];
+        temp_time.sec = pkt->data[5];
         set_time_UTC(temp_time);
 
         pkt->verification_state = SATR_OK;
@@ -190,10 +190,8 @@ void set_time_UTC(struct time_utc utc) {
 void get_time_QB50(uint32_t *qb) {
 
     struct time_utc utc;
-
     HAL_sys_getTime(&utc.hour, &utc.min, &utc.sec);
     HAL_sys_getDate(&utc.month, &utc.day, &utc.year);
-    
     cnv_UTC_QB50(utc, qb);
 
 }
