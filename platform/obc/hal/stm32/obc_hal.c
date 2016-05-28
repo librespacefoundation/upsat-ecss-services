@@ -30,28 +30,7 @@ void HAL_obc_IAC_ON() {
 
 void HAL_obc_IAC_OFF() {
     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET); /*DART*/
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); /*CAM*/}
-
-
-SAT_returnState import_spi() {
-  static uint8_t cnt;
-  HAL_StatusTypeDef res;
-
-  if(obc_data.iac_flag == true) {
-      uint16_t size = 198;
-      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-      obc_data.iac_out[0] = cnt++;
-      obc_data.iac_out[1] = cnt++;
-      //obc_data.iac_in[0] = 0xFA;
-      //obc_data.iac_in[1] = 0xAF;
-      obc_data.iac_flag = false;
-      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-  } else if( hspi3.State == HAL_SPI_STATE_READY) {
-      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
-  }
-
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_8, GPIO_PIN_SET); /*CAM*/
 }
 
 void HAL_reset_source(uint8_t *src) {

@@ -1,5 +1,7 @@
 #include "uart_hal.h"
 
+static struct _uart_timeout uart_timeout; 
+
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     
     HAL_StatusTypeDef res;
@@ -65,7 +67,6 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
     uint8_t c;
 
     c = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
-    uart_timeout_check(huart);
     if(huart->RxXferSize == huart->RxXferCount && c == HLDLC_START_FLAG) {
       *huart->pRxBuffPtr++ = c;
       huart->RxXferCount--;
@@ -114,35 +115,35 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
 
 void uart_timeout_start(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1)      { }
-  else if(huart == &huart2) { }
-  else if(huart == &huart3) { }
-  else if(huart == &huart4) { }
-  else if(huart == &huart6) { }
-
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1)      { uart_timeout. = t; }
+  // else if(huart == &huart2) { uart_timeout. = t; }
+  // else if(huart == &huart3) { uart_timeout. = t; }
+  // else if(huart == &huart4) { uart_timeout. = t; }
+  // else if(huart == &huart6) { uart_timeout. = t; }
 }
 
 void uart_timeout_stop(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1)      { }
-  else if(huart == &huart2) { }
-  else if(huart == &huart3) { }
-  else if(huart == &huart4) { }
-  else if(huart == &huart6) { }
-
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1)      { uart_timeout. = 0; }
+  // else if(huart == &huart2) { uart_timeout. = 0; }
+  // else if(huart == &huart3) { uart_timeout. = 0; }
+  // else if(huart == &huart4) { uart_timeout. = 0; }
+  // else if(huart == &huart6) { uart_timeout. = 0; }
 }
 
 void uart_timeout_check(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1)      {  } //&& != 0 
-  else if(huart == &huart2) { }
-  else if(huart == &huart3) { }
-  else if(huart == &huart4) { }
-  else if(huart == &huart6) { }
-
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  //   HAL_UART_Receive_IT(huart, data->uart_buf, UART_BUF_SIZE);
+  // } else if(huart == &huart2 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart3 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart4 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart6 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  //   HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 173);
+  // }
 }
 
 void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
@@ -165,7 +166,6 @@ HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 
     uart_timeout_start(huart);
     *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
-    uart_timeout_check(huart);
     if(--huart->RxXferCount == 0U)
     {
 
@@ -190,8 +190,8 @@ HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 }
 
 void HAL_su_uart_tx(uint8_t *buf, uint16_t size) {
-    HAL_UART_Transmit(&huart2, buf, size, 10);
-    //HAL_UART_Transmit_DMA(&huart2, buf, size, 10);
+    //HAL_UART_Transmit(&huart2, buf, size, 10);
+    HAL_UART_Transmit_DMA(&huart2, buf, size);
 }
 
 SAT_returnState HAL_su_uart_rx() {
