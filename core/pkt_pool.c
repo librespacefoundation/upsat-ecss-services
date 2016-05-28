@@ -8,7 +8,7 @@ static struct _pkt_pool pkt_pool;
 
 tc_tm_pkt * get_pkt(const uint16_t size) {
 
-    if(size <= POOL_PKT_SIZE) {
+    if(size <= PKT_NORMAL) {
         for(uint8_t i = 0; i < POOL_PKT_SIZE; i++) {
             if(pkt_pool.free[i] == true) {
                 pkt_pool.free[i] = false;

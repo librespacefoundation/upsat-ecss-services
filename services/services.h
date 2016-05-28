@@ -149,6 +149,8 @@ typedef enum {
 #define TC_LARGE_DATA_SERVICE           13
 #define TC_MASS_STORAGE_SERVICE         15
 #define TC_TEST_SERVICE                 17
+#define TC_SU_MNLP_SERVICE              18 /*service number out of ECSS standard, mission specific for mnlp su*/
+#define TC_TIME_MANAGEMENT_SERVICE      19 
 
 /*services subtypes*/
 #define TM_VR_ACCEPTANCE_SUCCESS        1
@@ -200,6 +202,47 @@ typedef enum {
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
+
+/*mNLP science unit sub-service definitions*/
+#define TC_SU_ON                        1
+#define TC_SU_OFF                       2
+#define TC_SU_RESET                     3
+#define TC_SU_LOAD_P                    4 //subservice 4
+#define TM_SU_LOAD_P                    5
+#define TC_SU_HC                        6 //subservice 5
+#define TM_SU_HC                        7
+#define TC_SU_CAL                       8 //subservice 6
+#define TM_SU_CAL                       9
+#define TC_SU_SCI                       10 //subservice 7
+#define TM_SU_SCI                       11
+#define TC_SU_HK                        12 //subservice 8
+#define TM_SU_HK                        13
+#define TC_SU_STM                       14 //subservice 9
+#define TM_SU_STM                       15
+#define TC_SU_DUMP                      16 //subservice 10
+#define TM_SU_DUMP                      17
+#define TC_SU_BIAS_ON                   18 //subservice 11
+#define TC_SU_BIAS_OFF                  19 //subservice 12
+#define TC_SU_MTEE_ON                   20 //subservice 13
+#define TC_SU_MTEE_OFF                  21 //subservice 14
+#define TM_SU_ERR                       22 //subservice 15
+#define TM_OBC_SU_ERR                   23 //subservice 16
+#define TC_OBC_EOT                      24 //subservice 17
+#define TC_SU_SCHE_ON                   25 //subservice 24
+#define TC_SU_SCHE_OFF                  26 //subservice 25
+
+/*TIME MANAGEMENT SERVICE*/
+#define TM_TIME_SET_TIME_UTC            1 //subservice 1
+#define TM_TIME_SET_TIME_QB50           2 //subservice 2
+#define TM_REPORT_TIME_IN_UTC           3 //subservice 3
+#define TM_REPORT_TIME_IN_QB50          4 //subservice 4
+
+
+/* Definitions for debugging messages levels
+ * Set the definitions for which you don't want
+ * debugging verbosity to 0 (zero), (the pre-processor will parse them completely out)
+ */
+#define nMNLP_DEBUGGING_ACTIVE 1
 
 typedef enum {  
     HEALTH_REP      = 1,
@@ -260,7 +303,7 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    su_off        = 1,
+    su_power_off  = 1,
     su_running    = 2,
     su_idle       = 3,
     su_finished   = 4,
@@ -281,6 +324,14 @@ typedef enum {
     EV_pkt_pool_timeout  = 11,
     LAST_EV_EVENT        = 12
 }EV_event;
+
+typedef enum {
+    SET_DTIME_UTC       = 1,
+    SET_DTIME_QB50      = 2,
+    REPORT_TIME_IN_UTC  = 3,
+    REPORT_TIME_IN_QB50 = 4,
+    LAST_TIME_ID        = 5
+}TIME_MAN_MODE;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 

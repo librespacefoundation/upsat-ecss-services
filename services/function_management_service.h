@@ -6,6 +6,7 @@
 #include "service_utilities.h"
 #include "pkt_pool.h"
 #include "power_ctrl.h"
+#include "time_management.h"
 
 extern SAT_returnState time_management_app(tc_tm_pkt *pkt);
 

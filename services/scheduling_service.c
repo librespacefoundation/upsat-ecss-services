@@ -27,24 +27,24 @@ Scheduling_service_state sc_s_state;
 SAT_returnState load_schedules()
 {
                                                    /*tc data from 13->, appid id 14*/
-        uint8_t schedule_data[] = { 1,1,0,0,1, 4 /*QB50 epoch*/ 
-                                    ,0,0,0,10, /*time = 666666666*/
-                                    0,33, /*execution timeout = 999*/
-                                    24,1,192,185,0,10,16,8,1,6,1,0,0,0,13,0,121 }; /*inner tc payload */
-        tc_tm_pkt test ;
-        test.ack = 1;
-        test.app_id = OBC_APP_ID;
-        test.data = schedule_data;
-        test.dest_id = OBC_APP_ID;
-        test.len = 29;
-        test.seq_count = 66;
-        //test.seq_flags = 0b1111;
-        test.ser_subtype = 4;
-        test.ser_type = 11;
-        test.type = 1;
-        test.verification_state = SATR_OK;
+//        uint8_t schedule_data[] = { 1,1,0,0,1, 4 /*QB50 epoch*/ 
+//                                    ,0,0,0,10, /*time = 666666666*/
+//                                    0,33, /*execution timeout = 999*/
+//                                    24,1,192,185,0,10,16,8,1,6,1,0,0,0,13,0,121 }; /*inner tc payload */
+//        tc_tm_pkt test ;
+//        test.ack = 1;
+//        test.app_id = OBC_APP_ID;
+//        test.data = schedule_data;
+//        test.dest_id = OBC_APP_ID;
+//        test.len = 29;
+//        test.seq_count = 66;
+//        //test.seq_flags = 0b1111;
+//        test.ser_subtype = 4;
+//        test.ser_type = 11;
+//        test.type = 1;
+//        test.verification_state = SATR_OK;
         
-        scheduling_app(&test);
+//        scheduling_app(&test);
         
 //    SC_pkt sp1,sp2,sp3,sp4;
 //    
@@ -128,27 +128,19 @@ void cross_schedules(){
  *      if time>= release time, then mark it as !valid
  */
     
-//    while(1){
-        
-//        uint32_t current_obc_time = obc
-//        boot_seconds;
         for(uint8_t i=0;i<SC_MAX_STORED_SCHEDULES;i++){
             
-            if (    schedule_mem_pool.sc_mem_array[i].valid == true &&
-                    sc_s_state.scheduling_apids_enabled[(schedule_mem_pool.sc_mem_array[i].app_id)-1] == true &&
+            if( schedule_mem_pool.sc_mem_array[i].valid == true &&
+                sc_s_state.scheduling_apids_enabled[(schedule_mem_pool.sc_mem_array[i].app_id)-1] == true &&
 //                    schedule_mem_pool.sc_mem_array[i].release_time == boot_seconds ){
-                    schedule_mem_pool.sc_mem_array[i].release_time == 10 ){
+                schedule_mem_pool.sc_mem_array[i].release_time == 10 ){
                 route_pkt( &(schedule_mem_pool.sc_mem_array[i].tc_pck));   
                 
                 schedule_mem_pool.sc_mem_array[i].valid = false;
                 sc_s_state.nmbr_of_ld_sched--;
                 sc_s_state.schedule_arr_full = false;
             }
-//            vTaskDelay(250 / portTICK_RATE_MS);
-//            if ( i == SC_MAX_STORED_SCHEDULES-1) { i=0;}
         }
-        
-//    }
 }
 
 SAT_returnState scheduling_app( tc_tm_pkt *spacket){
@@ -410,7 +402,6 @@ SAT_returnState scheduling_insert_api( /*SC_pkt* sch_mem_pool, */
     if ( sc_s_state.nmbr_of_ld_sched == SC_MAX_STORED_SCHEDULES ){
         /*schedule array has become full*/
         sc_s_state.schedule_arr_full = true;
-        /*TODO: turn 1, 0 to true, false*/
     }
     return SATR_OK;
 }
@@ -648,8 +639,5 @@ SAT_returnState parse_sch_packet( SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt ){
         uint8_t o=0;
         
     }
-    
-    
-    
     
 }

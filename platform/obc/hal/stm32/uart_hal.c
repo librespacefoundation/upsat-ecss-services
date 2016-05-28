@@ -115,35 +115,35 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
 
 void uart_timeout_start(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1)      { uart_timeout. = t; }
-  else if(huart == &huart2) { uart_timeout. = t; }
-  else if(huart == &huart3) { uart_timeout. = t; }
-  else if(huart == &huart4) { uart_timeout. = t; }
-  else if(huart == &huart6) { uart_timeout. = t; }
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1)      { uart_timeout. = t; }
+  // else if(huart == &huart2) { uart_timeout. = t; }
+  // else if(huart == &huart3) { uart_timeout. = t; }
+  // else if(huart == &huart4) { uart_timeout. = t; }
+  // else if(huart == &huart6) { uart_timeout. = t; }
 }
 
 void uart_timeout_stop(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1)      { uart_timeout. = 0; }
-  else if(huart == &huart2) { uart_timeout. = 0; }
-  else if(huart == &huart3) { uart_timeout. = 0; }
-  else if(huart == &huart4) { uart_timeout. = 0; }
-  else if(huart == &huart6) { uart_timeout. = 0; }
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1)      { uart_timeout. = 0; }
+  // else if(huart == &huart2) { uart_timeout. = 0; }
+  // else if(huart == &huart3) { uart_timeout. = 0; }
+  // else if(huart == &huart4) { uart_timeout. = 0; }
+  // else if(huart == &huart6) { uart_timeout. = 0; }
 }
 
 void uart_timeout_check(UART_HandleTypeDef *huart) {
 
-  uint32_t t = HAL_GetTick();
-  if(huart == &huart1 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
-    HAL_UART_Receive_IT(huart, data->uart_buf, UART_BUF_SIZE);
-  } else if(huart == &huart2 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
-  } else if(huart == &huart3 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
-  } else if(huart == &huart4 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
-  } else if(huart == &huart6 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
-    HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 173);
-  }
+  // uint32_t t = HAL_GetTick();
+  // if(huart == &huart1 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  //   HAL_UART_Receive_IT(huart, data->uart_buf, UART_BUF_SIZE);
+  // } else if(huart == &huart2 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart3 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart4 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  // } else if(huart == &huart6 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
+  //   HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 173);
+  // }
 }
 
 void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)

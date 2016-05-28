@@ -45,9 +45,9 @@ extern struct _MNLP_data MNLP_data;
 
 extern uint32_t get_new_fileId(MS_sid sid);
 
-extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
+//extern SAT_returnState su_populate_header( science_unit_script_header *hdr, uint8_t *buf);
 
-extern science_unit_script_inst su_scripts[];
+//extern science_unit_script_inst su_scripts[];
 
 //ToDo
 //  add format for sd

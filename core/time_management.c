@@ -3,7 +3,8 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 14
 
-static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    
+                                                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
                                                 { 0, 31622400, 34300800, 36720000, 39398400, 41990400, 44668800, 47260800, 49939200, 52617600, 55209600, 57888000, 60480000 },
                                                 { 0, 63158400, 65836800, 68256000, 70934400, 73526400, 76204800, 78796800, 81475200, 84153600, 86745600, 89424000, 92016000 },
                                                 { 0, 94694400, 97372800, 99792000, 102470400, 105062400, 107740800, 110332800, 113011200, 115689600, 118281600, 120960000, 123552000 },
@@ -19,7 +20,7 @@ static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    { 0, 0, 0, 0, 0, 0, 0, 0,
                                                 { 0, 410313600, 412992000, 415411200, 418089600, 420681600, 423360000, 425952000, 428630400, 431308800, 433900800, 436579200, 439171200 },
                                                 { 0, 441849600, 444528000, 446947200, 449625600, 452217600, 454896000, 457488000, 460166400, 462844800, 465436800, 468115200, 470707200 },
                                                 { 0, 473385600, 476064000, 478483200, 481161600, 483753600, 486432000, 489024000, 491702400, 494380800, 496972800, 499651200, 502243200 },
-                                                { 0, 504921600, 507600000, 510105600, 512784000, 515376000, 518054400, 520646400, 523324800, 526003200, 528595200, 531273600, 533865600 },
+                                        /*2016*/{ 0, 504921600, 507600000, 510105600, 512780400, 515372400, 518050800, 520642800, 523321200, 525999600, 528591600, 531273600, 533865600 },
                                                 { 0, 536544000, 539222400, 541641600, 544320000, 546912000, 549590400, 552182400, 554860800, 557539200, 560131200, 562809600, 565401600 },
                                                 { 0, 568080000, 570758400, 573177600, 575856000, 578448000, 581126400, 583718400, 586396800, 589075200, 591667200, 594345600, 596937600 },
                                                 { 0, 599616000, 602294400, 604713600, 607392000, 609984000, 612662400, 615254400, 617932800, 620611200, 623203200, 625881600, 628473600 },
@@ -60,7 +61,7 @@ static const uint32_t UTC_QB50_D[32] = { 0,
                                   2678400
                                 };
 
-static const uint32_t UTC_QB50_H[25] = { 0,
+const uint32_t UTC_QB50_H[25] = { 0,
                                   3600,
                                   7200,
                                   10800,
@@ -88,8 +89,105 @@ static const uint32_t UTC_QB50_H[25] = { 0,
                                 };
 
 
+SAT_returnState time_management_app(tc_tm_pkt *pkt){
+    
+    TIME_MAN_MODE t_set_mode;
+    uint32_t time_value;
+    
+    struct time_utc temp_time;
+
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
+	if(pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
+	    FM_fun_id fun_id = (FM_fun_id)pkt->data[0];
+	    if(fun_id == SET_TIME) {
+		    temp_time.day = pkt->data[1];
+		    temp_time.month = pkt->data[2];
+		    temp_time.year = pkt->data[3];
+		    temp_time.hour = pkt->data[4];
+		    temp_time.min = pkt->data[5];
+		    temp_time.sec = pkt->data[6];
+		    set_time_UTC(temp_time);
+		return SATR_OK;		    
+		}
+	}
+    tc_tm_pkt *time_rep_pkt = 0;
+    
+    if(!C_ASSERT(t_set_mode < LAST_TIME_ID) == true)         { return SATR_ERROR; }
+    
+    t_set_mode = (TIME_MAN_MODE) pkt->ser_subtype;
+    
+    if( t_set_mode == SET_DTIME_QB50){
+        /*set time from 2000 epoch*/
+    }
+    else if( t_set_mode == SET_DTIME_UTC ){
+        
+        /*set time in utc mode*/
+        temp_time.day = pkt->data[0];
+        temp_time.month = pkt->data[1];
+        temp_time.year = pkt->data[2];
+        
+        temp_time.hour = pkt->data[3];
+        temp_time.min = pkt->data[4];
+        temp_time.sec = pkt->data[5];
+        set_time_UTC(temp_time);
+
+        pkt->verification_state = SATR_OK;
+    }
+    else if( t_set_mode == REPORT_TIME_IN_QB50 ){
+//        get_time_QB50(&time_value);
+        /*make the packet to send*/
+        time_management_report_in_qb50(&time_rep_pkt, (TC_TM_app_id)DBG_APP_ID);
+        if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
+        route_pkt(time_rep_pkt);
+    }
+    else if( t_set_mode == REPORT_TIME_IN_UTC){
+//        get_time_UTC(&temp_time);        
+        /*make the packet to send*/
+        time_management_report_in_utc(&time_rep_pkt, (TC_TM_app_id)DBG_APP_ID);
+        if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
+        route_pkt(time_rep_pkt);
+    }
+    
+    return SATR_OK;
+}
+
+SAT_returnState time_management_report_in_qb50(tc_tm_pkt **pkt, TC_TM_app_id dest_id) {
+
+    uint32_t qb_temp_secs = 0;
+    
+    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+    get_time_QB50(&qb_temp_secs);
+    
+    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_UTC, dest_id);
+    
+    cnv32_8(qb_temp_secs, (*pkt)->data);
+    (*pkt)->len = 4;
+    return SATR_OK;
+}
+
+SAT_returnState time_management_report_in_utc(tc_tm_pkt **pkt, TC_TM_app_id dest_id) {
+
+    struct time_utc temp_time;
+    
+    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+    get_time_UTC(&temp_time);
+    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_UTC, dest_id);
+    
+    (*pkt)->data[0] = temp_time.day;
+    (*pkt)->data[1] = temp_time.month;
+    (*pkt)->data[2] = temp_time.year;
+    (*pkt)->data[3] = temp_time.hour;
+    (*pkt)->data[4] = temp_time.min;
+    (*pkt)->data[5] = temp_time.sec;
+    (*pkt)->len = 6;
+
+    return SATR_OK;
+}
+
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb) {
-    *qb = UTC_QB50_YM[utc.year][utc.month] + UTC_QB50_D[utc.day] + UTC_QB50_H[utc.hour] + utc.min * 60 + utc.sec;  
+    *qb = UTC_QB50_YM[utc.year][utc.month] + UTC_QB50_D[utc.day] + UTC_QB50_H[utc.hour] + (utc.min*60) + utc.sec;  
 }
 
 void set_time_QB50(uint32_t qb) {
@@ -97,6 +195,7 @@ void set_time_QB50(uint32_t qb) {
 }
 
 void set_time_UTC(struct time_utc utc) {
+    
     HAL_sys_setDate(utc.month, utc.day, utc.year);
     HAL_sys_setTime(utc.hour, utc.min, utc.sec);
 }
@@ -104,10 +203,8 @@ void set_time_UTC(struct time_utc utc) {
 void get_time_QB50(uint32_t *qb) {
 
     struct time_utc utc;
-
     HAL_sys_getTime(&utc.hour, &utc.min, &utc.sec);
     HAL_sys_getDate(&utc.month, &utc.day, &utc.year);
-    
     cnv_UTC_QB50(utc, qb);
 
 }
@@ -123,19 +220,7 @@ uint32_t get_time_ELAPSED() {
     return HAL_sys_GetTick();
 }
 
-
-SAT_returnState time_management_app(tc_tm_pkt *pkt) {
-
-    struct time_utc temp_time;
-
-    temp_time.day = pkt->data[1];
-    temp_time.month = pkt->data[2];
-    temp_time.year = pkt->data[3];
-
-    temp_time.hour = pkt->data[4];
-    temp_time.min = pkt->data[5];
-    temp_time.sec = pkt->data[6];
-    set_time_UTC(temp_time);
-
-    return SATR_OK;
+/*works when the tick ovf*/
+uint32_t time_cmp_elapsed(uint32_t t1, uint32_t t2) {
+    return t2 - t1;
 }
