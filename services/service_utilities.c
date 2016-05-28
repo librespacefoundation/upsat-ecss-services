@@ -53,7 +53,7 @@ void cnv8_16(uint8_t *from, uint16_t *to) {
 SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_crc) {
 
     if(!C_ASSERT(data != NULL && size != 0) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(size > TC_MIN_PKT_SIZE-2 && size < MAX_PKT_SIZE-2) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(size > TC_MIN_PKT_SIZE-3 && size < MAX_PKT_SIZE-2) == true) { return SATR_ERROR; }
 
     *res_crc = 0;
     for(int i=0; i<=size; i++){
