@@ -29,6 +29,9 @@ const uint8_t services_verification_EPS_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 
 struct _eps_data eps_data;
 
+static struct _sys_data sys_data;
+
+
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
     SAT_returnState res;

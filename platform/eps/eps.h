@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+#include "upsat.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -17,6 +18,12 @@ struct _eps_data
 {   
 
     struct uart_data obc_uart;
+};
+
+
+struct _sys_data {
+    uint8_t rsrc;
+    uint32_t *boot_counter;
 };
 
 extern struct _eps_data eps_data;
