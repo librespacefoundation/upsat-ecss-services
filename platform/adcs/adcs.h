@@ -6,7 +6,11 @@
 #include <stdbool.h>
 #include <string.h>
 #include "services.h"
+
 #include "upsat.h"
+
+#include "adcs_state.h"
+#include "adcs_control.h"
 
 struct _adcs_data
 {
@@ -43,10 +47,18 @@ extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
+extern _adcs_state adcs_state;
+extern _adcs_actuator adcs_actuator;
+
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
 SAT_returnState check_timeouts();
+
+void HAL_adcs_SENSORS_ON ();
+void HAL_adcs_SENSORS_OFF ();
+void HAL_adcs_SPIN (int32_t RPM);
+void HAL_adcs_MAGNETO (int32_t current_x, int32_t current_y);
 
 #endif
