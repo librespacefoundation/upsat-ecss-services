@@ -44,10 +44,10 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     if(pkt->type == TC)         { id = pkt->app_id; } 
     else if(pkt->type == TM)    { id = pkt->dest_id; }
 
-    if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
+    if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = event_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = hk_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
@@ -61,12 +61,6 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SCHEDULING_SERVICE) {
         //TODO: ADD C_ASSERT
         res = scheduling_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SU_MNLP_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = su_nmlp_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = time_management_app(pkt);
     }
     else if(id == EPS_APP_ID)      { export_pkt(EPS_APP_ID, pkt, &obc_data.eps_uart); }
     else if(id == ADCS_APP_ID)     { export_pkt(ADCS_APP_ID, pkt, &obc_data.adcs_uart); }
@@ -78,6 +72,27 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     verification_app(pkt);
     free_pkt(pkt);
     return SATR_OK;
+}
+
+SAT_returnState import_spi() {
+  static uint8_t cnt;
+  HAL_StatusTypeDef res;
+
+  if(obc_data.iac_flag == true) {
+      uint16_t size = 198;
+      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      obc_data.iac_out[0] = cnt++;
+      obc_data.iac_out[1] = cnt++;
+      //obc_data.iac_in[0] = 0xFA;
+      //obc_data.iac_in[1] = 0xAF;
+      obc_data.iac_flag = false;
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  } else if( hspi3.State == HAL_SPI_STATE_READY) {
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+  }
+
 }
 
 SAT_returnState obc_INIT() {
@@ -114,18 +129,9 @@ void bkup_sram_INIT() {
     obc_data.file_id_ext = HAL_obc_BKPSRAM_BASE() + 6;
     obc_data.file_id_ev = HAL_obc_BKPSRAM_BASE() + 7;
     obc_data.file_id_fotos = HAL_obc_BKPSRAM_BASE() + 8;
-    
-//    *obc_data.log_cnt = 0;
-//    *obc_data.log_state = 0;
-//    *sys_data.boot_counter = 0;
-//    *obc_data.wod_cnt = 0;
-//    *obc_data.file_id_su = 0;
-//    *obc_data.file_id_wod = 0;
-//    *obc_data.file_id_ext =0;
-//    *obc_data.file_id_ev = 0;
-//    *obc_data.file_id_fotos =0;
-            
+
     obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 9;
+
     obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 10 + (EV_MAX_BUFFER);
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
@@ -287,6 +293,15 @@ SAT_returnState wod_log_load(uint8_t *buf) {
    return SATR_OK;
 }
 
+void timeout_start_IAC() {
+    uint32_t t = HAL_sys_GetTick();
+    obc_data.iac_timeout = t;
+}
+
+void timeout_stop_IAC() {
+    obc_data.iac_timeout = 0;
+}
+
 SAT_returnState check_subsystems_timeouts() {
     
     uint32_t sys_t_now = HAL_sys_GetTick();
@@ -315,14 +330,9 @@ SAT_returnState check_subsystems_timeouts() {
         else { free_pkt(tmp_pkt); }
     }
     
-    if( (sys_t_now - obc_data.eps_uart.last_com_time) >= TIMEOUT_V_EPS ) { 
-        /*Handle EPS subsystem's timeout*/
-        //here we drink it, nothing we can do.
-    }
-
-    if( (sys_t_now - obc_data.dbg_uart.last_com_time) >= TIMEOUT_V_DBG ) { 
-        /*Handle UMBILICAL (dbg's port) subsystem's timeout*/
-        //no need for handling
+    if((sys_t_now - obc_data.iac_timeout) >= TIMEOUT_V_IAC) { 
+        /*Handle IAC subsystem's timeout*/
+        power_control_api(IAC_DEV_ID, P_OFF);
     }
 
     return SATR_OK;

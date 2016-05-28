@@ -15,6 +15,14 @@ extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart6;
 extern TaskHandle_t xTask_UART;
 
+struct _uart_timeout
+{
+    uint32_t su;
+    uint32_t adcs;
+    uint32_t eps;
+    uint32_t comms;
+};
+
 void uart_timeout_start(UART_HandleTypeDef *huart);
 
 void uart_timeout_stop(UART_HandleTypeDef *huart);

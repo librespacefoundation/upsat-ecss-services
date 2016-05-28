@@ -31,7 +31,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     
     if(sid == HEALTH_REP) {
         pkt->data[1] = (uint8_t)(eps_board_state.battery_voltage - ADC_VALUE_3V_BAT_VOLTAGE) ;
-        pkt->data[2] = (int8_t)(eps_board_state.battery_current_plus - eps_board_state.battery_current_minus);
+        pkt->data[2] = (int8_t)((int8_t)eps_board_state.battery_current_plus - (int8_t)eps_board_state.battery_current_minus);
         pkt->data[3] = (uint8_t)(eps_board_state.v3_3_current_avg );
         pkt->data[4] = (uint8_t)(eps_board_state.v5_current_avg);
         pkt->data[5] = (uint8_t)(eps_board_state.battery_temp);

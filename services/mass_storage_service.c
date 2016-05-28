@@ -3,7 +3,7 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 8
 
-static struct _MS_data MS_data;
+static struct _MS_data MS_data = { .enabled = true } ;
 
 /**
  * @brief      { entry point for incoming packets. }

@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "stm32l1xx_hal.h"
 #include "services.h"
-
+#include "hldlc.h"
 //ToDo
 //  improve return types
 //  need to make the change from the two different typedefs

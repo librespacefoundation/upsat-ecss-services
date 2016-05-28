@@ -50,16 +50,10 @@
 
 #define MAX_PKT_DATA        198 
 #define TC_MAX_PKT_SIZE     210
-#define TC_MIN_PKT_SIZE     12  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + ECSS_CRC_SIZE*/
+#define TC_MIN_PKT_SIZE     11 //12  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + ECSS_CRC_SIZE*/
 
 #define MAX_PKT_EXT_DATA    2048
 #define TC_MAX_PKT_EXT_SIZE 2060
-
-#if (SYSTEM_APP_ID == _EPS_APP_ID_)
-#define MAX_PKT_SIZE  210
-#else
-#define MAX_PKT_SIZE  2060
-#endif
 
 #define _OBC_APP_ID_   1
 #define _EPS_APP_ID_   2
@@ -69,6 +63,12 @@
 #define _GND_APP_ID_   6
 #define _DBG_APP_ID_   7
 #define _LAST_APP_ID_  8
+
+#if (SYSTEM_APP_ID == _EPS_APP_ID_)
+#define MAX_PKT_SIZE  210
+#else
+#define MAX_PKT_SIZE  2060
+#endif
 
 typedef enum {  
     OBC_APP_ID      = _OBC_APP_ID_,
@@ -258,7 +258,8 @@ typedef enum {
     P_ON        = 1,
     P_RESET     = 2,
     SET_TIME    = 3,
-    LAST_FUN_ID = 4
+    SET_VAL     = 4,
+    LAST_FUN_ID = 5
 }FM_fun_id;
 
 typedef enum {
@@ -271,7 +272,11 @@ typedef enum {
     GPS_DEV_ID      = 7,
     OBC_SD_DEV_ID   = 8,
     ADCS_SD_DEV_ID  = 9,
-    LAST_DEV_ID     = 10
+    ADCS_SENSORS    = 10,
+    ADCS_GPS        = 11,
+    ADCS_MAGNETO    = 12,
+    ADCS_SPIN       = 13,
+    LAST_DEV_ID     = 14
 }FM_dev_id;
 
 /*Mass storage ids*/
