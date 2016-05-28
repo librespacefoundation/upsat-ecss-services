@@ -39,6 +39,8 @@ struct _obc_data
     uint8_t iac_in[IAC_PKT_SIZE];
     uint8_t iac_out[IAC_PKT_SIZE];
     uint8_t iac_flag;
+    uint32_t iac_timeout;
+
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;

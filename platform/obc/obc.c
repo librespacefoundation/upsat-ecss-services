@@ -74,6 +74,27 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     return SATR_OK;
 }
 
+SAT_returnState import_spi() {
+  static uint8_t cnt;
+  HAL_StatusTypeDef res;
+
+  if(obc_data.iac_flag == true) {
+      uint16_t size = 198;
+      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      obc_data.iac_out[0] = cnt++;
+      obc_data.iac_out[1] = cnt++;
+      //obc_data.iac_in[0] = 0xFA;
+      //obc_data.iac_in[1] = 0xAF;
+      obc_data.iac_flag = false;
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+  } else if( hspi3.State == HAL_SPI_STATE_READY) {
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
+  }
+
+}
+
 SAT_returnState obc_INIT() {
 
     pkt_pool_INIT();
@@ -272,6 +293,15 @@ SAT_returnState wod_log_load(uint8_t *buf) {
    return SATR_OK;
 }
 
+void timeout_start_IAC() {
+    uint32_t t = HAL_sys_GetTick();
+    obc_data.iac_timeout = t;
+}
+
+void timeout_stop_IAC() {
+    obc_data.iac_timeout = 0;
+}
+
 SAT_returnState check_subsystems_timeouts() {
     
     uint32_t sys_t_now = HAL_sys_GetTick();
@@ -300,14 +330,9 @@ SAT_returnState check_subsystems_timeouts() {
         else { free_pkt(tmp_pkt); }
     }
     
-    if( (sys_t_now - obc_data.eps_uart.last_com_time) >= TIMEOUT_V_EPS ) { 
-        /*Handle EPS subsystem's timeout*/
-        //here we drink it, nothing we can do.
-    }
-
-    if( (sys_t_now - obc_data.dbg_uart.last_com_time) >= TIMEOUT_V_DBG ) { 
-        /*Handle UMBILICAL (dbg's port) subsystem's timeout*/
-        //no need for handling
+    if((sys_t_now - obc_data.iac_timeout) >= TIMEOUT_V_IAC) { 
+        /*Handle IAC subsystem's timeout*/
+        power_control_api(IAC_DEV_ID, P_OFF);
     }
 
     return SATR_OK;
