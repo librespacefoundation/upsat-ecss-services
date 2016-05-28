@@ -27,10 +27,9 @@ SAT_returnState function_management_app(tc_tm_pkt *pkt) {
     }
     else if(fun_id == SET_TIME) { /*time management*/
 
-        //if(!C_ASSERT(pkt->len < PKT_LEN_FM_SETTIME) == true) { return SATR_INV_DATA_LEN; }
+//        if(!C_ASSERT(pkt->len < PKT_LEN_FM_SETTIME) == true) { return SATR_INV_DATA_LEN; }
 
         pkt->verification_state = time_management_app(pkt);
-
     }
 
     return SATR_OK;

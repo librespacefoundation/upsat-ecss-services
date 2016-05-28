@@ -40,9 +40,11 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
 
     if(strnlen(e, 200) > 200) { e = strNo; }
 
-    if(mode == SATR_OK) { sprintf((char*)&buf[11], "Event %s,%d,%d,%s\n", f, fi, l, e); }
-    else { sprintf((char*)&buf[11], "Error %s,%d,%d,%s\n", f, fi, l, e); }
-
+    if(mode == SATR_OK){ 
+        sprintf((char*)&buf[11], "Event %s,%d,%d,%s\n", f, fi, l, e); }
+    else{ 
+        sprintf((char*)&buf[11], "Error %s,%d,%d,%s\n", f, fi, l, e); }
+    
     *size = strnlen(&buf[11], 200);
     event_log(&buf[11], *size);
 

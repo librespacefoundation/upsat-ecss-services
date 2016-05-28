@@ -12,7 +12,7 @@ extern SPI_HandleTypeDef hspi3;
 extern RTC_HandleTypeDef hrtc;
 extern IWDG_HandleTypeDef hiwdg;
 
-extern uint8_t su_inc_buffer[197];
+extern uint8_t su_inc_buffer[210];
 
 extern struct _obc_data obc_data;
 

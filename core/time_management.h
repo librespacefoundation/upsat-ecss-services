@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "pkt_pool.h"
 
 /*taken from stm32f4xx_hal_rtc.h*/
 #define TM_MONTH_JANUARY              ((uint8_t)0x01U)
@@ -44,11 +45,6 @@ extern void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year);
 
 extern uint32_t HAL_sys_GetTick();
 
-//ToDo
-//  Set assertions everywhere
-
-SAT_returnState time_management_app(tc_tm_pkt *pkt);
-
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb);
 
 void set_time_QB50(uint32_t qb);
@@ -63,4 +59,10 @@ uint32_t get_time_ELAPSED();
 
 uint32_t time_cmp_elapsed(uint32_t t1, uint32_t t2);
 
+SAT_returnState time_management_app(tc_tm_pkt *pck);
+
+SAT_returnState time_management_report_in_utc(tc_tm_pkt **pkt, TC_TM_app_id dest_id);
+
+SAT_returnState time_management_report_in_qb50(tc_tm_pkt **pkt, TC_TM_app_id dest_id);
+        
 #endif
