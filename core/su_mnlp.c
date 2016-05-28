@@ -143,9 +143,9 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             break;            
         case 20: /*mtee on*/
             if(mnlp_sim_active){ 
-                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
-            else{ 
                 ; }
+            else{ 
+                HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
             event_crt_pkt_api(uart_temp, "SU_MTEE_ON_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
@@ -354,7 +354,7 @@ void su_INIT(){
 
     su_state = su_power_off;
     MNLP_data.su_nmlp_sche_active = false;
-    mnlp_sim_active = true;
+    mnlp_sim_active = false;
     get_time_QB50(&qb_f_time_now);
     
     su_load_scripts();

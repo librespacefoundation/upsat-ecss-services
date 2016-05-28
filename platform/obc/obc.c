@@ -114,9 +114,18 @@ void bkup_sram_INIT() {
     obc_data.file_id_ext = HAL_obc_BKPSRAM_BASE() + 6;
     obc_data.file_id_ev = HAL_obc_BKPSRAM_BASE() + 7;
     obc_data.file_id_fotos = HAL_obc_BKPSRAM_BASE() + 8;
-
+    
+//    *obc_data.log_cnt = 0;
+//    *obc_data.log_state = 0;
+//    *sys_data.boot_counter = 0;
+//    *obc_data.wod_cnt = 0;
+//    *obc_data.file_id_su = 0;
+//    *obc_data.file_id_wod = 0;
+//    *obc_data.file_id_ext =0;
+//    *obc_data.file_id_ev = 0;
+//    *obc_data.file_id_fotos =0;
+            
     obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 9;
-
     obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 10 + (EV_MAX_BUFFER);
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
