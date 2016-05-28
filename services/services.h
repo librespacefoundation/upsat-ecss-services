@@ -258,7 +258,8 @@ typedef enum {
     P_ON        = 1,
     P_RESET     = 2,
     SET_TIME    = 3,
-    LAST_FUN_ID = 4
+    SET_VAL     = 4,
+    LAST_FUN_ID = 5
 }FM_fun_id;
 
 typedef enum {
@@ -271,7 +272,11 @@ typedef enum {
     GPS_DEV_ID      = 7,
     OBC_SD_DEV_ID   = 8,
     ADCS_SD_DEV_ID  = 9,
-    LAST_DEV_ID     = 10
+    ADCS_SENSORS    = 10,
+    ADCS_GPS        = 11,
+    ADCS_MAGNETO    = 12,
+    ADCS_SPIN       = 13,
+    LAST_DEV_ID     = 14
 }FM_dev_id;
 
 /*Mass storage ids*/
