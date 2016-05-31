@@ -29,27 +29,18 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
     { {0, 0}, {1, 1}, {1, 1}, {1, 1}, {1, 1}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} }  /*TIME MANAGEMENT SERVICE*/
 };            //1 is set d time utc , 2 is set d time qb50, 3 is report time in utc, 4 is report time in qb50 secs
 
-//stub
-uint32_t time_now() {
-    
-    uint32_t time_p=0;
-    //get_time_QB50( &time_p);
-    
-    return time_p;
-//    return 0;
-}
-
 extern uint8_t uart_temp[]; 
 
 uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e) {
   
   uint16_t size = 0;
   int res;
-
+  uint32_t time;
+  get_time_QB50(&time);
   event_crt_pkt_api(uart_temp, f, fi, l, e, &size, SATR_ERROR);
   HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-
-  cnv32_8(time_now(), &uart_temp[0]);
+  
+  cnv32_8(time, &uart_temp[0]);
   uart_temp[4] = fi;
   cnv16_8(l, &uart_temp[5]);
   //event_log(uart_temp, 6);

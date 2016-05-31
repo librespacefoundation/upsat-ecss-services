@@ -16,7 +16,7 @@ uint8_t mnlp_sim_active = true;
 /*Current sat time in qb50 secs*/
 uint32_t qb_f_time_now = 0;
 /*174 response data + 22 for obc extra header and */
-uint8_t su_inc_buffer[210];//198
+uint8_t su_inc_buffer[197];//198
 
 /*the state of the science unit*/
 SU_state su_state;
@@ -54,7 +54,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             else{ 
                 su_power_ctrl(P_ON); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_POWER_SET_ACTIVE", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_POWER_SET_ACTIVE_SEND", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
@@ -64,7 +64,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             else{ 
                 su_power_ctrl(P_OFF); }
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_POWER_SET_NON-ACTIVE", 969,969, "", &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_POWER_SET_NON-ACTIVE_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
@@ -81,7 +81,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
         case 4: /*su load parameters*/ 
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);  //to check it !!!
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_LOAD_PARAMETERS", 969,969, "", &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_LOAD_PARAMETERS_SEND", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
@@ -164,21 +164,21 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             else{ 
                 ; }
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_REPORT_RECEIVED", 969,969, "", &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_STATUS_REPORT_RECEIVED", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
             case 24: /*Enable su nmlp scheduler*/
             MNLP_data.su_nmlp_sche_active = true;
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_SET_ACTIVE", 969,969, "", &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_SET_ACTIVE_(SEND_AND_EXECUTED)", 969,969, "", &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
         case 25: /*Disable su nmlp scheduler*/
             MNLP_data.su_nmlp_sche_active = false;
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_SET_NON-ACTIVE", 969,969,"" , &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_SCHEDULER_SET_NON-ACTIVE_(SEND_AND_EXECUTED)", 969,969,"" , &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
             break;
@@ -197,7 +197,9 @@ SAT_returnState su_incoming_rx() {
     if( res == SATR_EOT ) {
         
         /*science header*/
-        cnv32_8( time_now(), &su_inc_buffer[0]);
+        uint32_t qb_50_secs;
+        get_time_QB50(&qb_50_secs);
+        cnv32_8( qb_50_secs, &su_inc_buffer[0]);
         cnv16_8(flight_data.roll, &su_inc_buffer[4]);
         cnv16_8(flight_data.pitch, &su_inc_buffer[6]);
         cnv16_8(flight_data.yaw, &su_inc_buffer[8]);
@@ -208,7 +210,7 @@ SAT_returnState su_incoming_rx() {
         cnv16_8(flight_data.y_eci, &su_inc_buffer[18]);
         cnv16_8(flight_data.z_eci, &su_inc_buffer[20]);
         
-        switch( su_inc_buffer[22] )
+        switch( su_inc_buffer[23] )
         {
             case (uint8_t)SU_LDP_RSP_ID:
                 mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
@@ -275,62 +277,6 @@ SAT_returnState su_incoming_rx() {
 #endif
                 break;
         }
-//        }
-//        if( su_inc_buffer[23] == SU_ERR_RSP_ID ) {
-//            
-//            event_crt_pkt_api(uart_temp, "SU_ERROR", 969,969, "", &size, SATR_OK);
-//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-//        }
-//        else if( su_inc_buffer[23] == OBC_SU_ERR_RSP_ID ) {
-//            /*here to generate the error packet as described on page 43 of mNLP doc*/
-//            generate_obc_su_error(error_array);
-//            
-//            event_crt_pkt_api(uart_temp, "SU_ERR_", 696,696, "", &size, SATR_OK);
-//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-//        }
-//        else{
-//            event_crt_pkt_api(uart_temp, "SU_RESP", 696,696, "", &size, SATR_OK);
-//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-//        }
-        
-//        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
-//            su_inc_buffer[ su_scripts[(uint8_t) active_script - 1].rx_cnt++] = c; }
-//        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + SU_RSP_PCKT_SIZE) { 
-//            su_scripts[(uint8_t) active_script - 1].rx_buf[obc_su_scripts.rx_cnt++] = c; }
-//        else {
-//            su_scripts.rx_cnt = SU_SCI_HEADER;
-//            su_scripts.timeout = time_now();
-//            if(su_scripts.rx_buf[SU_SCI_HEADER] == SU_ERR_RSP_ID) { su_power_ctrl(P_RESET); }
-//            
-//        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + 5) { 
-//            su_scripts[(uint8_t) active_script - 1].rx_buf[obc_su_scripts.rx_cnt++] = c; }
-//        if(su_scripts[(uint8_t) active_script - 1].rx_cnt < SU_SCI_HEADER + SU_RSP_PCKT_SIZE) { 
-//            su_scripts[(uint8_t) active_script - 1].rx_buf[obc_su_scripts.rx_cnt++] = c; }
-//        else {
-//            su_scripts.rx_cnt = SU_SCI_HEADER;
-//            su_scripts.timeout = time_now();
-//            if(su_scripts.rx_buf[SU_SCI_HEADER] == SU_ERR_RSP_ID) { su_power_ctrl(P_RESET); }
-//            /*science header*/
-//            cnv32_8(time_now(), &su_scripts.rx_buf[0]);
-//            cnv16_8(flight_data.roll, &su_scripts.rx_buf[4]);
-//            cnv16_8(flight_data.pitch, &su_scripts.rx_buf[6]);
-//            cnv16_8(flight_data.yaw, &su_scripts.rx_buf[8]);
-//            cnv16_8(flight_data.roll_dot, &su_scripts.rx_buf[10]);
-//            cnv16_8(flight_data.pitch_dot, &su_scripts.rx_buf[12]);
-//            cnv16_8(flight_data.yaw_dot, &su_scripts.rx_buf[14]);
-//            cnv16_8(flight_data.x_eci, &su_scripts.rx_buf[16]);
-//            cnv16_8(flight_data.y_eci, &su_scripts.rx_buf[18]);
-//            cnv16_8(flight_data.z_eci, &su_scripts.rx_buf[20]);
-//
-//            uint16_t size = SU_MAX_RSP_SIZE;
-//           // mass_storage_storeLogs(SU_LOG, su_scripts.rx_buf, &size);
-
-            
-            //uint16_t t = 35000;
-            //cnv16_8( t, &su_inc_buffer[20]);
-//            
-//            mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
-//        }
     }
     return SATR_OK;
 }
@@ -375,8 +321,8 @@ void su_load_scripts(){
 //        su_scripts[(uint8_t) i-1].active = false;
         /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
 
-        SAT_returnState res = mass_storage_su_load_api( i, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
-//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_6, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( i, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_1, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
 //        SAT_returnState res = SATR_OK;
         if( res == SATR_ERROR || res == SATR_CRC_ERROR){
             /*script is kept marked as invalid.*/
@@ -549,44 +495,7 @@ SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *s
 SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
     HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
-//    HAL_sys_delay( 1000 );
-    uint8_t temp = 1;//to be removed
     
-    if ( temp ==1 ){
-    if( cmd->cmd_id == 0x05){
-      HAL_su_uart_tx( cmd->command, cmd->len+1);
-        
-//        uint8_t su_out[105];
-//        su_out[0]= 0x05;
-//        su_out[1]= 0x63; //len
-//        su_out[2]= 2; //seq_coun
-//        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
-//        HAL_su_uart_tx( su_out, 102);  
-    }
-//    else
-//    if( cmd->cmd_id == 0x06 )
-//    {
-//        //don't send to hc sim, because it violates the state and leads to error dump.
-//        return SATR_OK;
-//    }
-    else{
-      HAL_su_uart_tx( cmd->command, cmd->len+2);
-    }
-    }
-    else{
-    //-------------------------------------------------------------------------
-    if( cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)         { su_power_ctrl(P_ON); } 
-    else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); }
-    else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
-    else{
-            if(cmd->cmd_id == 0x05)                     {
-                HAL_su_uart_tx( cmd->command, cmd->len+1);
-            }
-            else
-                HAL_su_uart_tx( cmd->command, cmd->len+2); 
-    }
-    }
-//    HAL_sys_delay( 10);
 //    if( cmd->cmd_id == 0x05){
 //      HAL_su_uart_tx( cmd->command, cmd->len+1);
         
@@ -597,23 +506,18 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 //        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
 //        HAL_su_uart_tx( su_out, 102);  
 //    }
-//    else
-//    if( cmd->cmd_id == 0x06 )
-//    {
-//        //don't send to hc sim, because it violates the state and leads to error dump.
-//        return SATR_OK;
-//    }
+//    else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
 //    else{
-//      HAL_su_uart_tx( cmd->command, cmd->len+2);
-//    }
-//    HAL_su_uart_tx( &cmd->pointer, cmd->len);
-//    HAL_su_uart_tx( &cmd->cmd_id, cmd->len);
+//    //-------------------------------------------------------------------------
+    if( cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)         { su_power_ctrl(P_ON); } 
+    else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); }
+    else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
+    else{
+//            if(cmd->cmd_id == 0x05) {
+//                HAL_su_uart_tx( cmd->command, cmd->len+2);
+//            }
+            HAL_su_uart_tx( cmd->command, cmd->len+2); }
     
-//    if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)          { su_power_ctrl(P_ON); } 
-//    else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); } 
-//    else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
-//    else                                            { HAL_su_uart_tx( &cmd->pointer, cmd->len); }
-//    HAL_sys_delay( 10);
     return SATR_OK;
 }
 

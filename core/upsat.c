@@ -22,7 +22,7 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
             pkt = get_pkt(size);
 
-            if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+            if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }            
             if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 
             else { verification_app(pkt); free_pkt(pkt); }
         }
