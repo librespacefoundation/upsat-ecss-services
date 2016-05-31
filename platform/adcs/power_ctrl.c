@@ -25,16 +25,16 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
 
     else if(did == ADCS_SPIN && fid == SET_VAL)    {
         int32_t rpm = 0;
-        cnv8_32(*state, &rpm);
+        cnv8_32(state, &rpm);
         HAL_adcs_SPIN(rpm); 
     }
     else if(did == ADCS_MAGNETO && fid == SET_VAL)    {
         int32_t current_x = 0;
         int32_t current_y = 0;
 
-        cnv8_32(*state, &current_x);
-        cnv8_32(*state[4], &current_y);
-        HAL_adcs_MAGNETO (int32_t current_x, int32_t current_y);
+        cnv8_32(state, &current_x);
+        cnv8_32(&state[4], &current_y);
+        HAL_adcs_MAGNETO (current_x, current_y);
     }
 
     return SATR_OK;
