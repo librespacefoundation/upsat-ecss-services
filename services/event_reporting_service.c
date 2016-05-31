@@ -1,5 +1,10 @@
 #include "event_reporting_service.h"
 
+#include "system.h"
+#include "service_utilities.h"
+#include "pkt_pool.h"
+#include "hldlc.h"
+
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
@@ -44,7 +49,7 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
         sprintf((char*)&buf[11], "Event %s,%d,%d,%s\n", f, fi, l, e); }
     else{ 
         sprintf((char*)&buf[11], "Error %s,%d,%d,%s\n", f, fi, l, e); }
-    
+
     *size = strnlen(&buf[11], 200);
     event_log(&buf[11], *size);
 
@@ -56,6 +61,44 @@ SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_
     checkSum(&buf[1], *size - 1, &res_crc);
     buf[(*size)+1] = res_crc;
     buf[(*size)+2] = HLDLC_START_FLAG;
+
+    *size += 3;
+
+    return SATR_OK;
+}
+
+SAT_returnState event_dbg_api(uint8_t *buf, uint8_t *str, uint16_t *size) {
+
+    uint8_t sub_type = 0;
+    uint8_t res_crc = 0;
+    
+    *size = 0;
+
+    sub_type = TM_EV_NORMAL_REPORT;
+
+    buf[0] = HLDLC_START_FLAG;
+    buf[1] = 0x08;
+    buf[2] = SYSTEM_APP_ID;
+    buf[3] = 0xC0;
+    buf[4] = 5;
+
+    buf[7] = 16;
+    buf[8] = TC_EVENT_SERVICE;
+    buf[9] = sub_type;
+    buf[10] = DBG_APP_ID;
+
+    *size = strnlen(str, MAX_PKT_DATA);
+
+    memcpy(&buf[11], str, *size);
+
+    *size += 11;
+    buf[*size] = 0;
+
+    buf[5] = 0;
+    buf[6] = *size - ECSS_HEADER_SIZE;
+    checkSum(&buf[1], *size - 1, &res_crc);
+    buf[*size + 1] = res_crc;
+    buf[*size + 2] = HLDLC_START_FLAG;
 
     *size += 3;
 
