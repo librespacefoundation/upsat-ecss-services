@@ -195,3 +195,8 @@ HAL_adcs_MAGNETO (int32_t current_x, int32_t current_y)
   update_magneto_torquer (&adcs_actuator);
 }
 
+void
+HAL_adcs_DBG (uint8_t var,uint8_t val)
+{
+  
+}

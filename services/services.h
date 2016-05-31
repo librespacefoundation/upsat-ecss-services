@@ -276,7 +276,8 @@ typedef enum {
     ADCS_GPS        = 11,
     ADCS_MAGNETO    = 12,
     ADCS_SPIN       = 13,
-    LAST_DEV_ID     = 14
+    SYS_DBG         = 14,
+    LAST_DEV_ID     = 15
 }FM_dev_id;
 
 /*Mass storage ids*/
