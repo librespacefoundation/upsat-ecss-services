@@ -1,8 +1,13 @@
 #include "verification_service.h"
 
+#include <stdint.h>
+#include "service_utilities.h"
+#include "pkt_pool.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 4
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState verification_app(tc_tm_pkt *pkt) {
 

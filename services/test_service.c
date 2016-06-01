@@ -1,8 +1,13 @@
 #include "test_service.h"
+#include "service_utilities.h"
+#include "pkt_pool.h"
 
+#include <stdint.h>
 
 #undef __FILE_ID__
 #define __FILE_ID__ 9
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState test_app(tc_tm_pkt *pkt) {
 

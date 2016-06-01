@@ -4,9 +4,12 @@
 #include <stdint.h>
 #include "services.h"
 
-#define EV_DATA_SIZE 12
+
+SAT_returnState event_app(tc_tm_pkt * pkt);
 
 SAT_returnState event_boot(const uint8_t reset_source, const uint8_t boot_counter);
+
+SAT_returnState event_pkt_pool_timeout();
 
 SAT_returnState event_dbg_api(uint8_t *buf, uint8_t *str, uint16_t *size);
 

@@ -8,6 +8,11 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
+#define EV_DATA_SIZE 12
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+extern uint32_t HAL_sys_GetTick();
+
 static uint8_t strNo[] = "No";
 
 SAT_returnState event_app(tc_tm_pkt * pkt) {

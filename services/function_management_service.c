@@ -1,8 +1,14 @@
 #include "function_management_service.h"
 
+#include "service_utilities.h"
+#include "pkt_pool.h"
+#include "power_ctrl.h"
+#include <stdint.h>
 
 #undef __FILE_ID__
 #define __FILE_ID__ 6
+
+extern SAT_returnState time_management_app(tc_tm_pkt *pkt);
 
 SAT_returnState function_management_app(tc_tm_pkt *pkt) {
 
