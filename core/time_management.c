@@ -131,10 +131,10 @@ SAT_returnState time_management_report_in_utc(tc_tm_pkt **pkt, TC_TM_app_id dest
 
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb) {
     
-    *qb = UTC_QB50_YM[utc.year][utc.month] + 
-          UTC_QB50_D[utc.day]              + 
-          UTC_QB50_H[utc.hour]             + 
-          (utc.min*60) + utc.sec;  
+    *qb = (UTC_QB50_YM[utc.year][utc.month] + 
+          UTC_QB50_D[utc.day]               + 
+          UTC_QB50_H[utc.hour]              + 
+          (utc.min*60) + utc.sec) - UTC_QB50_D[1];  
 }
 
 void set_time_QB50(uint32_t qb) {
