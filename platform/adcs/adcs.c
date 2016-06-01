@@ -2,6 +2,8 @@
 #include "adcs_control.h"
 #include "adcs_state.h"
 
+extern uint8_t dbg_msg;
+
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
@@ -198,5 +200,5 @@ HAL_adcs_MAGNETO (int32_t current_x, int32_t current_y)
 void
 HAL_adcs_DBG (uint8_t var,uint8_t val)
 {
-  
+  dbg_msg = val;
 }
