@@ -1,6 +1,13 @@
 #include "flash.h"
 #include "stm32f4xx_hal.h"
 
+#pragma location = 0x0800C000 
+static volatile const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0x0800FFFF };
+
+uint32_t flash_INIT() {
+	return occupy_sector[0];
+}
+
 uint32_t flash_read_trasmit() {
 
     uint32_t *val = (uint32_t*)TRANSMIT_VAR_ADD;

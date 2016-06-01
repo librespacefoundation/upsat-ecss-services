@@ -3,14 +3,18 @@
 
 #include <stdint.h>
 
-#define SECTOR_3_ADD_START 0x0800C000
+#define SECTOR_3_ADD_START 
 #define SECTOR_3_ADD_FIN   0x0800FFFF
 #define SECTOR_3_SIZE	   0xFFF
 
 #define TRANSMIT_VAR_ADD   0x0800C000
 
-#pragma location = SECTOR_3_ADD_START;
-const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0x0800FFFF };
+/**
+ * @brief      { Include this init in main in order flash write to work}
+ *
+ * @return     { description_of_the_return_value }
+ */
+uint32_t flash_INIT();
 
 uint32_t flash_read_trasmit();
 
