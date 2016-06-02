@@ -182,7 +182,9 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     if(pkt->type == TC)         { app_id = pkt->app_id; } 
     else if(pkt->type == TM)    { app_id = pkt->dest_id; }
-    else { SATR_ERROR; }
+    else {
+      return SATR_ERROR;
+    }
 
     //test
     //app_id = DBG_APP_ID;
