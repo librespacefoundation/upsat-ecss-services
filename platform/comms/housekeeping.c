@@ -1,4 +1,5 @@
 #include "housekeeping.h"
+#include "sensors.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666

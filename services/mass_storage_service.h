@@ -26,7 +26,7 @@
 #define MS_SCHS            "/SCHS"
 
 #define MS_MAX_PATH             40 //random num
-#define MS_MAX_FILES            1000 //random num
+#define MS_MAX_FILES            0x5F5E0FF //random num
 #define MS_MAX_FNAME            30 //random num
 #define MS_MAX_LOG_FILE_SIZE    198 /*MAX_PKT_DATA*/ 
 #define MS_MAX_SU_FILE_SIZE     2048 //2k
