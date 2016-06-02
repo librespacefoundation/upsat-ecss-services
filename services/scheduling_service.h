@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include "service_utilities.h"
-#include "time_management.h"
+#include "time_management_service.h"
 #include "services.h"
 
 #define SCHEDULING_SERVICE_V 0.1

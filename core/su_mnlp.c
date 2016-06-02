@@ -298,7 +298,7 @@ uint8_t time_lala = 5;
 
 void su_INIT(){
 
-    su_state = su_power_off;
+    su_state = SU_POWER_OFF;
     MNLP_data.su_nmlp_sche_active = false;
     mnlp_sim_active = false;
     get_time_QB50(&qb_f_time_now);
@@ -342,7 +342,7 @@ void su_load_scripts(){
 
 void su_SCH(){
 
-    if( (su_state == su_power_off || su_state == su_idle) /*&&  !mnlp_sim_active  */) {
+    if( (su_state == SU_POWER_OFF || su_state == SU_IDLE) /*&&  !mnlp_sim_active  */) {
 //        MNLP_data.su_nmlp_sche_active = true;
         
         for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
@@ -358,7 +358,7 @@ void su_SCH(){
                 //due to a reset.
                 //if a reset occured when we have executed a script from start to end, then on the next boot,
                 //we will execute it again, we don't want that.
-                su_state = su_running;
+                su_state = SU_RUNNING;
                 active_script = (MS_sid) i;
                 
                 /* the first byte after the 12-byte sized script header,
@@ -430,7 +430,7 @@ void su_SCH(){
                     }
                 }//go for next time table
                 //script handling for ends here, at this point every time table in (the current) script has been served.
-                su_state = su_idle;
+                su_state = SU_IDLE;
 //                su_scripts[(uint8_t) active_script - 1].active = false;
             }//script run validity check if ends here
         }//go to check next script

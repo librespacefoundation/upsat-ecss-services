@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "services.h"
 #include "obc.h"
-#include "time_management.h"
+#include "time_management_service.h"
 
 extern void HAL_sys_delay(uint32_t sec);
 
