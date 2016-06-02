@@ -60,5 +60,6 @@ void HAL_adcs_SENSORS_ON ();
 void HAL_adcs_SENSORS_OFF ();
 void HAL_adcs_SPIN (int32_t RPM);
 void HAL_adcs_MAGNETO (int32_t current_x, int32_t current_y);
+void HAL_adcs_DBG (uint8_t var,uint8_t val);
 
 #endif

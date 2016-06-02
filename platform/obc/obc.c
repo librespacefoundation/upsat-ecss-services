@@ -95,6 +95,8 @@ SAT_returnState import_spi() {
       obc_data.iac_flag = false;
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+      event_dbg_api(uart_temp, "IAC Rec\n", &size);
+      HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
   } else if( hspi3.State == HAL_SPI_STATE_READY) {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 205);
   }

@@ -16,6 +16,7 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size);
 
 SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, TC_TM_app_id dest_id);
 
+
 void cnv32_8(const uint32_t from, uint8_t *to);
 
 void cnv16_8(const uint16_t from, uint8_t *to);
@@ -23,5 +24,10 @@ void cnv16_8(const uint16_t from, uint8_t *to);
 void cnv8_32(uint8_t *from, uint32_t *to);
 
 void cnv8_16(uint8_t *from, uint16_t *to);
+
+
+void cnvF_8(const float from, uint8_t *to);
+
+void cnv8_F(uint8_t *from, float *to);
 
 #endif

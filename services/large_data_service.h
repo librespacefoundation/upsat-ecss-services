@@ -40,27 +40,6 @@ struct _ld_status {
 
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-//ToDo
-//  check again if app_id and dest_id are ok.
-//  assert, require.
-//  finish definitions, types, subtypes, documentation and doc.
-//  check again if finished segmentation
-
-//Finito
-//  check types definitions
-//  add function definition in .h
-//  check size and packet len. reconfigure for pkt len instead of pack.
-//  check definition of n.
-//  add pack in pack
-//  what happens when new packet arrives, when the state is not free.
-//  when to change iterator to next.
-//  first tx packet, what header sould be.
-//  check downlink, uplink subtypes.
-//  what happens in timeout.
-//  implement timeout and abort.
-//  finish timeout.
-//  check sequence numbers.
-//  in tx when to make it FREE, maybe should ack every packet and then send it free.
 
 SAT_returnState large_data_app(tc_tm_pkt *pkt);
 

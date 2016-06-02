@@ -275,7 +275,8 @@ typedef enum {
     ADCS_GPS        = 11,
     ADCS_MAGNETO    = 12,
     ADCS_SPIN       = 13,
-    LAST_DEV_ID     = 14
+    SYS_DBG         = 14,
+    LAST_DEV_ID     = 15
 }FM_dev_id;
 
 /*Mass storage ids*/
@@ -340,6 +341,7 @@ typedef enum {
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 
 union _cnv {
+    float cnvF;
     uint32_t cnv32;
     uint16_t cnv16[2];
     uint8_t cnv8[4];

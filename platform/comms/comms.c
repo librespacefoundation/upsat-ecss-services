@@ -1,8 +1,13 @@
 #include "comms.h"
 #include "large_data_service.h"
+#include "config.h"
+#include "log.h"
+#include "stm32f4xx_hal.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern uint8_t dbg_msg;
 
 const uint8_t services_verification_COMMS_TC[MAX_SERVICES][MAX_SUBTYPES] = { 
 /*    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
@@ -41,6 +46,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
     if(pkt->type == TC)         { id = pkt->app_id; } 
     else if(pkt->type == TM)    { id = pkt->dest_id; }
+    else{
+      return SATR_ERROR;
+    }
 
     if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
@@ -58,14 +66,54 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == GND_APP_ID)      { 
-      //if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
-      //else { tx_test(pkt); } //we need to fix this
+      if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
+      else { tx_ecss(pkt); }
     }
     else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &comms_data.obc_uart); }
 
     verification_app(pkt);
     free_pkt(pkt);
     return SATR_OK;
+}
+
+extern UART_HandleTypeDef huart5;
+static uint8_t payload[TC_MAX_PKT_SIZE];
+
+void rx_ecss(uint8_t *payload, const uint16_t payload_size) {
+
+    tc_tm_pkt *pkt;
+    uint16_t size = 0;
+
+    SAT_returnState res;
+    SAT_returnState res_deframe;
+
+    pkt = get_pkt(payload_size);
+
+    if(!C_ASSERT(pkt != NULL) == true) { return; }
+    if(unpack_pkt(payload, pkt, payload_size) == SATR_OK) { route_pkt(pkt); } 
+    else { verification_app(pkt); free_pkt(pkt); }
+
+}
+
+SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
+
+    int ret = 0;
+    
+    uint16_t size = 0;
+    SAT_returnState res;    
+
+    pack_pkt(payload, pkt, &size);
+
+    //if(!C_ASSERT(size > 0) == true) { return SATR_ERROR; }
+
+    ret = send_payload(payload, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
+    if (ret > 0) {
+      HAL_Delay (50);
+      LOG_UART_DBG(&huart5, "Frame transmitted ECSS Ret %d", ret);
+    }
+    else {
+      LOG_UART_DBG(&huart5, "Error at AX.25 encoding");
+    }
 }
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
@@ -79,3 +127,8 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt) {
     return SATR_ERROR;
 }
 
+void
+HAL_comms_DBG (uint8_t var,uint8_t val)
+{
+  dbg_msg = val;
+}

@@ -50,6 +50,30 @@ void cnv8_16(uint8_t *from, uint16_t *to) {
     *to = cnv.cnv16[0];
 }
 
+
+void cnvF_8(const float from, uint8_t *to) {
+
+    union _cnv cnv;
+
+    cnv.cnvF = from;
+    to[0] = cnv.cnv8[0];
+    to[1] = cnv.cnv8[1];
+    to[2] = cnv.cnv8[2];
+    to[3] = cnv.cnv8[3];
+}
+
+void cnv8_F(uint8_t *from, float *to) {
+
+    union _cnv cnv;
+
+    cnv.cnv8[3] = from[3];
+    cnv.cnv8[2] = from[2];
+    cnv.cnv8[1] = from[1];
+    cnv.cnv8[0] = from[0];
+    *to = cnv.cnvF;
+
+}
+
 SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_crc) {
 
     if(!C_ASSERT(data != NULL && size != 0) == true)                         { return SATR_ERROR; }

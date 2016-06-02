@@ -33,6 +33,8 @@ extern SAT_returnState hk_app(tc_tm_pkt *pkt);
 extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
+SAT_returnState tx_ecss(tc_tm_pkt *pkt);
+
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState check_timeouts();

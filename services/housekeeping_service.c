@@ -1,7 +1,14 @@
 #include "housekeeping_service.h"
 
+#include "service_utilities.h"
+#include "pkt_pool.h"
+#include "housekeeping.h"
+#include <stdint.h>
+
 #undef __FILE_ID__
 #define __FILE_ID__ 5
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState hk_app(tc_tm_pkt *pkt) {
 
