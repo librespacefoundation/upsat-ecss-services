@@ -342,6 +342,7 @@ typedef enum {
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 
 union _cnv {
+    float cnvF;
     uint32_t cnv32;
     uint16_t cnv16[2];
     uint8_t cnv8[4];
