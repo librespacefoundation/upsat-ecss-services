@@ -8,8 +8,6 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 6
 
-extern SAT_returnState time_management_app(tc_tm_pkt *pkt);
-
 SAT_returnState function_management_app(tc_tm_pkt *pkt) {
 
     uint32_t val;
@@ -36,10 +34,6 @@ SAT_returnState function_management_app(tc_tm_pkt *pkt) {
         pkt->verification_state = SATR_OK;
         power_control_api((FM_dev_id)pkt->data[1], fun_id, &pkt->data[2]);
 
-    } else if(fun_id == SET_TIME) { /*time management*/
-
-//        if(!C_ASSERT(pkt->len < PKT_LEN_FM_SETTIME) == true) { return SATR_INV_DATA_LEN; }
-        pkt->verification_state = time_management_app(pkt);
     }
 
     return SATR_OK;

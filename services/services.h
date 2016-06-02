@@ -145,12 +145,12 @@ typedef enum {
 #define TC_HOUSEKEEPING_SERVICE         3
 #define TC_EVENT_SERVICE                5
 #define TC_FUNCTION_MANAGEMENT_SERVICE  8
+#define TC_TIME_MANAGEMENT_SERVICE      9 
 #define TC_SCHEDULING_SERVICE           11
 #define TC_LARGE_DATA_SERVICE           13
 #define TC_MASS_STORAGE_SERVICE         15
 #define TC_TEST_SERVICE                 17
 #define TC_SU_MNLP_SERVICE              18 /*service number out of ECSS standard, mission specific for mnlp su*/
-#define TC_TIME_MANAGEMENT_SERVICE      19 
 
 /*services subtypes*/
 #define TM_VR_ACCEPTANCE_SUCCESS        1
@@ -257,9 +257,8 @@ typedef enum {
     P_OFF       = 0,
     P_ON        = 1,
     P_RESET     = 2,
-    SET_TIME    = 3,
-    SET_VAL     = 4,
-    LAST_FUN_ID = 5
+    SET_VAL     = 3,
+    LAST_FUN_ID = 4
 }FM_fun_id;
 
 typedef enum {
@@ -309,10 +308,10 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    su_power_off  = 1,
-    su_running    = 2,
-    su_idle       = 3,
-    su_finished   = 4,
+    SU_POWER_OFF  = 1,
+    SU_RUNNING    = 2,
+    SU_IDLE       = 3,
+    SU_FINISHED   = 4,
     LAST_SU_STATE = 5
 }SU_state;
 
