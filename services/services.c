@@ -36,13 +36,13 @@ uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e) {
   uint16_t size = 0;
   int res;
   uint32_t time;
-  get_time_QB50(&time);
-  event_crt_pkt_api(uart_temp, f, fi, l, e, &size, SATR_ERROR);
-  HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+  //get_time_QB50(&time);
+  //event_crt_pkt_api(uart_temp, f, fi, l, e, &size, SATR_ERROR);
+  //HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
   
-  cnv32_8(time, &uart_temp[0]);
-  uart_temp[4] = fi;
-  cnv16_8(l, &uart_temp[5]);
+  //cnv32_8(time, &uart_temp[0]);
+  //uart_temp[4] = fi;
+  //cnv16_8(l, &uart_temp[5]);
   //event_log(uart_temp, 6);
 
   return false;
