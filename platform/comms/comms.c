@@ -124,10 +124,6 @@ SAT_returnState check_timeouts() {
     
 }
 
-SAT_returnState time_management_app(tc_tm_pkt *pkt) {
-    return SATR_ERROR;
-}
-
 void
 HAL_comms_DBG (uint8_t var,uint8_t val)
 {
