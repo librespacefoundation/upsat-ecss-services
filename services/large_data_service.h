@@ -2,17 +2,7 @@
 #define LARGE_DATA_SERVICE_H
 
 #include <stdint.h>
-#include <math.h>
 #include "services.h"
-#include "service_utilities.h"
-#include "pkt_pool.h"
-
-#define LD_PKT_DATA             198 /*MAX_PKT_DATA*/
-#define LD_PKT_DATA_HDR_SIZE    3
-
-#define LD_TIMEOUT              1000 /*sec*/
-
-#define LD_MAX_TRANSFER_TIME    1000 //random
 
 typedef enum {
     LD_STATE_FREE           = 1,
@@ -37,8 +27,6 @@ struct _ld_status {
     uint8_t tx_pkt;         /**/
     uint16_t tx_size;         /**/
 };
-
-extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 
 SAT_returnState large_data_app(tc_tm_pkt *pkt);
@@ -67,8 +55,6 @@ SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, uint16_t dest_id);
 
 SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t dest_id, uint8_t subtype);
-
-void large_data_INIT();
 
 void large_data_IDLE();
 

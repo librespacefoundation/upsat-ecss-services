@@ -65,8 +65,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == ADCS_APP_ID)     { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
-    else if(id == GND_APP_ID)      { 
-      if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
+    else if(id == GND_APP_ID)      {
+
+      if(pkt->len > MAX_PKT_DATA) { large_data_downlinkTx_api(pkt); }
       else { tx_ecss(pkt); }
     }
     else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &comms_data.obc_uart); }
