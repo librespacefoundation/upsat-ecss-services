@@ -27,7 +27,7 @@ void hk_SCH() {
 
     wod_log();
     clear_wod();
-    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, COMMS_APP_ID, WOD_REP);
     route_pkt(&hk_pkt);
     HAL_sys_delay(1000);
 
@@ -49,7 +49,7 @@ void hk_SCH() {
     wdg.hk_valid = true;
     HAL_sys_delay(12500);  
 
-    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, COMMS_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     clear_ext_wod();
     HAL_sys_delay(1000);

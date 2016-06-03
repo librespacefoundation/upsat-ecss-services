@@ -21,6 +21,11 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         //cnv.cnv32 = time.now();
         cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
         pkt->len = 5;
+
+    } else if(sid == WOD_REP) {
+
+
+
     }
 
     return SATR_OK;
