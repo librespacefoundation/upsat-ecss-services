@@ -2,6 +2,25 @@
 
 static struct _uart_timeout uart_timeout; 
 
+void HAL_uart_tx_check(TC_TM_app_id app_id) {
+    
+    HAL_UART_StateTypeDef res;
+    UART_HandleTypeDef *huart;
+
+    if(app_id == EPS_APP_ID) { huart = &huart1; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+    else if(app_id == COMMS_APP_ID) { huart = &huart4; }
+    else if(app_id == ADCS_APP_ID) { huart = &huart6; }
+
+    for(;;) { // should use hard limits
+        res = HAL_UART_GetState(huart);
+        if(res != HAL_UART_STATE_BUSY && \
+           res != HAL_UART_STATE_BUSY_TX && \
+           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
+        osDelay(10);
+    }
+}
+
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     
     HAL_StatusTypeDef res;

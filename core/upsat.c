@@ -40,6 +40,9 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data
     SAT_returnState res;    
 
     pack_pkt(data->uart_pkted_buf, pkt, &size);
+
+    HAL_uart_tx_check(app_id);
+
     res = HLDLC_frame(data->uart_pkted_buf, data->framed_buf, &size);
     if(res == SATR_ERROR) { return SATR_ERROR; }
 
