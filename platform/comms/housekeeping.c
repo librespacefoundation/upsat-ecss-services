@@ -19,7 +19,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     } else if(sid == EX_HEALTH_REP) {
 
         //cnv.cnv32 = time.now();
-        cnv32_8(time_now(), &pkt->data[1]);
+        cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
         pkt->len = 5;
     }
 
