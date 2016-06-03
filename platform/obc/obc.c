@@ -270,27 +270,7 @@ SAT_returnState event_log_IDLE() {
 SAT_returnState wod_log() {
 
 //check endianess
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.mode;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.batt_volt;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.batt_curr;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.bus_3v3_curr;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-    
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.bus_5v_curr;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.temp_comms;
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.temp_batt;
     (*obc_data.wod_cnt)++;
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 
@@ -298,7 +278,27 @@ SAT_returnState wod_log() {
     (*obc_data.wod_cnt)++;
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.temp_batt;
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.temp_comms;
+    (*obc_data.wod_cnt)++;
+    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
+
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.bus_5v_curr;
+    (*obc_data.wod_cnt)++;
+    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
+
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.bus_3v3_curr;
+    (*obc_data.wod_cnt)++;
+    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
+
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.batt_curr;
+    (*obc_data.wod_cnt)++;
+    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
+
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.batt_volt;
+    (*obc_data.wod_cnt)++;
+    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
+
+    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.mode;
     (*obc_data.wod_cnt)++;
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 
