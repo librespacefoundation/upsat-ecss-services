@@ -49,7 +49,7 @@ void hk_SCH() {
     wdg.hk_valid = true;
     HAL_sys_delay(12500);  
 
-    hk_crt_pkt_TM(&hk_pkt, COMMS_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     clear_ext_wod();
     HAL_sys_delay(1000);
@@ -72,12 +72,12 @@ void clear_ext_wod() {
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
     
     if(app_id == EPS_APP_ID && sid == HEALTH_REP) {
-        sat_status.batt_curr = data[1];
-        sat_status.batt_volt = data[2];
+        sat_status.batt_volt = data[1];
+        sat_status.batt_curr = data[2];
         sat_status.bus_3v3_curr = data[3];
         sat_status.bus_5v_curr = data[4];
-        sat_status.temp_eps = data[5];
-        sat_status.temp_batt = data[6];
+        sat_status.temp_batt = data[5];
+        sat_status.temp_eps = data[6];
 
     } else if(app_id == COMMS_APP_ID && sid == HEALTH_REP) {
         sat_status.temp_comms = data[1];
@@ -118,8 +118,17 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         uint32_t time_temp;
         get_time_QB50(&time_temp);
 
-        cnv32_8(time_temp, &pkt->data[1]);
-        wod_log_load(&pkt->data[5]);
+        //cnv32_8(time_temp, &pkt->data[1]);
+        //wod_log_load(&pkt->data[5]);
+
+
+        pkt->data[1] = 0xFE;
+        pkt->data[2] = 0xED;
+        pkt->data[3] = 0xBE;
+        pkt->data[4] = 0xEF;
+
+        cnv32_8(time_temp, &pkt->data[5]);
+        wod_log_load(&pkt->data[9]);
 
         uint16_t size = 4+(32*8);
         mass_storage_storeFile(WOD_LOG, 0, &pkt->data[1], &size);
