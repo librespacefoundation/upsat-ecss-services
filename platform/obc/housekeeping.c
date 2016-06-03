@@ -14,36 +14,45 @@ void hk_SCH() {
 
     hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
+    HAL_sys_delay(1000);
+
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
 
     wdg.hk_valid = true;
-    HAL_sys_delay(15000);
+    HAL_sys_delay(14000);
 
     wdg.hk_valid = true;
     HAL_sys_delay(15000);
 
     wod_log();
     clear_wod();
-    hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, WOD_REP);
     route_pkt(&hk_pkt);
+    HAL_sys_delay(1000);
 
     hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
+    HAL_sys_delay(1000);
+
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
+    HAL_sys_delay(1000);
+
     hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
+    HAL_sys_delay(1000);
 
     wdg.hk_valid = true;
-    HAL_sys_delay(15000);
+    HAL_sys_delay(12500);
 
     wdg.hk_valid = true;
-    HAL_sys_delay(15000);  
+    HAL_sys_delay(12500);  
 
-    hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     clear_ext_wod();
+    HAL_sys_delay(1000);
 }
 
 void clear_wod() {
