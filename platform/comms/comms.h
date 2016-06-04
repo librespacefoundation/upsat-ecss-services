@@ -1,12 +1,9 @@
 #ifndef __COMMS_H
 #define __COMMS_H
 
-#include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include "services.h"
 #include "upsat.h"
+#include "services.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -23,15 +20,6 @@ struct _comms_data
 };
 
 extern struct _comms_data comms_data;
-
-extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
-
-extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
-
-extern SAT_returnState verification_app(tc_tm_pkt *pkt);
-extern SAT_returnState hk_app(tc_tm_pkt *pkt);
-extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
-extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 SAT_returnState tx_ecss(tc_tm_pkt *pkt);
 

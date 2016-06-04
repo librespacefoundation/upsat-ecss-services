@@ -3,9 +3,22 @@
 #include "config.h"
 #include "log.h"
 #include "stm32f4xx_hal.h"
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include "pkt_pool.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+
+extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
+
+extern SAT_returnState verification_app(tc_tm_pkt *pkt);
+extern SAT_returnState hk_app(tc_tm_pkt *pkt);
+extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
+extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 extern uint8_t dbg_msg;
 
