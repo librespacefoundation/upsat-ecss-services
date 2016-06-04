@@ -1,11 +1,16 @@
-#include "eps_hal.h"
+
 
 #include "eps_state.h"
+
+#include "upsat.h"
+
+#include "hldlc.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
 extern EPS_State eps_board_state;
+extern UART_HandleTypeDef huart3;
 
 void HAL_sys_delay(uint32_t sec) {
 	HAL_Delay(sec);
@@ -57,8 +62,8 @@ void HAL_uart_tx_check(TC_TM_app_id app_id) {
     HAL_UART_StateTypeDef res;
     UART_HandleTypeDef *huart;
 
-    if(app_id == OBC_APP_ID) { huart = &huart5; }
-    else if(app_id == DBG_APP_ID) { huart = &huart5; }
+    if(app_id == OBC_APP_ID) { huart = &huart3; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
 
     for(;;) { // should use hard limits
         res = HAL_UART_GetState(huart);

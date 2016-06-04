@@ -8,6 +8,9 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 1
 
+extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
+
+
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
     tc_tm_pkt *pkt;

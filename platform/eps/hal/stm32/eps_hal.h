@@ -4,13 +4,14 @@
 #include <stdint.h>
 #include "stm32l1xx_hal.h"
 #include "services.h"
-#include "hldlc.h"
+#include "eps_hal.h"
+
 //ToDo
 //  improve return types
 //  need to make the change from the two different typedefs
 
 extern struct _eps_data eps_data;
-extern UART_HandleTypeDef huart3;
+
 
 void HAL_eps_OBC_ON();
 
