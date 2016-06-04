@@ -1,4 +1,5 @@
 #include "hldlc.h"
+#include "upsat.h"
 
 
 #undef __FILE_ID__

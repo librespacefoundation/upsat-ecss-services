@@ -1,5 +1,10 @@
 #include "upsat.h"
 
+#include "pkt_pool.h"
+#include "service_utilities.h"
+#include "hldlc.h"
+#include "verification_service.h"
+
 #undef __FILE_ID__
 #define __FILE_ID__ 1
 

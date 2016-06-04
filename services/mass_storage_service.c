@@ -1,7 +1,50 @@
 #include "mass_storage_service.h"
 
+#include "su_mnlp.h"
+#include "pkt_pool.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include "fatfs.h"
+
+#define MS_SD_PATH "0:"
+
+#define MS_SU_LOG          "/SU_LOG"
+#define MS_WOD_LOG         "/WOD_LOG"
+#define MS_EXT_WOD_LOG     "/EXT_WOD"
+#define MS_SU_SCRIPT_1     "/SU_SCR_1/SCR1.bin"
+#define MS_SU_SCRIPT_2     "/SU_SCR_2/SCR2.bin"
+#define MS_SU_SCRIPT_3     "/SU_SCR_3/SCR3.bin"
+#define MS_SU_SCRIPT_4     "/SU_SCR_4/SCR4.bin"
+#define MS_SU_SCRIPT_5     "/SU_SCR_5/SCR5.bin"
+#define MS_SU_SCRIPT_6     "/SU_SCR_6/SCR6.bin"
+#define MS_SU_SCRIPT_7     "/SU_SCR_7/SCR7.bin"
+#define MS_EVENT_LOG       "/EV_LOG"
+#define MS_FOTOS           "/FOTOS"
+#define MS_SCHS            "/SCHS"
+
+#define MS_MAX_PATH             40 //random num
+#define MS_MAX_FNAME            30 //random num
+#define MS_MAX_LOG_FILE_SIZE    198 /*MAX_PKT_DATA*/ 
+#define MS_MAX_SU_FILE_SIZE     2048 //2k
+#define MS_FILE_SECTOR          512
+#define MS_STORES               3
+#define MS_SU_FSIZE             174
+#define MS_MIN_SU_FILE          1   //min is the header.
+#define MAX_F_RETRIES           3
+
+
 #undef __FILE_ID__
 #define __FILE_ID__ 8
+
+struct _MS_data {
+    FATFS Fs;
+    uint8_t enabled;
+};
+
+extern struct _MNLP_data MNLP_data;
+
+extern uint32_t get_new_fileId(MS_sid sid);
 
 static struct _MS_data MS_data = { .enabled = true } ;
 
@@ -41,12 +84,12 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         power_control_api(OBC_SD_DEV_ID, P_ON);
         HAL_sys_delay(1);
         res = mass_storage_init();
-        if(res == SATR_OK) { MS_data.enabled == true; }
+        if(res = SATR_OK) { MS_data.enabled == true; }
 
     } else if(pkt->ser_subtype == TC_MS_FORMAT) {
 
         res = mass_storage_FORMAT();
-        if(res == SATR_OK) { 
+        if(res = SATR_OK) { 
 
             if(mass_storage_dirCheck() != SATR_OK) { res = SATRF_DIR_ERROR; }
 

@@ -1,7 +1,28 @@
 #include "obc.h"
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+#include "housekeeping.h"
+#include "mass_storage_service.h"
+#include "wdg.h"
+
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+
+extern uint32_t * HAL_obc_BKPSRAM_BASE();
+
+extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
+
+extern SAT_returnState verification_app(tc_tm_pkt *pkt);
+extern SAT_returnState hk_app(tc_tm_pkt *pkt);
+extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
+extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
+extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
+extern SAT_returnState test_app(tc_tm_pkt *pkt);
+
 
 const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = { 
 /*    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
@@ -77,48 +98,6 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     verification_app(pkt);
     free_pkt(pkt);
     return SATR_OK;
-}
-
-uint8_t spi_data_buf[MAX_PKT_DATA];
-
-SAT_returnState import_spi() {
-  static uint8_t cnt;
-  HAL_StatusTypeDef res;
-
-  if(obc_data.iac_flag == true) {
-      uint16_t size = 198;
-      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
-      obc_data.iac_out[0] = cnt++;
-      obc_data.iac_out[1] = cnt++;
-      //obc_data.iac_in[0] = 0xFA;
-      //obc_data.iac_in[1] = 0xAF;
-      obc_data.iac_flag = false;
-      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
-      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
-      snprintf(spi_data_buf, MAX_PKT_DATA, "IAC Rec %x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", \
-                                                                            obc_data.iac_in[0], \
-                                                                            obc_data.iac_in[1], \
-                                                                            obc_data.iac_in[2], \
-                                                                            obc_data.iac_in[3], \
-                                                                            obc_data.iac_in[4], \
-                                                                            obc_data.iac_in[5], \
-                                                                            obc_data.iac_in[6], \
-                                                                            obc_data.iac_in[7], \
-                                                                            obc_data.iac_in[8], \
-                                                                            obc_data.iac_in[9], \
-                                                                            obc_data.iac_in[10], \
-                                                                            obc_data.iac_in[11], \
-                                                                            obc_data.iac_in[12], \
-                                                                            obc_data.iac_in[13], \
-                                                                            obc_data.iac_in[14], \
-                                                                            obc_data.iac_in[15] );
-      event_dbg_api(uart_temp, spi_data_buf, &size);
-      HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-  } else if( hspi3.State == HAL_SPI_STATE_READY) {
-      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
-  }
-
 }
 
 SAT_returnState obc_INIT() {

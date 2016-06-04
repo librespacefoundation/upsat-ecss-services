@@ -2,10 +2,6 @@
 #define __UPSAT_H
 
 #include "services.h"
-#include "pkt_pool.h"
-#include "service_utilities.h"
-#include "hldlc.h"
-#include "verification_service.h"
 
 #define EV_MAX_BUFFER  1024
 #define EV_BUFFER_PART 205

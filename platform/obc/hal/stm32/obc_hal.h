@@ -2,23 +2,6 @@
 #define __OBC_HAL_H
 
 #include <stdint.h>
-#include "stm32f4xx_hal.h"
-#include <cmsis_os.h>
-#include "services.h"
-#include "task.h"
-#include "obc.h"
-
-extern SPI_HandleTypeDef hspi3;
-extern RTC_HandleTypeDef hrtc;
-extern IWDG_HandleTypeDef hiwdg;
-
-extern uint8_t su_inc_buffer[197];
-
-extern struct _obc_data obc_data;
-
-extern struct _wdg_state wdg;
-
-
 
 void HAL_obc_SD_ON();
 

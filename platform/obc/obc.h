@@ -1,14 +1,9 @@
 #ifndef __OBC_H
 #define __OBC_H
 
-#include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include "services.h"
 #include "upsat.h"
-#include "mass_storage_service.h"
-#include "wdg.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -54,21 +49,6 @@ struct _sys_data {
 
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
-
-extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
-
-extern uint32_t * HAL_obc_BKPSRAM_BASE();
-
-extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
-
-extern SAT_returnState verification_app(tc_tm_pkt *pkt);
-extern SAT_returnState hk_app(tc_tm_pkt *pkt);
-extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
-extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
-extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
-extern SAT_returnState test_app(tc_tm_pkt *pkt);
-
-//extern uint8_t su_inc_buffer[200];
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 

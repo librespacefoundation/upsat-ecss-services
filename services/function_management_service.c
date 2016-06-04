@@ -1,5 +1,7 @@
 #include "function_management_service.h"
 
+#include "time_management_service.h"
+
 #include "service_utilities.h"
 #include "pkt_pool.h"
 #include "power_ctrl.h"

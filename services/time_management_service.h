@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "services.h"
-#include "pkt_pool.h"
 
 /*taken from stm32f4xx_hal_rtc.h*/
 #define TM_MONTH_JANUARY              ((uint8_t)0x01U)
@@ -37,13 +36,6 @@ struct time_keeping {
 
 };
 
-extern void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
-extern void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);
-
-extern void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year);
-extern void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year);
-
-extern uint32_t HAL_sys_GetTick();
 
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb);
 

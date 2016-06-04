@@ -1,7 +1,17 @@
 #include "time_management_service.h"
 
+#include "pkt_pool.h"
+
 #undef __FILE_ID__
 #define __FILE_ID__ 14
+
+extern void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
+extern void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);
+
+extern void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year);
+extern void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year);
+
+extern uint32_t HAL_sys_GetTick();
 
 static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    
  /*2000*/{0 , 0, 2678400, 5184000, 7862400, 10454400, 13132800, 15724800, 18403200, 21081600, 23673600, 26352000, 28944000},

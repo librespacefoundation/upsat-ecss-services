@@ -3,9 +3,6 @@
 
 #include <stdint.h>
 #include "services.h"
-#include "time_management_service.h"
-#include "upsat.h"
-#include "uart_hal.h"
 
 #define SU_MAX_SCRIPTS_POPU 7
 #define SU_MAX_RSP_SIZE 174
@@ -238,21 +235,8 @@ struct _MNLP_data{
     science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 };
 
-extern uint8_t uart_temp[];
-
-extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);
-extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
-
-extern SAT_returnState HAL_su_uart_rx();
-
-extern void HAL_su_uart_tx(uint8_t *buf, uint16_t size);
-extern void HAL_sys_delay(uint32_t sec);
-
-extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
-
-extern SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf);
-
-extern SAT_returnState su_nmlp_app( tc_tm_pkt *spacket);
+extern struct _MNLP_data MNLP_data;
+extern uint8_t su_inc_buffer[];
 
 //ToDo
 //  add check for su status off
