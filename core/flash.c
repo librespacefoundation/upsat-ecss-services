@@ -3,7 +3,7 @@
 
 #define SECTOR_3_ADD_START 
 #define SECTOR_3_ADD_FIN   0x0800FFFF
-#define SECTOR_3_SIZE	   0xFFF
+#define SECTOR_3_SIZE	   0x1000
 
 #define TRANSMIT_VAR_ADD   0x0800C000
 
