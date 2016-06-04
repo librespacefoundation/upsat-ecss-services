@@ -28,7 +28,6 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 };
 
 struct _obc_data obc_data;
-struct _sat_status sat_status;
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
 static struct _sys_data sys_data;
 

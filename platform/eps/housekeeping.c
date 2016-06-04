@@ -37,19 +37,11 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->data[5] = (uint8_t)(eps_board_state.battery_temp);
         pkt->data[6] = (uint8_t)(eps_board_state.cpu_temperature);
 
-
-        wod_test[0] += 10;
-        wod_test[1] += 10;
-        wod_test[2] += 10;
-        wod_test[3] += 10;
-        wod_test[4] += 10;
-        wod_test[5] += 10;
-
         pkt->len = 7;
     } else if(sid == EX_HEALTH_REP) {
 
         //cnv.cnv32 = time.now();
-        cnv32_8( HAL_GetTick(), &pkt->data[1]);
+        cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
         pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
         /*edo vale fash*/
         pkt->len = 6;

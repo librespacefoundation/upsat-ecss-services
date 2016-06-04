@@ -47,23 +47,11 @@ struct _obc_data
     struct uart_data eps_uart;   
 };
 
-struct _sat_status {
-    uint8_t mode;
-    uint8_t batt_curr;
-    uint8_t batt_volt;
-    uint8_t bus_3v3_curr;
-    uint8_t bus_5v_curr;
-    uint8_t temp_eps;
-    uint8_t temp_batt;
-    uint8_t temp_comms;
-};
-
 struct _sys_data {
     uint8_t rsrc;
     uint32_t *boot_counter;
 };
 
-extern struct _sat_status sat_status;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
 

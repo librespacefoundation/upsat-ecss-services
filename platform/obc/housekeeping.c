@@ -1,10 +1,55 @@
 #include "housekeeping.h"
+#include "obc.h"
+#include "time_management_service.h"
+
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
-tc_tm_pkt hk_pkt;
-uint8_t hk_pkt_data[264];
+extern void HAL_sys_delay(uint32_t sec);
+
+extern SAT_returnState hk_crt_pkt_TC(tc_tm_pkt *pkt, TC_TM_app_id app_id, HK_struct_id sid);
+extern SAT_returnState hk_crt_pkt_TM(tc_tm_pkt *pkt, TC_TM_app_id app_id, HK_struct_id sid);
+
+extern void get_time_QB50(uint32_t *qb);
+extern SAT_returnState wod_log();
+extern SAT_returnState wod_log_load(uint8_t *buf);
+
+struct _sat_status {
+    uint8_t mode;
+    uint8_t batt_curr;
+    uint8_t batt_volt;
+    uint8_t bus_3v3_curr;
+    uint8_t bus_5v_curr;
+    uint8_t temp_eps;
+    uint8_t temp_batt;
+    uint8_t temp_comms;
+};
+
+struct _sat_ext_status {
+    uint32_t comms_sys_epoch;
+
+    uint32_t comms_sys_time;
+    uint32_t adcs_sys_time;
+    uint32_t eps_sys_time;
+    uint32_t obc_sys_time;
+
+    float adcs_gyro[3];
+    float adcs_rm_mag[3];
+    float adcs_vsun[5];
+    float adcs_long_sun;
+    float adcs_lat_sun;
+    int32_t adcs_m_RPM; 
+
+    uint32_t comms_tx_state;
+
+};
+
+static struct _sat_ext_status sat_ext_status;
+static struct _sat_status sat_status;
+
+static tc_tm_pkt hk_pkt;
+static uint8_t hk_pkt_data[264];
 
 void hk_INIT() {
    hk_pkt.data = hk_pkt_data;
@@ -66,7 +111,29 @@ void clear_wod() {
 }
 
 void clear_ext_wod() {
+    sat_ext_status.comms_sys_epoch = 0;
 
+    sat_ext_status.comms_sys_time = 0;
+    sat_ext_status.adcs_sys_time = 0;
+    sat_ext_status.eps_sys_time = 0;
+    sat_ext_status.obc_sys_time = 0;
+
+    sat_ext_status.adcs_gyro[0] = 0;
+    sat_ext_status.adcs_gyro[1] = 0;
+    sat_ext_status.adcs_gyro[2] = 0;
+    sat_ext_status.adcs_rm_mag[0] = 0;
+    sat_ext_status.adcs_rm_mag[1] = 0;
+    sat_ext_status.adcs_rm_mag[2] = 0;
+    sat_ext_status.adcs_vsun[0] = 0;
+    sat_ext_status.adcs_vsun[1] = 0;
+    sat_ext_status.adcs_vsun[2] = 0;
+    sat_ext_status.adcs_vsun[3] = 0;
+    sat_ext_status.adcs_vsun[4] = 0;
+    sat_ext_status.adcs_long_sun = 0;
+    sat_ext_status.adcs_lat_sun = 0;
+    sat_ext_status.adcs_m_RPM = 0; 
+
+    sat_ext_status.comms_tx_state = 0;
 }
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
@@ -83,10 +150,28 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         sat_status.temp_comms = data[1];
     } else if(app_id == ADCS_APP_ID && sid == EX_HEALTH_REP) {
 
+        cnv8_32(&pkt->data[1], sat_ext_status.adcs_sys_time);
+        cnv8_F(&pkt->data[1], sat_ext_status.adcs_gyro[0]);
+        cnv8_F(&pkt->data[5], sat_ext_status.adcs_gyro[0]);
+        cnv8_F(&pkt->data[9], sat_ext_status.adcs_gyro[1]);
+        cnv8_F(&pkt->data[13], sat_ext_status.adcs_gyro[2]);
+        cnv8_F(&pkt->data[17], sat_ext_status.adcs_rm_mag[0]);
+        cnv8_F(&pkt->data[21], sat_ext_status.adcs_rm_mag[1]);
+        cnv8_F(&pkt->data[25], sat_ext_status.adcs_rm_mag[2]);
+        cnv8_F(&pkt->data[29], sat_ext_status.adcs_vsun[0]);
+        cnv8_F(&pkt->data[33], sat_ext_status.adcs_vsun[1]);
+        cnv8_F(&pkt->data[37], sat_ext_status.adcs_vsun[2]);
+        cnv8_F(&pkt->data[41], sat_ext_status.adcs_vsun[3]);
+        cnv8_F(&pkt->data[45], sat_ext_status.adcs_vsun[4]);
+        cnv8_F(&pkt->data[49], sat_ext_status.adcs_long_sun);
+        cnv8_F(&pkt->data[53], sat_ext_status.adcs_lat_sun);
+        cnv8_32(&pkt->data[57], sat_ext_status.adcs_m_RPM);
+
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
 
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
-
+        cnv8_32(&pkt->data[1], sat_ext_status.comms_sys_time);
+        cnv8_32(&pkt->data[5], sat_ext_status.comms_tx_state);
     } else {
         return SATR_ERROR; // this should change to inv pkt
     }
@@ -132,21 +217,58 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         uint16_t size = 4+(32*8);
         mass_storage_storeFile(WOD_LOG, 0, &pkt->data[1], &size);
-        pkt->len = 1+4+(32*8); //we should see what mode is.
+        pkt->len = 1+4+(32*8);
     } else if(sid == EXT_WOD_REP) {
 
-        uint32_t time_temp;
-        get_time_QB50(&time_temp);
+        uint16_t size = 1;
+        get_time_QB50(&sat_ext_status.comms_sys_epoch);
+        sat_ext_status.obc_sys_time = HAL_sys_GetTick();
 
-        cnv32_8(time_temp, &pkt->data[1]);
+        cnv32_8(sat_ext_status.comms_sys_epoch, &pkt->data[size]);
+        size += 4;
+        cnv32_8(sat_ext_status.obc_sys_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(sat_ext_status.comms_sys_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(sat_ext_status.eps_sys_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(sat_ext_status.adcs_sys_time, &pkt->data[size]);
+        size += 4;
 
-        time_temp = HAL_sys_GetTick();
-        cnv32_8(time_temp, &pkt->data[5]);
+        cnvF_8(sat_ext_status.adcs_gyro[0], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_gyro[1], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_gyro[2], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_rm_mag[0], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_rm_mag[1], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_rm_mag[2], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_vsun[0], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_vsun[1], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_vsun[2], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_vsun[3], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_vsun[4], &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_long_sun, &pkt->data[size]);
+        size += 4;
+        cnvF_8(sat_ext_status.adcs_lat_sun, &pkt->data[size]);
+        size += 4;
+        cnv32_8(sat_ext_status.adcs_m_RPM, &pkt->data[size]);
+        size += 4;
 
-        uint16_t size = 4+4;
+        cnv32_8(sat_ext_status.comms_tx_state, &pkt->data[size]);
+        size += 4;
+        
         mass_storage_storeFile(EXT_WOD_LOG, 0, &pkt->data[1], &size);
-        pkt->len = 1+4+4; //we should see what mode is.
+        pkt->len = size;
     }
 
     return SATR_OK;
-}
