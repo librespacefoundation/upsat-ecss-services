@@ -135,9 +135,11 @@ typedef enum {
     SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
     SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
     
-    SATRF_DIR_ERROR            = 49, 
+    SATRF_DIR_ERROR            = 49,
+
+    SATR_SD_DISABLED           = 50,  
     /*LAST*/
-    SATR_LAST                  = 50
+    SATR_LAST                  = 51
 }SAT_returnState;
 
 /*services types*/
@@ -327,7 +329,8 @@ typedef enum {
     EV_su_error          = 9,
     EV_su_scr_start      = 10,
     EV_pkt_pool_timeout  = 11,
-    LAST_EV_EVENT        = 12
+    EV_ms_err            = 12,
+    LAST_EV_EVENT        = 13
 }EV_event;
 
 typedef enum {
