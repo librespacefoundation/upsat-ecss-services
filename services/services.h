@@ -389,27 +389,6 @@ typedef struct {
 /*Lookup table that returns if a service with its subtype with TC or TM is supported and valid*/
 extern const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2];
 
-//ToDo
-//  add reset counter, reset source finder.
-//  add it uart
-//  add assertions for pkt size related to the service type, subtype
-//  check hldlc, its buggy.
-//  define in unpack the MIN_PKT_SIZE and MAX_PKT_SIZE
-//  need to check pkt len for not overruning to checksum
-//  sort definitions relating to file system and packet sizes etc.
-//  add verification steps in each service.
-//  assert for 0 in modes, ids when applicable.
-//  verify HK_struct_id modes
-//  check that cnv functions are used correctly
-//  function management set time.
-//  finalize TC_MAX_PKT_SIZE
-//  add event log book function
-//  test assertion definition for stm
-//  finish assertions
-//  add assertions in each service for its subtype
-//  architecture overview
-//  add definitions for packet len calculations
-
 //stub
 uint32_t time_now();
 

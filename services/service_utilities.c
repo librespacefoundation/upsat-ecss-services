@@ -5,6 +5,10 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 2
 
+struct _pkt_state {
+    uint8_t seq_cnt[LAST_APP_ID];
+};
+
 static struct _pkt_state pkt_state;
 
 // need to check endiannes

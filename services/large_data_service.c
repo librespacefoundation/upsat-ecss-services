@@ -15,6 +15,30 @@
 
 #define LD_MAX_TRANSFER_TIME    1000 //random
 
+typedef enum {
+    LD_STATE_FREE           = 1,
+    LD_STATE_RECEIVING      = 2,
+    LD_STATE_TRANSMITING    = 3,
+    LD_STATE_REPORT         = 4,
+    LD_STATE_DOWNLINK       = 5,
+    LAST_STATE              = 6
+}LD_states;
+
+struct _ld_status {
+    LD_states state;        /*service state machine, state variable*/
+    TC_TM_app_id app_id;    /*destination app id*/
+    uint8_t ld_num;         /**/
+    uint32_t timeout;       /**/
+    uint8_t started;        /**/
+
+    uint8_t buf[MAX_PKT_DATA];         /**/
+    uint16_t rx_size;         /**/
+    uint8_t rx_lid;         /**/
+    uint8_t tx_lid;         /**/
+    uint8_t tx_pkt;         /**/
+    uint16_t tx_size;         /**/
+};
+
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 struct _ld_status LD_status = { .state = LD_STATE_FREE,

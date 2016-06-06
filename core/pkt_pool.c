@@ -4,6 +4,21 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 10
 
+struct _pkt_pool{
+    tc_tm_pkt pkt[POOL_PKT_SIZE];
+    uint8_t free[POOL_PKT_SIZE];
+    uint32_t time[POOL_PKT_SIZE];
+    uint8_t data[POOL_PKT_SIZE][MAX_PKT_DATA];
+    uint32_t time_delta[POOL_PKT_SIZE];
+
+    tc_tm_pkt pkt_ext[POOL_PKT_EXT_SIZE];
+    uint8_t free_ext[POOL_PKT_EXT_SIZE];
+    uint32_t time_ext[POOL_PKT_EXT_SIZE];
+    uint8_t data_ext[POOL_PKT_EXT_SIZE][MAX_PKT_EXT_DATA];
+    uint32_t time_delta_ext[POOL_PKT_EXT_SIZE];
+
+};
+
 static struct _pkt_pool pkt_pool;
 
 tc_tm_pkt * get_pkt(const uint16_t size) {
