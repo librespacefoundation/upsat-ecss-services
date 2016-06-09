@@ -5,23 +5,7 @@
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
 #include "services.h"
-#include "task.h"
-#include "obc.h"
-
-extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
-extern UART_HandleTypeDef huart3;
-extern UART_HandleTypeDef huart4;
-extern UART_HandleTypeDef huart6;
-extern TaskHandle_t xTask_UART;
-
-struct _uart_timeout
-{
-    uint32_t su;
-    uint32_t adcs;
-    uint32_t eps;
-    uint32_t comms;
-};
+#include "upsat.h"
 
 void uart_timeout_start(UART_HandleTypeDef *huart);
 

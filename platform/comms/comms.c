@@ -3,9 +3,22 @@
 #include "config.h"
 #include "log.h"
 #include "stm32f4xx_hal.h"
+#include <stdbool.h>
+#include <string.h>
+#include <stdio.h>
+#include "pkt_pool.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+
+extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
+
+extern SAT_returnState verification_app(tc_tm_pkt *pkt);
+extern SAT_returnState hk_app(tc_tm_pkt *pkt);
+extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
+extern SAT_returnState test_app(tc_tm_pkt *pkt);
 
 extern uint8_t dbg_msg;
 
@@ -65,8 +78,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == ADCS_APP_ID)     { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
     else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
-    else if(id == GND_APP_ID)      { 
-      if(pkt->len > LD_PKT_DATA) { large_data_downlinkTx_api(pkt); }
+    else if(id == GND_APP_ID)      {
+
+      if(pkt->len > MAX_PKT_DATA) { large_data_downlinkTx_api(pkt); }
       else { tx_ecss(pkt); }
     }
     else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &comms_data.obc_uart); }
@@ -121,10 +135,6 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
 }
 SAT_returnState check_timeouts() {
     
-}
-
-SAT_returnState time_management_app(tc_tm_pkt *pkt) {
-    return SATR_ERROR;
 }
 
 void

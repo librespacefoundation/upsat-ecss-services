@@ -1,7 +1,22 @@
 #include "eps.h"
 
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+
+extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
+
+extern SAT_returnState verification_app(tc_tm_pkt *pkt);
+extern SAT_returnState hk_app(tc_tm_pkt *pkt);
+extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
+extern SAT_returnState test_app(tc_tm_pkt *pkt);
+
 
 const uint8_t services_verification_EPS_TC[MAX_SERVICES][MAX_SUBTYPES] = { 
 /*    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */

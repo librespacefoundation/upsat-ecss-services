@@ -1,11 +1,16 @@
-#include "eps_hal.h"
+
 
 #include "eps_state.h"
+
+#include "upsat.h"
+
+#include "hldlc.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
 extern EPS_State eps_board_state;
+extern UART_HandleTypeDef huart3;
 
 void HAL_sys_delay(uint32_t sec) {
 	HAL_Delay(sec);
@@ -50,6 +55,23 @@ void HAL_eps_SU_ON() {
 void HAL_eps_SU_OFF() {
     //HAL_GPIO_WritePin(GPIOC, GPIO_SU_SWITCH_Pin, GPIO_PIN_SET);
 	EPS_set_rail_switch(SU, EPS_SWITCH_RAIL_OFF, &eps_board_state);
+}
+
+void HAL_uart_tx_check(TC_TM_app_id app_id) {
+    
+    HAL_UART_StateTypeDef res;
+    UART_HandleTypeDef *huart;
+
+    if(app_id == OBC_APP_ID) { huart = &huart3; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+
+    for(;;) { // should use hard limits
+        res = HAL_UART_GetState(huart);
+        if(res != HAL_UART_STATE_BUSY && \
+           res != HAL_UART_STATE_BUSY_TX && \
+           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
+        HAL_Delay(1);
+    }
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {

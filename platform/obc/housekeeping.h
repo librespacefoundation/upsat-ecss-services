@@ -3,17 +3,19 @@
 
 #include <stdint.h>
 #include "services.h"
-#include "obc.h"
-#include "time_management_service.h"
 
-extern void HAL_sys_delay(uint32_t sec);
+struct _sat_status {
+    uint8_t mode;
+    uint8_t batt_curr;
+    uint8_t batt_volt;
+    uint8_t bus_3v3_curr;
+    uint8_t bus_5v_curr;
+    uint8_t temp_eps;
+    uint8_t temp_batt;
+    uint8_t temp_comms;
+};
 
-extern SAT_returnState hk_crt_pkt_TC(tc_tm_pkt *pkt, TC_TM_app_id app_id, HK_struct_id sid);
-extern SAT_returnState hk_crt_pkt_TM(tc_tm_pkt *pkt, TC_TM_app_id app_id, HK_struct_id sid);
-
-extern void get_time_QB50(uint32_t *qb);
-extern SAT_returnState wod_log();
-extern SAT_returnState wod_log_load(uint8_t *buf);
+extern struct _sat_status sat_status;
 
 void hk_SCH();
 

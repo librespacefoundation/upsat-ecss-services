@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include "services.h"
-#include "upsat.h"
 
 #define HLDLC_START_FLAG        0x7E
 #define HLDLC_CONTROL_FLAG      0x7D

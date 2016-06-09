@@ -1,15 +1,9 @@
 #ifndef __OBC_H
 #define __OBC_H
 
-#include <stdio.h>
 #include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
 #include "services.h"
 #include "upsat.h"
-#include "mass_storage_service.h"
-#include "wdg.h"
-#include "su_mnlp.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -48,42 +42,14 @@ struct _obc_data
     struct uart_data eps_uart;   
 };
 
-struct _sat_status {
-    uint8_t mode;
-    uint8_t batt_curr;
-    uint8_t batt_volt;
-    uint8_t bus_3v3_curr;
-    uint8_t bus_5v_curr;
-    uint8_t temp_eps;
-    uint8_t temp_batt;
-    uint8_t temp_comms;
-};
-
 struct _sys_data {
     uint8_t rsrc;
     uint32_t *boot_counter;
 };
 
-extern struct _sat_status sat_status;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
 extern struct _MNLP_data MNLP_data;
-
-extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
-
-extern uint32_t * HAL_obc_BKPSRAM_BASE();
-
-extern SAT_returnState free_pkt(tc_tm_pkt *pkt);
-
-extern SAT_returnState verification_app(tc_tm_pkt *pkt);
-extern SAT_returnState hk_app(tc_tm_pkt *pkt);
-extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
-extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
-extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf, uint16_t *size);
-extern SAT_returnState test_app(tc_tm_pkt *pkt);
-
-//extern uint8_t su_inc_buffer[200];
-
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState obc_INIT();

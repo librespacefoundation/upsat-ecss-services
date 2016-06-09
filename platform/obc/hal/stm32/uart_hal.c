@@ -1,6 +1,89 @@
 #include "uart_hal.h"
 
+#include "task.h"
+#include "obc.h"
+#include "hldlc.h"
+#include "su_mnlp.h"
+
+extern SPI_HandleTypeDef hspi3;
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart4;
+extern UART_HandleTypeDef huart6;
+extern TaskHandle_t xTask_UART;
+
+struct _uart_timeout
+{
+    uint32_t su;
+    uint32_t adcs;
+    uint32_t eps;
+    uint32_t comms;
+};
+
 static struct _uart_timeout uart_timeout; 
+
+extern uint8_t uart_temp[];
+uint8_t spi_data_buf[MAX_PKT_DATA];
+
+SAT_returnState import_spi() {
+  static uint8_t cnt;
+  HAL_StatusTypeDef res;
+
+  if(obc_data.iac_flag == true) {
+      uint16_t size = 198;
+      if((mass_storage_storeFile(FOTOS, 0, &obc_data.iac_in[5], &size)) != SATR_OK) { return SATR_ERROR; } 
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
+      obc_data.iac_out[0] = cnt++;
+      obc_data.iac_out[1] = cnt++;
+      //obc_data.iac_in[0] = 0xFA;
+      //obc_data.iac_in[1] = 0xAF;
+      obc_data.iac_flag = false;
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
+      snprintf(spi_data_buf, MAX_PKT_DATA, "IAC Rec %x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", \
+                                                                            obc_data.iac_in[0], \
+                                                                            obc_data.iac_in[1], \
+                                                                            obc_data.iac_in[2], \
+                                                                            obc_data.iac_in[3], \
+                                                                            obc_data.iac_in[4], \
+                                                                            obc_data.iac_in[5], \
+                                                                            obc_data.iac_in[6], \
+                                                                            obc_data.iac_in[7], \
+                                                                            obc_data.iac_in[8], \
+                                                                            obc_data.iac_in[9], \
+                                                                            obc_data.iac_in[10], \
+                                                                            obc_data.iac_in[11], \
+                                                                            obc_data.iac_in[12], \
+                                                                            obc_data.iac_in[13], \
+                                                                            obc_data.iac_in[14], \
+                                                                            obc_data.iac_in[15] );
+      event_dbg_api(uart_temp, spi_data_buf, &size);
+      HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+  } else if( hspi3.State == HAL_SPI_STATE_READY) {
+      res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
+  }
+
+}
+
+void HAL_uart_tx_check(TC_TM_app_id app_id) {
+    
+    HAL_UART_StateTypeDef res;
+    UART_HandleTypeDef *huart;
+
+    if(app_id == EPS_APP_ID) { huart = &huart1; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+    else if(app_id == COMMS_APP_ID) { huart = &huart4; }
+    else if(app_id == ADCS_APP_ID) { huart = &huart6; }
+
+    for(;;) { // should use hard limits
+        res = HAL_UART_GetState(huart);
+        if(res != HAL_UART_STATE_BUSY && \
+           res != HAL_UART_STATE_BUSY_TX && \
+           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
+        osDelay(10);
+    }
+}
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     

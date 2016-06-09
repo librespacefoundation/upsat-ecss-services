@@ -1,9 +1,65 @@
 #include "mass_storage_service.h"
 
+#include "su_mnlp.h"
+#include "pkt_pool.h"
+
+#include <stdlib.h>
+#include <string.h>
+#include "fatfs.h"
+#include "service_utilities.h"
+
+#define MS_SD_PATH "0:"
+
+#define MS_SU_LOG          "/SU_LOG"
+#define MS_WOD_LOG         "/WOD_LOG"
+#define MS_EXT_WOD_LOG     "/EXT_WOD"
+#define MS_SU_SCRIPT_1     "/SU_SCR_1/SCR1.bin"
+#define MS_SU_SCRIPT_2     "/SU_SCR_2/SCR2.bin"
+#define MS_SU_SCRIPT_3     "/SU_SCR_3/SCR3.bin"
+#define MS_SU_SCRIPT_4     "/SU_SCR_4/SCR4.bin"
+#define MS_SU_SCRIPT_5     "/SU_SCR_5/SCR5.bin"
+#define MS_SU_SCRIPT_6     "/SU_SCR_6/SCR6.bin"
+#define MS_SU_SCRIPT_7     "/SU_SCR_7/SCR7.bin"
+#define MS_EVENT_LOG       "/EV_LOG"
+#define MS_FOTOS           "/FOTOS"
+#define MS_SCHS            "/SCHS"
+
+#define MS_MAX_PATH             40 //random num
+#define MS_MAX_FNAME            30 //random num
+#define MS_MAX_LOG_FILE_SIZE    198 /*MAX_PKT_DATA*/ 
+#define MS_MAX_SU_FILE_SIZE     2048 //2k
+#define MS_FILE_SECTOR          512
+#define MS_STORES               3
+#define MS_SU_FSIZE             174
+#define MS_MIN_SU_FILE          1   //min is the header.
+#define MAX_F_RETRIES           3
+
 #undef __FILE_ID__
 #define __FILE_ID__ 8
 
-static struct _MS_data MS_data = { .enabled = true } ;
+#define MS_ERR(res);    ms_debugging(res, __LINE__); \
+                        return res + SATRF_OK;
+
+struct _MS_data {
+    FATFS Fs;
+    uint8_t enabled;
+    SAT_returnState last_err;
+};
+
+extern struct _MNLP_data MNLP_data;
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+
+extern uint32_t get_new_fileId(MS_sid sid);
+
+static struct _MS_data MS_data = { .enabled = true, \
+                                   .last_err = FR_OK } ;
+
+void ms_debugging(FRESULT res, uint16_t l) {
+
+    MS_data.last_err = res;
+    event_ms_err(res, l);
+
+}
 
 /**
  * @brief      { entry point for incoming packets. }
@@ -33,7 +89,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
     if(pkt->ser_subtype == TC_MS_DISABLE) {
 
         power_control_api(OBC_SD_DEV_ID, P_OFF);
-        MS_data.enabled == false;
+        MS_data.enabled = false;
         res = SATR_OK;
 
     } else if(pkt->ser_subtype == TC_MS_ENABLE) {
@@ -41,7 +97,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
         power_control_api(OBC_SD_DEV_ID, P_ON);
         HAL_sys_delay(1);
         res = mass_storage_init();
-        if(res == SATR_OK) { MS_data.enabled == true; }
+        if(res == SATR_OK) { MS_data.enabled = true; }
 
     } else if(pkt->ser_subtype == TC_MS_FORMAT) {
 
@@ -121,10 +177,9 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
 
     FRESULT res;
     FILINFO fno;
-    DIR dir;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(sid < SU_SCRIPT_7) == true) { return SATR_ERROR; }
 
     if(sid == SU_SCRIPT_1) { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
@@ -135,9 +190,10 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
 
-    if((res = f_stat((char*)path, &fno)) != FR_OK) { return res + SATRF_OK; } 
+    if((res = f_stat((char*)path, &fno)) != FR_OK) { MS_ERR(res); } 
 
-    if((res = f_unlink((char*)path)) != FR_OK)     { return res + SATRF_OK; } 
+
+    if((res = f_unlink((char*)path)) != FR_OK)     { MS_ERR(res); } 
 
     //function
     MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false;
@@ -157,7 +213,7 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
     uint8_t temp_path[MS_MAX_PATH];
     uint16_t i;
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG ||sid == EVENT_LOG || sid == FOTOS || \
                 (sid <= SU_SCRIPT_7 && mode == SPECIFIC)) == true) { return SATR_ERROR; }
 
@@ -167,11 +223,14 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
     else if(sid == EVENT_LOG)   { strncpy((char*)path, MS_EVENT_LOG, MS_MAX_PATH); }
     else if(sid == FOTOS)       { strncpy((char*)path, MS_FOTOS, MS_MAX_PATH); }
 
-    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { return res + SATRF_OK; }  //add more error checking
+    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }  //add more error checking
 
     for (i = 0; i < MS_MAX_FILES; i++) {
 
-        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }  /* Break on error */
+        if((res = f_readdir(&dir, &fno)) != FR_OK) {
+            f_closedir(&dir);
+            MS_ERR(res); 
+        }  /* Break on error */
         else if(fno.fname[0] == 0) { break; }  /* Break on end of dir */
         else if (fno.fname[0] == '.') { continue; }             /* Ignore dot entry */
 
@@ -182,9 +241,15 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
 
             sprintf(temp_path,"%s/%s", path, (char*)fn);
 
-            if((res = f_stat((char*)temp_path, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }
+            if((res = f_stat((char*)temp_path, &fno)) != FR_OK) {
+                f_closedir(&dir);
+                MS_ERR(res);
+            }
 
-            if((res = f_unlink((char*)temp_path)) != FR_OK)     { f_closedir(&dir); return res + SATRF_OK; }
+            if((res = f_unlink((char*)temp_path)) != FR_OK)     { 
+                f_closedir(&dir); 
+                MS_ERR(res);
+            }
 
             if((mode == TO && ret == to) || (mode == SPECIFIC && ret == to)) { break; }
 
@@ -204,7 +269,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t f
     TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
     app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
@@ -234,7 +299,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
     if(!C_ASSERT(sid < LAST_SID) == true)               { return SATR_ERROR; }
 
@@ -255,13 +320,13 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     *size = MAX_PKT_EXT_DATA;
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { f_close(&fp); return res + SATRF_OK; } 
-    
+    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); } 
+
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
-    if(res != FR_OK) { return res + SATRF_OK; } 
-    else if(byteswritten == 0) { return SATR_ERROR; } 
+    if(res != FR_OK) { MS_ERR(res); } 
+    else if(byteswritten == 0) { MS_ERR(res); } 
     *size = byteswritten;
 
     return SATR_OK;
@@ -276,7 +341,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
     //if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
     if(!C_ASSERT(sid <= LAST_SID) == true)              { return SATR_ERROR; }
@@ -300,12 +365,12 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         if(res != FR_NO_FILE) { return SATRF_EXIST; }
     }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE)) != FR_OK) { f_close(&fp); return res + SATRF_OK; } 
+    if((res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE)) != FR_OK) { MS_ERR(res); } 
 
     res = f_write(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
-    if(res != FR_OK) { return res + SATRF_OK; } 
+    if(res != FR_OK) { MS_ERR(res); } 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
     if(sid <= SU_SCRIPT_7) {
@@ -331,7 +396,7 @@ SAT_returnState mass_storage_report_api(tc_tm_pkt *pkt, MS_sid sid) {
     uint16_t size = 0;
     tc_tm_pkt *temp_pkt = 0;
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
     TC_TM_app_id app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
@@ -370,7 +435,7 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
     uint8_t temp_path[MS_MAX_PATH];
     uint16_t i;
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL && iter != NULL) == true)                            { return SATR_ERROR; }
     if(!C_ASSERT(*size == 0) == true)                                                             { return SATR_ERROR; }
     if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EXT_WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true)    { return SATR_ERROR; }
@@ -384,10 +449,10 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
     if(*iter == 0) { start_flag = 1; }
     else { start_flag = 0; }
 
-    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }
+    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }
     for (i = 0; i < MS_MAX_FILES; i++) {
 
-        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }  /* Break on error */
+        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); }  /* Break on error */
         else if(fno.fname[0] == 0)    { f_closedir(&dir); return SATR_EOT; }  /* Break on end of dir */
         else if (fno.fname[0] == '.') { continue; }             /* Ignore dot entry */
 
@@ -398,7 +463,7 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
         if(start_flag == 1) {
 
             sprintf(temp_path,"%s/%s", path, (char*)fn);
-            if((res = f_stat(temp_path, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; } 
+            if((res = f_stat(temp_path, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); } 
 
             cnv32_8(ret, &buf[(*size)]);
             *size += sizeof(uint32_t);
@@ -430,7 +495,7 @@ SAT_returnState mass_storage_report_su_scr(MS_sid sid, uint8_t *buf, uint16_t *s
     FRESULT res;
     uint8_t path[MS_MAX_PATH];
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
     if(!C_ASSERT(*size == 0) == true)                   { return SATR_ERROR; }
     if(!C_ASSERT(sid <= SU_SCRIPT_7) == true)           { return SATR_ERROR; }
@@ -478,7 +543,7 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     uint16_t size = 0;
     uint16_t script_len = 0;
 
-    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT( sid <= SU_SCRIPT_7) == true) { return SATR_INV_STORE_ID; }
 
     if(sid == SU_SCRIPT_1)          { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
@@ -490,12 +555,12 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else { return SATR_ERROR; }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { f_close(&fp); return res + SATRF_OK; }
+    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); }
 
     res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
     f_close(&fp);
 
-    if(res != FR_OK)    { return res + SATRF_OK; }
+    if(res != FR_OK)    { MS_ERR(res); }
     else if(size == 0)  { return SATR_ERROR; } 
 
     union _cnv cnv;
@@ -521,10 +586,9 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
 SAT_returnState mass_storage_init() {
 
     FRESULT res = 0;
-    FILINFO fno;
 
-    //MS_data.ev_temp_log = 0;
-    if((res = f_mount(&MS_data.Fs, MS_SD_PATH, 0)) != FR_OK) { return res + SATRF_OK; }
+    MS_data.enabled = false;
+    if((res = f_mount(&MS_data.Fs, MS_SD_PATH, 0)) != FR_OK) { MS_ERR(res); }
 
     MS_data.enabled = true;
 
@@ -561,7 +625,7 @@ SAT_returnState mass_storage_FORMAT() {
 
         HAL_Delay(300);
 
-        MS_data.enabled == false;
+        MS_data.enabled = false;
         power_control_api(OBC_SD_DEV_ID, P_OFF);
         HAL_sys_delay(5000);
         power_control_api(OBC_SD_DEV_ID, P_ON);
@@ -589,7 +653,7 @@ SAT_returnState mass_storage_FORMAT() {
         if(res == FR_OK)                                 { break; }
     }
 
-    if(res != FR_OK)                                     { return res + SATRF_OK; }
+    if(res != FR_OK)                                     { MS_ERR(res); }
 
     res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
 
@@ -669,19 +733,19 @@ SAT_returnState mass_storage_dirCheck() {
     FRESULT res;
     FILINFO fno;
 
-    if((res = f_stat((char*)MS_SU_LOG, &fno)) != FR_OK)         { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_WOD_LOG, &fno)) != FR_OK)        { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_EXT_WOD_LOG, &fno)) != FR_OK)    { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_EVENT_LOG, &fno)) != FR_OK)      { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_FOTOS, &fno)) != FR_OK)          { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_SCHS, &fno)) != FR_OK)           { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_1", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_2", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_3", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_4", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_5", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_6", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_7", &fno)) != FR_OK)              { return res + SATRF_OK; }
+    if((res = f_stat((char*)MS_SU_LOG, &fno)) != FR_OK)         { MS_ERR(res); }
+    if((res = f_stat((char*)MS_WOD_LOG, &fno)) != FR_OK)        { MS_ERR(res); }
+    if((res = f_stat((char*)MS_EXT_WOD_LOG, &fno)) != FR_OK)    { MS_ERR(res); }
+    if((res = f_stat((char*)MS_EVENT_LOG, &fno)) != FR_OK)      { MS_ERR(res); }
+    if((res = f_stat((char*)MS_FOTOS, &fno)) != FR_OK)          { MS_ERR(res); }
+    if((res = f_stat((char*)MS_SCHS, &fno)) != FR_OK)           { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_1", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_2", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_3", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_4", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_5", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_6", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_7", &fno)) != FR_OK)              { MS_ERR(res); }
 
     return SATR_OK;
 }

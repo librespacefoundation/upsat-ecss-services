@@ -1,5 +1,8 @@
 #include "wdg.h"
 
+#include <stdbool.h>
+#include "obc_hal.h"
+
 static struct _wdg_state wdg;
 
 void wdg_INIT() {

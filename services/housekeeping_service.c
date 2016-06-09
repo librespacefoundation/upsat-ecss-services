@@ -25,7 +25,7 @@ SAT_returnState hk_app(tc_tm_pkt *pkt) {
 
         route_pkt(temp_pkt);
 
-    } else if(pkt->app_id == EPS_APP_ID && pkt->ser_subtype == TM_HK_PARAMETERS_REPORT) {
+    } else if(pkt->ser_subtype == TM_HK_PARAMETERS_REPORT) {
 
         SAT_returnState res = hk_parameters_report(pkt->app_id, (HK_struct_id)pkt->data[0],  pkt->data);
 

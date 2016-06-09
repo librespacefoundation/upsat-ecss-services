@@ -1,9 +1,51 @@
 #include "large_data_service.h"
 
+#include "service_utilities.h"
+#include "pkt_pool.h"
+
+#include <math.h>
+
 #undef __FILE_ID__
 #define __FILE_ID__ 7
 
-struct _ld_status LD_status;
+#define LD_PKT_DATA             195 /*MAX_PKT_DATA - LD_PKT_DATA_HDR_SIZE*/
+#define LD_PKT_DATA_HDR_SIZE    3
+
+#define LD_TIMEOUT              1000 /*sec*/
+
+#define LD_MAX_TRANSFER_TIME    1000 //random
+
+typedef enum {
+    LD_STATE_FREE           = 1,
+    LD_STATE_RECEIVING      = 2,
+    LD_STATE_TRANSMITING    = 3,
+    LD_STATE_REPORT         = 4,
+    LD_STATE_DOWNLINK       = 5,
+    LAST_STATE              = 6
+}LD_states;
+
+struct _ld_status {
+    LD_states state;        /*service state machine, state variable*/
+    TC_TM_app_id app_id;    /*destination app id*/
+    uint8_t ld_num;         /**/
+    uint32_t timeout;       /**/
+    uint8_t started;        /**/
+
+    uint8_t buf[MAX_PKT_DATA];         /**/
+    uint16_t rx_size;         /**/
+    uint8_t rx_lid;         /**/
+    uint8_t tx_lid;         /**/
+    uint8_t tx_pkt;         /**/
+    uint16_t tx_size;         /**/
+};
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+
+struct _ld_status LD_status = { .state = LD_STATE_FREE,
+                                .ld_num = 0,
+                                .timeout = 0,
+                                .started = 0 } ;
+
 
 SAT_returnState large_data_app(tc_tm_pkt *pkt) {
 
@@ -174,7 +216,6 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
     uint16_t size;
     uint8_t subtype;
     TC_TM_app_id app_id;
-    MS_sid sid;
     SAT_returnState res;
     tc_tm_pkt *temp_pkt = 0;
 
@@ -193,11 +234,9 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
         return SATR_ERROR; 
     }*/
 
-    if(!C_ASSERT(sid < LAST_SID) == true)    { return SATR_ERROR; }
-
     res = pack_pkt(LD_status.buf, pkt, &size);
     if(!C_ASSERT(res == SATR_OK) == true)       { return SATR_ERROR; }
-    if(!C_ASSERT(size > LD_PKT_DATA) == true)   { return SATR_ERROR; }
+    if(!C_ASSERT(size > MAX_PKT_DATA) == true)   { return SATR_ERROR; }
 
     LD_status.app_id = app_id;
 
@@ -297,7 +336,7 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, ld_num, app_id);
 
     size = LD_status.tx_size - (ld_num * LD_PKT_DATA);
-    if(size > LD_PKT_DATA) { size = LD_PKT_DATA; }
+    if(size > MAX_PKT_DATA) { size = LD_PKT_DATA; }
 
     for(uint16_t b = 0; b < size; b++) { 
         temp_pkt->data[b + LD_PKT_DATA_HDR_SIZE] = LD_status.buf[(ld_num * LD_PKT_DATA) + b]; 
@@ -396,20 +435,11 @@ SAT_returnState large_data_timeout() {
     return SATR_OK;
 }
 
-void large_data_INIT() {
-
-    LD_status.state = LD_STATE_FREE;
-    LD_status.ld_num = 0;
-    LD_status.timeout = 0;
-    LD_status.started = 0;
-
-}
-
 void large_data_IDLE() {
 
     uint32_t tmp_time = HAL_sys_GetTick();
 
-    if(((tmp_time - LD_status.timeout) > LD_TIMEOUT) || ((tmp_time - LD_status.started) > LD_MAX_TRANSFER_TIME)) {
+    if(LD_status.timeout != 0 && (((tmp_time - LD_status.timeout) > LD_TIMEOUT) || ((tmp_time - LD_status.started) > LD_MAX_TRANSFER_TIME))) {
         large_data_timeout();
 
         LD_status.state = LD_STATE_FREE;

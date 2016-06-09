@@ -1,14 +1,8 @@
 #ifndef __FUNCTION_MANAGEMENT_SERVICE_H
 #define __FUNCTION_MANAGEMENT_SERVICE_H
 
-#include <stdint.h>
 #include "services.h"
-#include "service_utilities.h"
-#include "pkt_pool.h"
-#include "power_ctrl.h"
-#include "time_management_service.h"
 
-extern SAT_returnState time_management_app(tc_tm_pkt *pkt);
 
 SAT_returnState function_management_app(tc_tm_pkt *pkt);
 

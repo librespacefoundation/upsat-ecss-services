@@ -1,5 +1,20 @@
 #include "obc_hal.h"
 
+#include "stm32f4xx_hal.h"
+#include <cmsis_os.h>
+#include "services.h"
+#include "task.h"
+#include "obc.h"
+
+extern RTC_HandleTypeDef hrtc;
+extern IWDG_HandleTypeDef hiwdg;
+
+extern uint8_t su_inc_buffer[197];
+
+extern struct _obc_data obc_data;
+
+extern struct _wdg_state wdg;
+
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 

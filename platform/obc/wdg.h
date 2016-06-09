@@ -2,8 +2,6 @@
 #define __WDG_H
 
 #include <stdint.h>
-#include <stdbool.h>
-#include "obc_hal.h"
 
 struct _wdg_state {
     uint8_t hk_valid;
