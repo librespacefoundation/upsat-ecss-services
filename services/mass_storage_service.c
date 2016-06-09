@@ -37,7 +37,8 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 8
 
-#define MS_ERR(res);    ms_debugging(res, __LINE__); return res + SATRF_OK;
+#define MS_ERR(res);    ms_debugging(res, __LINE__); \
+                        return res + SATRF_OK;
 
 struct _MS_data {
     FATFS Fs;
@@ -189,10 +190,10 @@ SAT_returnState mass_storage_delete_su_scr(MS_sid sid) {
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
 
-    if((res = f_stat((char*)path, &fno)) != FR_OK) { MS_ERR(res) } 
+    if((res = f_stat((char*)path, &fno)) != FR_OK) { MS_ERR(res); } 
 
 
-    if((res = f_unlink((char*)path)) != FR_OK)     { return res + SATRF_OK; } 
+    if((res = f_unlink((char*)path)) != FR_OK)     { MS_ERR(res); } 
 
     //function
     MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false;
@@ -222,13 +223,13 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
     else if(sid == EVENT_LOG)   { strncpy((char*)path, MS_EVENT_LOG, MS_MAX_PATH); }
     else if(sid == FOTOS)       { strncpy((char*)path, MS_FOTOS, MS_MAX_PATH); }
 
-    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { return res + SATRF_OK; }  //add more error checking
+    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }  //add more error checking
 
     for (i = 0; i < MS_MAX_FILES; i++) {
 
         if((res = f_readdir(&dir, &fno)) != FR_OK) {
             f_closedir(&dir);
-            return res + SATRF_OK; 
+            MS_ERR(res); 
         }  /* Break on error */
         else if(fno.fname[0] == 0) { break; }  /* Break on end of dir */
         else if (fno.fname[0] == '.') { continue; }             /* Ignore dot entry */
@@ -242,12 +243,12 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode) {
 
             if((res = f_stat((char*)temp_path, &fno)) != FR_OK) {
                 f_closedir(&dir);
-                return res + SATRF_OK; 
+                MS_ERR(res);
             }
 
             if((res = f_unlink((char*)temp_path)) != FR_OK)     { 
                 f_closedir(&dir); 
-                return res + SATRF_OK; 
+                MS_ERR(res);
             }
 
             if((mode == TO && ret == to) || (mode == SPECIFIC && ret == to)) { break; }
@@ -319,13 +320,13 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     *size = MAX_PKT_EXT_DATA;
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { return res + SATRF_OK; } 
+    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); } 
 
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
-    if(res != FR_OK) { return res + SATRF_OK; } 
-    else if(byteswritten == 0) { return SATR_ERROR; } 
+    if(res != FR_OK) { MS_ERR(res); } 
+    else if(byteswritten == 0) { MS_ERR(res); } 
     *size = byteswritten;
 
     return SATR_OK;
@@ -364,12 +365,12 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         if(res != FR_NO_FILE) { return SATRF_EXIST; }
     }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE)) != FR_OK) { return res + SATRF_OK; } 
+    if((res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE)) != FR_OK) { MS_ERR(res); } 
 
     res = f_write(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
-    if(res != FR_OK) { return res + SATRF_OK; } 
+    if(res != FR_OK) { MS_ERR(res); } 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
     if(sid <= SU_SCRIPT_7) {
@@ -448,10 +449,10 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
     if(*iter == 0) { start_flag = 1; }
     else { start_flag = 0; }
 
-    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { return res + SATRF_OK; }
+    if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }
     for (i = 0; i < MS_MAX_FILES; i++) {
 
-        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; }  /* Break on error */
+        if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); }  /* Break on error */
         else if(fno.fname[0] == 0)    { f_closedir(&dir); return SATR_EOT; }  /* Break on end of dir */
         else if (fno.fname[0] == '.') { continue; }             /* Ignore dot entry */
 
@@ -462,7 +463,7 @@ SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, ui
         if(start_flag == 1) {
 
             sprintf(temp_path,"%s/%s", path, (char*)fn);
-            if((res = f_stat(temp_path, &fno)) != FR_OK) { f_closedir(&dir); return res + SATRF_OK; } 
+            if((res = f_stat(temp_path, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); } 
 
             cnv32_8(ret, &buf[(*size)]);
             *size += sizeof(uint32_t);
@@ -554,12 +555,12 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else { return SATR_ERROR; }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { return res + SATRF_OK; }
+    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); }
 
     res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
     f_close(&fp);
 
-    if(res != FR_OK)    { return res + SATRF_OK; }
+    if(res != FR_OK)    { MS_ERR(res); }
     else if(size == 0)  { return SATR_ERROR; } 
 
     union _cnv cnv;
@@ -587,7 +588,7 @@ SAT_returnState mass_storage_init() {
     FRESULT res = 0;
 
     MS_data.enabled = false;
-    if((res = f_mount(&MS_data.Fs, MS_SD_PATH, 0)) != FR_OK) { return res + SATRF_OK; }
+    if((res = f_mount(&MS_data.Fs, MS_SD_PATH, 0)) != FR_OK) { MS_ERR(res); }
 
     MS_data.enabled = true;
 
@@ -652,7 +653,7 @@ SAT_returnState mass_storage_FORMAT() {
         if(res == FR_OK)                                 { break; }
     }
 
-    if(res != FR_OK)                                     { return res + SATRF_OK; }
+    if(res != FR_OK)                                     { MS_ERR(res); }
 
     res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
 
@@ -732,19 +733,19 @@ SAT_returnState mass_storage_dirCheck() {
     FRESULT res;
     FILINFO fno;
 
-    if((res = f_stat((char*)MS_SU_LOG, &fno)) != FR_OK)         { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_WOD_LOG, &fno)) != FR_OK)        { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_EXT_WOD_LOG, &fno)) != FR_OK)    { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_EVENT_LOG, &fno)) != FR_OK)      { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_FOTOS, &fno)) != FR_OK)          { return res + SATRF_OK; }
-    if((res = f_stat((char*)MS_SCHS, &fno)) != FR_OK)           { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_1", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_2", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_3", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_4", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_5", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_6", &fno)) != FR_OK)              { return res + SATRF_OK; }
-    if((res = f_stat("/SU_SCR_7", &fno)) != FR_OK)              { return res + SATRF_OK; }
+    if((res = f_stat((char*)MS_SU_LOG, &fno)) != FR_OK)         { MS_ERR(res); }
+    if((res = f_stat((char*)MS_WOD_LOG, &fno)) != FR_OK)        { MS_ERR(res); }
+    if((res = f_stat((char*)MS_EXT_WOD_LOG, &fno)) != FR_OK)    { MS_ERR(res); }
+    if((res = f_stat((char*)MS_EVENT_LOG, &fno)) != FR_OK)      { MS_ERR(res); }
+    if((res = f_stat((char*)MS_FOTOS, &fno)) != FR_OK)          { MS_ERR(res); }
+    if((res = f_stat((char*)MS_SCHS, &fno)) != FR_OK)           { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_1", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_2", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_3", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_4", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_5", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_6", &fno)) != FR_OK)              { MS_ERR(res); }
+    if((res = f_stat("/SU_SCR_7", &fno)) != FR_OK)              { MS_ERR(res); }
 
     return SATR_OK;
 }
