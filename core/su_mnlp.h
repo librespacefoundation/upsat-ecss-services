@@ -233,8 +233,12 @@ typedef struct
 struct _MNLP_data{
     /*True is mNLP schedule is active, false otherwise*/
     uint8_t su_nmlp_sche_active;
+    uint32_t *su_nmlp_perm_state_pnt;
     
-    mnlp_response_science_header mnlp_science_header;\
+    /*the current active script*/
+    MS_sid active_script;
+    
+    mnlp_response_science_header mnlp_science_header;
     science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 };
 

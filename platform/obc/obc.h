@@ -9,6 +9,7 @@
 #include "upsat.h"
 #include "mass_storage_service.h"
 #include "wdg.h"
+#include "su_mnlp.h"
 
 //temp
 #define TEST_ARRAY 1024
@@ -66,6 +67,7 @@ struct _sys_data {
 extern struct _sat_status sat_status;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
+extern struct _MNLP_data MNLP_data;
 
 extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
 

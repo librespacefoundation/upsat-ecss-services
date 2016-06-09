@@ -163,12 +163,13 @@ uint16_t err;
 
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
-
     uart_timeout_start(huart);
-    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+//    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    *(huart->pRxBuffPtr) = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    huart->pRxBuffPtr++;
+    
     if(--huart->RxXferCount == 0U)
     {
-
       uart_timeout_stop(huart);
 
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
@@ -197,12 +198,9 @@ void HAL_su_uart_tx(uint8_t *buf, uint16_t size) {
 SAT_returnState HAL_su_uart_rx() {
 
     UART_HandleTypeDef *huart;
-
     huart = &huart2;
-
     if(huart->RxState == HAL_UART_STATE_READY) {
-        //HAL_UART_Receive_IT(huart, &su_scripts.rx_buf[SU_SCI_HEADER], UART_SU_SIZE);
-      HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 174);//&22,174
+      HAL_UART_Receive_IT(huart, &su_inc_buffer[21], 174);//&22,174
       return SATR_EOT;
     }
     return SATR_OK;
