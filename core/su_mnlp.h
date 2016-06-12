@@ -90,7 +90,7 @@ REQ: MNLP-031
 /* the 13th byte is the first byte 
  * of a time table script record.
  */
-#define SU_TT_OFFSET    12
+#define SU_TT_OFFSET        12
 
 /*
  *This header is to be attached in every response from the m-nlp scientific instrument.
@@ -228,11 +228,16 @@ typedef struct
 }science_unit_script_inst;
 
 struct _MNLP_data{
-    /*True is mNLP schedule is active, false otherwise*/
-    uint8_t su_nmlp_sche_active;
+    /*True if mNLP scheduler is active/running, false otherwise*/
+    uint8_t su_nmlp_scheduler_active;
+    
     uint32_t *su_nmlp_perm_state_pnt;
     
-    /*the current active script*/
+    /*last active script chosen by the scheduler, and saved on sram region*/
+    uint8_t *su_nmlp_last_active_script;
+    
+    
+    /*the current (runtime) active script*/
     MS_sid active_script;
     
     mnlp_response_science_header mnlp_science_header;

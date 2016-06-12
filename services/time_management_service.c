@@ -48,7 +48,6 @@ const uint32_t UTC_QB50_H[25] =
           61200, 64800, 68400, 72000, 75600, 79200, 82800, 86400
         };
 
-
 SAT_returnState time_management_app(tc_tm_pkt *pkt){
     
     TIME_MAN_MODE t_set_mode;
@@ -123,6 +122,24 @@ SAT_returnState time_management_report_in_utc(tc_tm_pkt **pkt, TC_TM_app_id dest
     (*pkt)->data[5] = temp_time.sec;
     (*pkt)->len = 6;
 
+    return SATR_OK;
+}
+
+/**
+ * converts a day's moment (Hour, Minutes, Seconds) in this day's seconds.
+ * @param moment
+ * @param daysecs
+ * @return 
+ */
+SAT_returnState cnv_utc_to_secs( struct time_utc *moment, uint32_t *daysecs ){ //1 day = 86400 secs
+    
+    if(!C_ASSERT( moment->hour >= 0  && moment->hour <= 24 ) == true) { return SATR_ERROR; }
+    if(!C_ASSERT( moment->min  >= 0  && moment->min  <= 60 ) == true) { return SATR_ERROR; }
+    if(!C_ASSERT( moment->sec  >= 0  && moment->sec  <= 60 ) == true) { return SATR_ERROR; }
+    *daysecs = ( moment->hour * 3600 ) +
+               ( moment->min  * 60   ) +
+               ( moment->sec);
+    
     return SATR_OK;
 }
 

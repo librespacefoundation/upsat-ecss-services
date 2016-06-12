@@ -6,6 +6,7 @@
 #include "housekeeping.h"
 #include "mass_storage_service.h"
 #include "wdg.h"
+#include "su_mnlp.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
@@ -135,10 +136,13 @@ void bkup_sram_INIT() {
     obc_data.file_id_ev = HAL_obc_BKPSRAM_BASE() + 7;
     obc_data.file_id_fotos = HAL_obc_BKPSRAM_BASE() + 8;
     
-    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+9; //264; //265;
-    *MNLP_data.su_nmlp_perm_state_pnt = 0;
-    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 10;
-    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 11 + (EV_MAX_BUFFER);
+    MNLP_data.su_nmlp_last_active_script = (uint8_t*) HAL_obc_BKPSRAM_BASE()+9;
+//    *MNLP_data.su_nmlp_last_active_script = 0;
+    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+10; //264; //265;
+//    *MNLP_data.su_nmlp_perm_state_pnt = 0;
+    
+    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 11;
+    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 12 + (EV_MAX_BUFFER);
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
