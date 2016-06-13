@@ -102,3 +102,37 @@ void pkt_pool_IDLE() {
     }
 
 }
+
+SAT_returnState queuePush(struct queue *uart_queue, tc_tm_pkt *pkt) {
+
+    //mutex take
+
+    if(uart_queue->head == (((uart_queue->tail - 1) + POOL_PKT_TOTAL_SIZE) % POOL_PKT_TOTAL_SIZE)) {
+        return SATR_QUEUE_FULL;
+    }
+
+    uart_queue[uart_queue->head] = pkt;
+
+    uart_queue->head = (uart_queue->head + 1) % POOL_PKT_TOTAL_SIZE;
+
+    //mutex left
+
+    return SATR_OK;
+}
+
+SAT_returnState queuePop(struct queue *uart_queue) {
+
+    if(uart_queue->head == uart_queue->tail) { return SATR_QUEUE_EMPTY; }
+
+    uart_queue->tail = (uart_queue->tail + 1) % POOL_PKT_TOTAL_SIZE;
+
+    return SATR_OK;
+}
+
+uint8_t queueSize(struct queue *uart_queue)
+{
+    if(uart_queue->head == QueueOut) { return 0; }
+
+    return uart_queue->head - uart_queue->tail;
+}
+

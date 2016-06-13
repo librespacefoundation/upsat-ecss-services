@@ -9,13 +9,20 @@
 #define PKT_NORMAL  198   /*MAX_PKT_DATA*/
 
 #if (SYSTEM_APP_ID == _EPS_APP_ID_)
-#define POOL_PKT_SIZE       10
-#define POOL_PKT_EXT_SIZE   0
+#define POOL_PKT_SIZE        10
+#define POOL_PKT_EXT_SIZE     0
+#define POOL_PKT_TOTAL_SIZE  10
 #else
-#define POOL_PKT_SIZE       25
-#define POOL_PKT_EXT_SIZE   4
+#define POOL_PKT_SIZE        20
+#define POOL_PKT_EXT_SIZE     4
+#define POOL_PKT_TOTAL_SIZE  24
 #endif
 
+struct queue {
+    tc_tm_pkt *fifo[POOL_PKT_TOTAL_SIZE];
+    uint8_t head;
+    uint8_t tail;
+};
 
 tc_tm_pkt * get_pkt(uint16_t size);
 
