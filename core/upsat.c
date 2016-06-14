@@ -48,10 +48,16 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     uint16_t size = 0;
     SAT_returnState res;    
 
+    /* Checks if the tx is busy */
     if((res = HAL_uart_tx_check(app_id)) == SATR_ALREADY_SERVICING) { return res; }
 
+    /* Checks if that the pkt that was transmitted is still in the queue */
+    if((pkt = queuePop(app_id)) ==  NULL) { return SATR_OK; }
+    free_pkt(pkt);
+
+    /* Checks if there is a pkt to tx in the queue */
     pkt = queuePeak(app_id);
-    if(pkt == NULL) { return res; }
+    if(pkt == NULL) { return SATR_OK; }
 
     pack_pkt(data->uart_pkted_buf,  pkt, &size);
 
