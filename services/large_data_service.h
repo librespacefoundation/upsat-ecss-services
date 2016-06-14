@@ -13,15 +13,18 @@ typedef enum {
     LAST_STATE              = 6
 }LD_states;
 
+/**
+ * Status of the large data transfer
+ */
 struct _ld_status {
-    LD_states state;        /*service state machine, state variable*/
-    TC_TM_app_id app_id;    /*destination app id*/
-    uint8_t ld_num;         /**/
+    LD_states state;        		/**< Service state machine, state variable*/
+    TC_TM_app_id app_id;    		/**< Destination app id */
+    uint8_t ld_num;         		/**< Sequence number of last fragmented packet stored */
     uint32_t timeout;       /**/
     uint8_t started;        /**/
 
-    uint8_t buf[MAX_PKT_DATA];         /**/
-    uint16_t rx_size;         /**/
+    uint8_t buf[MAX_PKT_EXT_DATA]; 	/**< Buffer that holds the sequential fragmented packets */
+    uint16_t rx_size;         		/**< The number of bytes stored already in the buffer */
     uint8_t rx_lid;         /**/
     uint8_t tx_lid;         /**/
     uint8_t tx_pkt;         /**/

@@ -20,8 +20,12 @@ extern SAT_returnState verification_app(tc_tm_pkt *pkt);
 extern SAT_returnState hk_app(tc_tm_pkt *pkt);
 extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
-
+extern int32_t send_payload(const uint8_t *in, size_t len, size_t timeout_ms);
 extern uint8_t dbg_msg;
+extern UART_HandleTypeDef huart5;
+
+static uint8_t send_buf[TC_MAX_PKT_SIZE];
+struct _comms_data comms_data;
 
 const uint8_t services_verification_COMMS_TC[MAX_SERVICES][MAX_SUBTYPES] = { 
 /*    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
@@ -46,8 +50,6 @@ const uint8_t services_verification_COMMS_TC[MAX_SERVICES][MAX_SUBTYPES] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
-
-struct _comms_data comms_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
@@ -91,9 +93,18 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     return SATR_OK;
 }
 
-extern UART_HandleTypeDef huart5;
-static uint8_t payload[TC_MAX_PKT_SIZE];
-
+/**
+ * This functions handles an incoming ECSS packet.
+ * If the ECSS packet is part of a large data transfer consisting from
+ * several sequential ECSS packets, it handles them automatically.
+ *
+ * In other words, there is no need to explicitly check for a fragmented data
+ * transfer.
+ *
+ * @param payload the received payload
+ * @param payload_size the size of the payload
+ * @return SATR_OK if all went ok or appropriate error code
+ */
 SAT_returnState
 rx_ecss (uint8_t *payload, const uint16_t payload_size)
 {
@@ -102,7 +113,7 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
 
   pkt = get_pkt (payload_size);
 
-  if (!C_ASSERT(pkt != NULL) == true) {
+  if (C_ASSERT(pkt == NULL)) {
     return SATR_ERROR;
   }
   if (unpack_pkt (payload, pkt, payload_size) == SATR_OK) {
@@ -115,27 +126,21 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
   return ret;
 }
 
+
 SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
 
-    int ret = 0;
+    int32_t ret = 0;
     
     uint16_t size = 0;
     SAT_returnState res;
 
-    res = pack_pkt(payload, pkt, &size);
+    res = pack_pkt(send_buf, pkt, &size);
     if(res != SATR_OK){
       return ret;
     }
 
-    //if(!C_ASSERT(size > 0) == true) { return SATR_ERROR; }
-
-    ret = send_payload(payload, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
-    if (ret > 0) {
-      HAL_Delay (50);
-      LOG_UART_DBG(&huart5, "Frame transmitted ECSS Ret %d", ret);
-    }
-    else {
-      LOG_UART_DBG(&huart5, "Error at AX.25 encoding");
+    ret = send_payload(send_buf, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
+    if(ret < 1){
       return SATR_ERROR;
     }
     return SATR_OK;
