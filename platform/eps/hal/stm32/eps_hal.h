@@ -12,6 +12,9 @@
 
 extern struct _eps_data eps_data;
 
+SAT_returnState HAL_takeMutex(TC_TM_app_id app_id);
+
+SAT_returnState HAL_giveMutex(TC_TM_app_id app_id);
 
 void HAL_eps_OBC_ON();
 
@@ -35,6 +38,8 @@ void HAL_sys_delay(uint32_t sec);
 void HAL_EPS_UART_IRQHandler(UART_HandleTypeDef *huart);
 
 void UART_EPS_Receive_IT(UART_HandleTypeDef *huart);
+
+SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id);
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
 

@@ -36,8 +36,8 @@ SAT_returnState import_spi() {
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET);
       obc_data.iac_out[0] = cnt++;
       obc_data.iac_out[1] = cnt++;
-      //obc_data.iac_in[0] = 0xFA;
-      //obc_data.iac_in[1] = 0xAF;
+      obc_data.iac_in[0] = 0xFA;
+      obc_data.iac_in[1] = 0xAF;
       obc_data.iac_flag = false;
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
@@ -66,7 +66,7 @@ SAT_returnState import_spi() {
 
 }
 
-void HAL_uart_tx_check(TC_TM_app_id app_id) {
+SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
     
     HAL_UART_StateTypeDef res;
     UART_HandleTypeDef *huart;
@@ -76,18 +76,17 @@ void HAL_uart_tx_check(TC_TM_app_id app_id) {
     else if(app_id == COMMS_APP_ID) { huart = &huart4; }
     else if(app_id == ADCS_APP_ID) { huart = &huart6; }
 
-    for(;;) { // should use hard limits
-        res = HAL_UART_GetState(huart);
-        if(res != HAL_UART_STATE_BUSY && \
-           res != HAL_UART_STATE_BUSY_TX && \
-           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
-        osDelay(10);
-    }
+
+    res = HAL_UART_GetState(huart);
+    if(res != HAL_UART_STATE_BUSY && \
+       res != HAL_UART_STATE_BUSY_TX && \
+       res != HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
+
+    return SATR_OK;
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     
-    HAL_StatusTypeDef res;
     UART_HandleTypeDef *huart;
 
     if(app_id == EPS_APP_ID) { huart = &huart1; }
@@ -95,11 +94,8 @@ void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     else if(app_id == COMMS_APP_ID) { huart = &huart4; }
     else if(app_id == ADCS_APP_ID) { huart = &huart6; }
 
-    for(;;) { // should use hard limits
-        res = HAL_UART_Transmit_DMA(huart, buf, size);
-        if(res == HAL_OK) { break; }
-        osDelay(10);
-    }
+    HAL_UART_Transmit_DMA(huart, buf, size);
+
 }
 
 SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data) {

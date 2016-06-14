@@ -2,7 +2,6 @@
 
 #include "stm32f4xx_hal.h"
 #include <cmsis_os.h>
-#include "services.h"
 #include "task.h"
 #include "obc.h"
 
@@ -15,8 +14,63 @@ extern struct _obc_data obc_data;
 
 extern struct _wdg_state wdg;
 
+extern osMessageQId queueCOMMS;
+extern osMessageQId queueADCS;
+extern osMessageQId queueDBG;
+extern osMessageQId queueEPS;
+
 #undef __FILE_ID__
 #define __FILE_ID__ 13
+
+
+SAT_returnState queuePush(tc_tm_pkt *pkt, TC_TM_app_id app_id) {
+
+    osMessageQId *xQueue = 0;
+
+    if(app_id == EPS_APP_ID) { xQueue = &queueEPS; }
+    else if(app_id == DBG_APP_ID) { xQueue = &queueDBG; }
+    else if(app_id == COMMS_APP_ID) { xQueue = &queueCOMMS; }
+    else if(app_id == ADCS_APP_ID) { xQueue = &queueADCS; }
+
+    xQueueSend( xQueue, pkt, (TickType_t) 10);
+
+    return SATR_OK;
+}
+
+tc_tm_pkt * queuePop(TC_TM_app_id app_id) {
+
+    tc_tm_pkt *pkt = 0;
+    osMessageQId *xQueue = 0;
+
+    if(app_id == EPS_APP_ID) { xQueue = &queueEPS; }
+    else if(app_id == DBG_APP_ID) { xQueue = &queueDBG; }
+    else if(app_id == COMMS_APP_ID) { xQueue = &queueCOMMS; }
+    else if(app_id == ADCS_APP_ID) { xQueue = &queueADCS; }
+
+    if(xQueueReceive(xQueue, pkt, (TickType_t) 0) == pdFALSE) { return NULL; }
+
+    return pkt;
+}
+
+uint8_t queueSize(TC_TM_app_id app_id) {
+
+    return 0;
+}
+
+tc_tm_pkt * queuePeak(TC_TM_app_id app_id) {
+
+    tc_tm_pkt *pkt = 0;
+    osMessageQId *xQueue = 0;
+
+    if(app_id == EPS_APP_ID) { xQueue = &queueEPS; }
+    else if(app_id == DBG_APP_ID) { xQueue = &queueDBG; }
+    else if(app_id == COMMS_APP_ID) { xQueue = &queueCOMMS; }
+    else if(app_id == ADCS_APP_ID) { xQueue = &queueADCS; }
+
+    if(xQueuePeek(xQueue, pkt, (TickType_t) 0) == pdFALSE) { return (tc_tm_pkt *)NULL; }
+
+    return pkt;
+}
 
 void HAL_sys_delay(uint32_t msec) {
 	osDelay(msec);

@@ -2,6 +2,7 @@
 #define __UPSAT_H
 
 #include "services.h"
+#include "pkt_pool.h"
 
 #define EV_MAX_BUFFER  1024
 #define EV_BUFFER_PART 205
@@ -52,7 +53,7 @@ struct _subs_last_comm {
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
-SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
 SAT_returnState sys_data_INIT();
 

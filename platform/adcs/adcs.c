@@ -97,26 +97,21 @@ route_pkt (tc_tm_pkt *pkt)
     res = test_app (pkt);
   }
   else if (id == EPS_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
+    queuePush(pkt, OBC_APP_ID);
   }
-  else if (id == ADCS_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
+  else if (id == OBC_APP_ID) {
+    queuePush(pkt, OBC_APP_ID);
   }
   else if (id == COMMS_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
-  }
-  else if (id == IAC_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
+    queuePush(pkt, OBC_APP_ID);
   }
   else if (id == GND_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
+    queuePush(pkt, OBC_APP_ID);
   }
   else if (id == DBG_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &adcs_data.obc_uart);
+    queuePush(pkt, OBC_APP_ID);
   }
 
-  verification_app (pkt);
-  free_pkt (pkt);
   return SATR_OK;
 }
 

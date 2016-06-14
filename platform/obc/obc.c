@@ -10,7 +10,7 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
-extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
 extern uint32_t * HAL_obc_BKPSRAM_BASE();
 
@@ -72,31 +72,29 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         res = hk_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
         res = function_management_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
+        //TODO: ADD C_ASSERT
+        res = time_management_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SCHEDULING_SERVICE) {
+        //TODO: ADD C_ASSERT
+        res = scheduling_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_MASS_STORAGE_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = mass_storage_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TEST_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = test_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SCHEDULING_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = scheduling_app(pkt);
+
     }else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SU_MNLP_SERVICE) {
         //TODO: ADD C_ASSERT
         res = su_nmlp_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = time_management_app(pkt);
     }
-    else if(id == EPS_APP_ID)      { export_pkt(EPS_APP_ID, pkt, &obc_data.eps_uart); }
-    else if(id == ADCS_APP_ID)     { export_pkt(ADCS_APP_ID, pkt, &obc_data.adcs_uart); }
-    else if(id == COMMS_APP_ID)    { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
-    else if(id == IAC_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
-    else if(id == GND_APP_ID)      { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
-    else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
+    else if(id == EPS_APP_ID)      { queuePush(pkt, EPS_APP_ID); }
+    else if(id == ADCS_APP_ID)     { queuePush(pkt, ADCS_APP_ID); }
+    else if(id == COMMS_APP_ID)    { queuePush(pkt, COMMS_APP_ID); }
+    else if(id == GND_APP_ID)      { queuePush(pkt, COMMS_APP_ID); }
+    else if(id == DBG_APP_ID)      { queuePush(pkt, DBG_APP_ID); }
 
-    verification_app(pkt);
-    free_pkt(pkt);
     return SATR_OK;
 }
 

@@ -74,19 +74,16 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = test_app(pkt);
     } 
-    else if(id == EPS_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
-    else if(id == ADCS_APP_ID)     { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
-    else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
-    else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &comms_data.obc_uart); }
+    else if(id == EPS_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
+    else if(id == ADCS_APP_ID)     { queuePush(pkt, OBC_APP_ID); }
+    else if(id == OBC_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
     else if(id == GND_APP_ID)      {
 
       if(pkt->len > MAX_PKT_DATA) { large_data_downlinkTx_api(pkt); }
       else { tx_ecss(pkt); }
     }
-    else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &comms_data.obc_uart); }
+    else if(id == DBG_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
 
-    verification_app(pkt);
-    free_pkt(pkt);
     return SATR_OK;
 }
 

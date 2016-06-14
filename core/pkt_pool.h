@@ -18,12 +18,6 @@
 #define POOL_PKT_TOTAL_SIZE  24
 #endif
 
-struct queue {
-    tc_tm_pkt *fifo[POOL_PKT_TOTAL_SIZE];
-    uint8_t head;
-    uint8_t tail;
-};
-
 tc_tm_pkt * get_pkt(uint16_t size);
 
 SAT_returnState free_pkt(tc_tm_pkt *pkt);

@@ -20,6 +20,8 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart);
 
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart);
 
+SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id);
+
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
 
 SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);

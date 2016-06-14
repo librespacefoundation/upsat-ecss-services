@@ -10,6 +10,7 @@
 
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
 
+extern tc_tm_pkt * queuePeak(TC_TM_app_id app_id);
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
@@ -32,7 +33,8 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }            
             if(unpack_pkt(data->deframed_buf, pkt, size) == SATR_OK) { route_pkt(pkt); } 
-            else { verification_app(pkt); free_pkt(pkt); }
+            verification_app(pkt);
+            free_pkt(pkt);
         }
     }
 
@@ -40,16 +42,18 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 }
 
 //WIP
-SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data) {
+SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
-
+    tc_tm_pkt *pkt = 0;
     uint16_t size = 0;
     SAT_returnState res;    
 
-    pack_pkt(data->uart_pkted_buf, pkt, &size);
+    if((res = HAL_uart_tx_check(app_id)) == SATR_ALREADY_SERVICING) { return res; }
 
-    HAL_uart_tx_check(app_id);
+    pkt = queuePeak(app_id);
+    if(pkt == NULL) { return res; }
+
+    pack_pkt(data->uart_pkted_buf,  pkt, &size);
 
     res = HLDLC_frame(data->uart_pkted_buf, data->framed_buf, &size);
     if(res == SATR_ERROR) { return SATR_ERROR; }

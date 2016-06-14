@@ -137,9 +137,10 @@ typedef enum {
     
     SATRF_DIR_ERROR            = 49,
 
-    SATR_SD_DISABLED           = 50,  
+    SATR_SD_DISABLED           = 50,
+    SATR_QUEUE_FULL            = 51,
     /*LAST*/
-    SATR_LAST                  = 51
+    SATR_LAST                  = 52
 }SAT_returnState;
 
 /*services types*/
