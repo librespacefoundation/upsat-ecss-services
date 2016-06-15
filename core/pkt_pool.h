@@ -13,9 +13,9 @@
 #define POOL_PKT_EXT_SIZE     0
 #define POOL_PKT_TOTAL_SIZE  10
 #else
-#define POOL_PKT_SIZE        20
+#define POOL_PKT_SIZE        16
 #define POOL_PKT_EXT_SIZE     4
-#define POOL_PKT_TOTAL_SIZE  24
+#define POOL_PKT_TOTAL_SIZE  20
 #endif
 
 tc_tm_pkt * get_pkt(uint16_t size);

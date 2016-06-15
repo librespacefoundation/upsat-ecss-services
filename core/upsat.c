@@ -11,6 +11,7 @@
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
 
 extern tc_tm_pkt * queuePeak(TC_TM_app_id app_id);
+extern tc_tm_pkt * queuePop(TC_TM_app_id app_id);
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
@@ -53,11 +54,6 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
     /* Checks if that the pkt that was transmitted is still in the queue */
     if((pkt = queuePop(app_id)) ==  NULL) { return SATR_OK; }
-    free_pkt(pkt);
-
-    /* Checks if there is a pkt to tx in the queue */
-    pkt = queuePeak(app_id);
-    if(pkt == NULL) { return SATR_OK; }
 
     pack_pkt(data->uart_pkted_buf,  pkt, &size);
 
@@ -67,6 +63,8 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     if(!C_ASSERT(size > 0) == true) { return SATR_ERROR; }
 
     HAL_uart_tx(app_id, data->framed_buf, size);
+
+    free_pkt(pkt);
 
     return SATR_OK;
 }
