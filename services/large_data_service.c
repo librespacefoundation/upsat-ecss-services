@@ -206,7 +206,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     temp_pkt = get_pkt(LD_status.rx_size);
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
     if(unpack_pkt(LD_status.buf, temp_pkt, LD_status.rx_size) == SATR_OK) { route_pkt(pkt); } 
-    free_pkt(pkt);
+    //free_pkt(pkt);
 
     return SATR_OK;
 }
