@@ -229,16 +229,24 @@ typedef struct
 
 struct _MNLP_data{
     /*True if mNLP scheduler is active/running, false otherwise*/
-    uint8_t su_nmlp_scheduler_active;
+    uint8_t *su_nmlp_scheduler_active;
     
     uint32_t *su_nmlp_perm_state_pnt;
     
     /*last active script chosen by the scheduler, and saved on sram region*/
     uint8_t *su_nmlp_last_active_script;
     
+    /*points to the time table that needs to be executed when the scheduler will run*/
+    uint8_t *su_next_time_table;
+    
+    /*point to the script sequence that needs to be executed when the scheduler will run*/
+    uint8_t *su_next_script_seq;
     
     /*the current (runtime) active script*/
     MS_sid active_script;
+    
+    /*the state of the science unit*/
+    SU_state su_state;
     
     mnlp_response_science_header mnlp_science_header;
     science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
@@ -247,10 +255,6 @@ struct _MNLP_data{
 extern struct _MNLP_data MNLP_data;
 extern uint8_t su_inc_buffer[];
 
-//ToDo
-//  add check for su status off
-//  add calendar
-
 void su_INIT();
 
 /*
@@ -258,7 +262,15 @@ void su_INIT();
  */
 void su_load_scripts();
 
-/*this is to be called from a freeRTOS task, continually*/
+/**
+ * Selects the appropriate script that is eligible to run, and marks
+ * it as the ''running script''.
+ */
+void su_script_selector();
+
+/**
+ * Handles the science unit scripts.
+ */
 void su_SCH();
 
 void handle_su_error();
