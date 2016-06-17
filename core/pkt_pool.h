@@ -12,7 +12,7 @@
 #define POOL_PKT_SIZE       10
 #define POOL_PKT_EXT_SIZE   0
 #else
-#define POOL_PKT_SIZE       25
+#define POOL_PKT_SIZE       16
 #define POOL_PKT_EXT_SIZE   4
 #endif
 
