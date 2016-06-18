@@ -273,7 +273,11 @@ void su_script_selector();
  */
 void su_SCH();
 
-void handle_su_error();
+/**
+ * 
+ * @param err_source
+ */
+void handle_su_error(uint8_t err_source);
 /* 
  * traverses the script sequences to find the one requested by
  * *ss_to_go parameter, the resulting offset is stored on 
@@ -304,6 +308,6 @@ SAT_returnState su_next_cmd(uint8_t *buf,  science_unit_script_sequence *cmd, ui
 
 SAT_returnState su_power_ctrl(FM_fun_id fid);
 
-SAT_returnState generate_obc_su_error(uint8_t *buffer);
+SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source);
 
 #endif

@@ -29,6 +29,7 @@ mnlp_response_science_header flight_data;
 
 struct _MNLP_data MNLP_data;
 
+uint8_t obc_su_err_seq_cnt = 1;
 /* if true all commands are routed to nmlp serial,
  * if false some commands are routed to cubesat subsystems. (obc_su_on, obc_su_off, )
  */
@@ -302,35 +303,19 @@ SAT_returnState su_incoming_rx() {
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
                 break;
-            case (uint8_t)SU_ERR_RSP_ID: /*indicates tha nmlp is in reset state, power cycle must be done*/
-//                handle_su_error();
-                mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
+            case (uint8_t)SU_ERR_RSP_ID:
+            /*indicates that nmlp is in reset state, power cycle must be done as of 13.4.3 M-NLP ICD issue 6.2, page 49*/
 #if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "SU_ERROR_RECEIVED(0xBB)", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
+            event_crt_pkt_api(uart_temp, "SU_ERROR_RECEIVED, HANDLING AS OF page 49(0xBB)", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
             HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-#endif
-                break;
-            case (uint8_t)OBC_SU_ERR_RSP_ID:
+#endif                
+                /*save the su_error packet*/
                 mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
-#if nMNLP_DEBUGGING_ACTIVE == 1
-            event_crt_pkt_api(uart_temp, "OBC_SU_ERROR_RECEIVED(0xFA)", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
-            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
-#endif
+                handle_su_error((uint8_t)SU_ERR_RSP_ID);
                 break;
         }
     }
     return SATR_OK;
-}
-
-void handle_su_error(){
-    
-    //steps to do as described in page 42 of m-nlp-icd, issus 6v2
-    //abort current running script
-    //turn off su, 
-    //generate OBC_SU_ERR packet
-    //wait 60 secs, rerun same script from NEXT time tables, 
-    //(because propably the previous command gave you an error state))
-    
 }
 
 void su_INIT(){
@@ -713,6 +698,7 @@ SAT_returnState su_populate_header( science_unit_script_header *su_script_hdr, u
 
     su_script_hdr->sw_ver = 0x1F & buf[10];    
     su_script_hdr->su_id = 0x03 & (buf[10] >> 5); //need to check this, seems ok
+    
     su_script_hdr->script_type = 0x1F & buf[11];
     su_script_hdr->su_md = 0x03 & (buf[11] >> 5); //need to check this, seems ok
 
@@ -778,17 +764,62 @@ SAT_returnState su_power_ctrl(FM_fun_id fid) {
     return SATR_OK;
 }
 
-SAT_returnState generate_obc_su_error(uint8_t *buffer) {
-    uint8_t point =  22;
-    buffer[point] = su_inc_buffer[point++];
-    buffer[point] = su_inc_buffer[point++];
-    buffer[point] = su_inc_buffer[point++];
-    buffer[point] = su_inc_buffer[point++];
+
+void handle_su_error(uint8_t err_source){
     
+    //steps to do as described in page 42 of m-nlp icd, issue 6.2
+    //abort current running script
+    //turn off su, 
+    //generate OBC_SU_ERR packet
+    //wait 60 secs, rerun same script from NEXT time tables, 
+    //(because propably the previous command gave you an error state))
+    
+//    su_power_ctrl(P_ON); 
+    su_power_ctrl(P_OFF);
+    generate_obc_su_error(su_inc_buffer, err_source); /*su_inc_buffer at this point contains the su_error message*/
+    HAL_sys_delay(60000);
+    
+    su_power_ctrl(P_ON);
     
 }
-//void su_timeout_handler(uint8_t error) {
-//    
+
+/*Generate OBC_SU ERR(or) packet, as of m-nlp icd issue 6.2, page 43.*/
+/**
+ * 
+ * @param buffer
+ * @param err_source Is the event the generates the error code, 0xBB for su_err, 0xFF for su_timeout 
+ * @return 
+ */
+SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source) {
+    
+    /*save only the first 174 bytes of the generated error*/
+
+    buffer[0] = 0xFA;
+    buffer[1] = obc_su_err_seq_cnt++; //add our own packet. seq number, ++for next one
+    buffer[2] = err_source;   //code that indicates the error source
+    cnv16_8(MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].scr_header.xsum, &buffer[3]); 
+    cnv32_8(MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].scr_header.start_time, &buffer[5]);
+    cnv32_8(MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].scr_header.file_sn, &buffer[9]);
+    buffer[13] = MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].file_load_buf[10];
+    buffer[14] = MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].file_load_buf[11];
+    
+}
+
+
+
+
+
+void su_timeout_handler(uint8_t error) {
+/*indicates that nmlp has timed out, power cycle must be done as of 13.4.3 M-NLP ICD issue 6.2, page 42*/
+    
+//case (uint8_t)OBC_SU_ERR_RSP_ID:
+//                mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
+//#if nMNLP_DEBUGGING_ACTIVE == 1
+//            event_crt_pkt_api(uart_temp, "OBC_SU_ERROR_RECEIVED(0xFA)", 969,969, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
+//            HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+//#endif
+//                break;    
+    
 //    //cnv32_8(time_now(), &obc_su_scripts.rx_buf[0]);
 //    //cnv16_8(flight_data.roll, &obc_su_scripts.rx_buf[4]);
 //    //cnv16_8(flight_data.pitch, &obc_su_scripts.rx_buf[6]);
@@ -836,4 +867,4 @@ SAT_returnState generate_obc_su_error(uint8_t *buffer) {
 //
 //    su_next_tt(su_scripts.active_buf, &su_scripts.tt_header, &su_scripts.tt_pointer_curr);
 //
-//}
+}
