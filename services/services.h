@@ -252,7 +252,8 @@ typedef enum {
     EVENTS_REP      = 3,
     WOD_REP         = 4,
     EXT_WOD_REP     = 5,
-    LAST_STRUCT_ID  = 6
+    SU_SCI_HDR_REP  = 6,
+    LAST_STRUCT_ID  = 7
 }HK_struct_id;
 
 typedef enum {

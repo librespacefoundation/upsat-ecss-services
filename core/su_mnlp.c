@@ -341,13 +341,12 @@ void su_INIT(){
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         if (MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
             MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true) {
-            /*polulate only script headers that are structural ok*/    
+            /*populate only script headers that are structural OK*/    
             su_populate_header(&(MNLP_data.su_scripts[(uint8_t) i - 1].scr_header), 
                            MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
         }
     }
     /*sort the scripts by increasing T_STARTTIME field (?)*/
-    
     /*Enable the script scheduler*/
     *MNLP_data.su_nmlp_scheduler_active = (uint8_t) true;
 }
@@ -480,7 +479,7 @@ void su_SCH(){
                         &current_tt_pointer);
                 if (tt_call_state == SATR_EOT) {
                     /*reached the last time table, go for another script, or this script, but on the NEXT day*/
-                    //TODO: here to save on non-volatile mem that we have finished executing all ss'es,
+                    //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script
                     
 #if nMNLP_DEBUGGING_ACTIVE == 1
     uint16_t size;
@@ -530,6 +529,7 @@ void su_SCH(){
     event_crt_pkt_api(uart_temp, "Time Table lost, moving to next one...:", (uint8_t) 0 ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
     HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
+//                    *MNLP_data.su_next_time_table ++;
                     continue;
                 }
 #if nMNLP_DEBUGGING_ACTIVE == 1
@@ -770,14 +770,11 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 }
 
 SAT_returnState su_power_ctrl(FM_fun_id fid) {
-
+    
     tc_tm_pkt *temp_pkt = 0;
-
     function_management_pctrl_crt_pkt_api(&temp_pkt, EPS_APP_ID, fid, SU_DEV_ID);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
     route_pkt(temp_pkt);
-
     return SATR_OK;
 }
 

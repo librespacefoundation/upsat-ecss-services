@@ -36,6 +36,8 @@ struct _obc_data
     uint8_t iac_flag;
     uint32_t iac_timeout;
 
+    struct adcs_data attitude_data;
+    
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;

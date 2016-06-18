@@ -10,7 +10,6 @@
 
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
 
-
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
     tc_tm_pkt *pkt;
@@ -39,7 +38,6 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     return SATR_OK;
 }
 
-//WIP
 SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }

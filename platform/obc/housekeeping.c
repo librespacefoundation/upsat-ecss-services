@@ -47,7 +47,7 @@ void hk_INIT() {
 }
 
 void hk_SCH() {
-
+    
     hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
     HAL_sys_delay(1000);
