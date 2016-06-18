@@ -150,7 +150,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
     } else if(pkt->ser_subtype == TC_MS_UPLINK) {
 
         uint16_t size = pkt->len -1;
-
+        
         for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
             if((res = mass_storage_storeFile(sid, 0,&pkt->data[1], &size)) != SATRF_LOCKED) { break; }
             HAL_sys_delay(1);
@@ -374,17 +374,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
     if(sid <= SU_SCRIPT_7) {
-    //    TODO: TO Test SCRIPT UPDATE PROCEDURE
-        MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false; /*stops if is executing*/
-        SAT_returnState sat_res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-        if(sat_res == SATR_ERROR || sat_res == SATR_CRC_ERROR){ 
-            /*faled to re-read freshly uploaded script, ???*/
-            return sat_res;
-        }
-        MNLP_data.su_scripts[(uint8_t) sid-1].valid_str = true;
-        su_populate_header( &(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-        MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = true;
-
+        handle_script_upload(sid);
     }
     
     return SATR_OK;

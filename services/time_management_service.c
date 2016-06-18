@@ -51,7 +51,7 @@ const uint32_t UTC_QB50_H[25] =
 SAT_returnState time_management_app(tc_tm_pkt *pkt){
     
     TIME_MAN_MODE t_set_mode;
-    tc_tm_pkt *time_rep_pkt = 0;
+    
     uint32_t time_value;
     struct time_utc temp_time;
 
@@ -73,16 +73,20 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
         pkt->verification_state = SATR_OK;
     }
     else if( t_set_mode == REPORT_TIME_IN_QB50 ){
+        tc_tm_pkt *time_rep_pkt = 0;
 //        get_time_QB50(&time_value);
         /*make the packet to send*/
-        time_management_report_in_qb50(&time_rep_pkt, (TC_TM_app_id)DBG_APP_ID);
+        time_management_report_in_qb50(&time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
+        
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }
     else if( t_set_mode == REPORT_TIME_IN_UTC){
+        tc_tm_pkt *time_rep_pkt = 0;
 //        get_time_UTC(&temp_time);        
         /*make the packet to send*/
-        time_management_report_in_utc(&time_rep_pkt, (TC_TM_app_id)DBG_APP_ID);
+        time_management_report_in_utc(&time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
+        
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }

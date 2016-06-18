@@ -322,7 +322,7 @@ void su_INIT(){
 
     MNLP_data.su_state = SU_POWER_OFF;
     mnlp_sim_active = true;
-    su_load_scripts();
+    su_load_all_scripts();
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         if (MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
             MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true) {
@@ -333,10 +333,11 @@ void su_INIT(){
     }
     /*sort the scripts by increasing T_STARTTIME field (?)*/
     /*Enable the script scheduler*/
-    *MNLP_data.su_nmlp_scheduler_active = (uint8_t) true;
+    *MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
+    //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) true;
 }
 
-void su_load_scripts(){
+void su_load_all_scripts(){
     
     SAT_returnState res ;
     for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
@@ -368,6 +369,39 @@ void su_load_scripts(){
 #endif
         }
     }
+}
+
+void su_load_specific_script(MS_sid sid){
+    
+    SAT_returnState res ;
+//    for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
+        /*mark every script as non-valid, to check it later on memory and mark it (if it is, structurally) valid*/
+        MNLP_data.su_scripts[(uint8_t) sid - 1].valid_str = false;
+        /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
+        res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_1, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+        if( res != SATR_OK ){ //if( res == SATR_ERROR || res == SATR_CRC_ERROR){
+            /*script is kept marked as invalid because of CRC error, or invalid length, or some other error*/
+#if nMNLP_DEBUGGING_ACTIVE == 1
+    uint16_t size;
+    event_crt_pkt_api(uart_temp, "OH! INVALID SCRIPT, Scr number is:", (uint8_t) sid ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
+    HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
+//            continue;
+        }
+        else{
+            /* Mark the script as both structural/logical valid, to be parsed afterwards inside the su_scheduler. */
+            /* This is the first load from memory, maybe after a reset, so we assume that scripts are
+             * logically valid (they are purposed to be scheduled). 
+             */
+            MNLP_data.su_scripts[(uint8_t) sid - 1].valid_str = true;
+            MNLP_data.su_scripts[(uint8_t) sid - 1].valid_logi = true;
+#if nMNLP_DEBUGGING_ACTIVE == 1
+    uint16_t size;
+    event_crt_pkt_api(uart_temp, "SCRIPT LOADED OK, NO:", (uint8_t) sid ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
+    HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
+#endif
+        }
 }
 
 void su_script_selector() {
@@ -648,30 +682,43 @@ SAT_returnState su_goto_time_table( uint16_t *tt_pointer, uint8_t *tt_to_go ){
 
 SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
-    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
-    
-//    if( cmd->cmd_id == 0x05){
-//      HAL_su_uart_tx( cmd->command, cmd->len+1);
+//    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
+    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec));
+
+    if (mnlp_sim_active) { //route cmd to su nmlp simulator
         
-//        uint8_t su_out[105];
-//        su_out[0]= 0x05;
-//        su_out[1]= 0x63; //len
-//        su_out[2]= 2; //seq_coun
-//        HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
-//        HAL_su_uart_tx( su_out, 102);  
-//    }
-//    else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
-//    else{
-//    //-------------------------------------------------------------------------
-    if( cmd->cmd_id == SU_OBC_SU_ON_CMD_ID)         { su_power_ctrl(P_ON); } 
-    else if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID)    { su_power_ctrl(P_OFF); }
-    else if(cmd->cmd_id == SU_OBC_EOT_CMD_ID)       { return SATR_EOT; } 
-    else{
-//            if(cmd->cmd_id == 0x05) {
-//                HAL_su_uart_tx( cmd->command, cmd->len+2);
-//            }
-            HAL_su_uart_tx( cmd->command, cmd->len+2); }
-    
+        if( cmd->cmd_id == 0xF1){
+            HAL_su_uart_tx( cmd->command, cmd->len+2);
+            HAL_sys_delay(2000);
+            
+        }else
+        if( cmd->cmd_id == 0x05){
+            HAL_su_uart_tx( cmd->command, cmd->len+1);
+            uint8_t su_out[105];
+            su_out[0]= 0x05;
+            su_out[1]= 0x63; //len
+            su_out[2]= 2; //seq_coun
+            //HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
+            HAL_su_uart_tx( su_out, 102);  
+        }
+        else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
+
+    } else { //route to real su mnlp
+
+        if (cmd->cmd_id == SU_OBC_SU_ON_CMD_ID) {
+            su_power_ctrl(P_ON);
+        } else if (cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID) {
+            su_power_ctrl(P_OFF);
+        } else if (cmd->cmd_id == SU_OBC_EOT_CMD_ID) {
+            return SATR_EOT;
+        } else {
+            //            if(cmd->cmd_id == 0x05) {
+            //                HAL_su_uart_tx( cmd->command, cmd->len+2);
+            //            }
+            HAL_su_uart_tx(cmd->command, cmd->len + 2);
+        }
+    }
+
     return SATR_OK;
 }
 
@@ -764,7 +811,6 @@ SAT_returnState su_power_ctrl(FM_fun_id fid) {
     return SATR_OK;
 }
 
-
 void handle_su_error(uint8_t err_source){
     
     //steps to do as described in page 42 of m-nlp icd, issue 6.2
@@ -790,10 +836,10 @@ void handle_su_error(uint8_t err_source){
  * @param err_source Is the event the generates the error code, 0xBB for su_err, 0xFF for su_timeout 
  * @return 
  */
+
 SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source) {
     
     /*save only the first 174 bytes of the generated error*/
-
     buffer[0] = 0xFA;
     buffer[1] = obc_su_err_seq_cnt++; //add our own packet. seq number, ++for next one
     buffer[2] = err_source;   //code that indicates the error source
@@ -802,12 +848,18 @@ SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source) {
     cnv32_8(MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].scr_header.file_sn, &buffer[9]);
     buffer[13] = MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].file_load_buf[10];
     buffer[14] = MNLP_data.su_scripts[(uint8_t) MNLP_data.active_script - 1].file_load_buf[11];
+    uint8_t base = 15; /*sixteenth byte*/
+    for( uint8_t p=0;p<7;p++){ /*run seven times*/
+        
+        cnv16_8(MNLP_data.su_scripts[p].scr_header.xsum, &buffer[base]);
+        cnv32_8(MNLP_data.su_scripts[p].scr_header.start_time, &buffer[base+2]);
+        cnv32_8(MNLP_data.su_scripts[p].scr_header.file_sn, &buffer[base+4]);
+        buffer[base+8] = MNLP_data.su_scripts[p].file_load_buf[10];
+        buffer[base+9] = MNLP_data.su_scripts[p].file_load_buf[11];
+        base +=12;
+    }
     
 }
-
-
-
-
 
 void su_timeout_handler(uint8_t error) {
 /*indicates that nmlp has timed out, power cycle must be done as of 13.4.3 M-NLP ICD issue 6.2, page 42*/
@@ -867,4 +919,25 @@ void su_timeout_handler(uint8_t error) {
 //
 //    su_next_tt(su_scripts.active_buf, &su_scripts.tt_header, &su_scripts.tt_pointer_curr);
 //
+}
+
+SAT_returnState handle_script_upload(MS_sid sid){
+
+    if(MNLP_data.active_script == sid ){
+        /*if the active script is being updated, requires special handling*/
+    }
+    else{
+        su_load_specific_script(sid);
+    }
+//        MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = false; /*stops if is executing*/
+//        SAT_returnState sat_res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+//        if(sat_res == SATR_ERROR || sat_res == SATR_CRC_ERROR){ 
+//            /*faled to re-read freshly uploaded script, ???*/
+//            return sat_res;
+//        }
+//        MNLP_data.su_scripts[(uint8_t) sid-1].valid_str = true;
+//        su_populate_header( &(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
+//        MNLP_data.su_scripts[(uint8_t)sid-1].valid_logi = true;
+    
+    return SATR_OK;
 }

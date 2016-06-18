@@ -260,8 +260,12 @@ void su_INIT();
 /*
  * Loads the scipts from permanent storage.
  */
-void su_load_scripts();
+void su_load_all_scripts();
 
+/**
+ * Loads a specific scipts from permanent storage.
+ */
+void su_load_specific_script(MS_sid sid);
 /**
  * Selects the appropriate script that is eligible to run, and marks
  * it as the ''running script''.
@@ -310,4 +314,5 @@ SAT_returnState su_power_ctrl(FM_fun_id fid);
 
 SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source);
 
+SAT_returnState handle_script_upload(MS_sid sid);
 #endif
