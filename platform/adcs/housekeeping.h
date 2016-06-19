@@ -5,9 +5,6 @@
 #include "../../../ecss_services/services/services.h"
 #include "adcs.h"
 
-extern _adcs_state adcs_state;
-extern _adcs_actuator adcs_actuator;
-
 extern void HAL_sys_delay(uint32_t sec);
 
 extern SAT_returnState hk_crt_pkt_TC(tc_tm_pkt *pkt, TC_TM_app_id app_id, HK_struct_id sid);
