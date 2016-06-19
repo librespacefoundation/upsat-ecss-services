@@ -35,9 +35,6 @@ uint8_t obc_su_err_seq_cnt = 1;
  */
 uint8_t mnlp_sim_active = true;
 
-/*Current sat time in qb50 secs*/
-uint32_t qb_f_time_now = 0;
-
 uint32_t obc_day_moment_secs = 0;
 struct time_utc obc_day_utc_time;
 
@@ -362,6 +359,10 @@ void su_load_all_scripts(){
              */
             MNLP_data.su_scripts[(uint8_t) i - 1].valid_str = true;
             MNLP_data.su_scripts[(uint8_t) i - 1].valid_logi = true;
+            /*populate only script headers that are structural OK*/    
+            su_populate_header(&(MNLP_data.su_scripts[(uint8_t) i - 1].scr_header), 
+                               MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+            
 #if nMNLP_DEBUGGING_ACTIVE == 1
     uint16_t size;
     event_crt_pkt_api(uart_temp, "SCRIPT LOADED OK, NO:", (uint8_t) i ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
@@ -374,12 +375,10 @@ void su_load_all_scripts(){
 void su_load_specific_script(MS_sid sid){
     
     SAT_returnState res ;
-//    for( MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         /*mark every script as non-valid, to check it later on memory and mark it (if it is, structurally) valid*/
         MNLP_data.su_scripts[(uint8_t) sid - 1].valid_str = false;
         /*load scripts on memory but, parse them at a later time, in order to unlock access to the storage medium for other users*/
         res = mass_storage_su_load_api( sid, MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-//        SAT_returnState res = mass_storage_su_load_api( SU_SCRIPT_1, MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
         if( res != SATR_OK ){ //if( res == SATR_ERROR || res == SATR_CRC_ERROR){
             /*script is kept marked as invalid because of CRC error, or invalid length, or some other error*/
 #if nMNLP_DEBUGGING_ACTIVE == 1
@@ -387,7 +386,6 @@ void su_load_specific_script(MS_sid sid){
     event_crt_pkt_api(uart_temp, "OH! INVALID SCRIPT, Scr number is:", (uint8_t) sid ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
     HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
-//            continue;
         }
         else{
             /* Mark the script as both structural/logical valid, to be parsed afterwards inside the su_scheduler. */
@@ -396,6 +394,9 @@ void su_load_specific_script(MS_sid sid){
              */
             MNLP_data.su_scripts[(uint8_t) sid - 1].valid_str = true;
             MNLP_data.su_scripts[(uint8_t) sid - 1].valid_logi = true;
+            /*populate only script headers that are structural OK*/    
+            su_populate_header(&(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), 
+                               MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
 #if nMNLP_DEBUGGING_ACTIVE == 1
     uint16_t size;
     event_crt_pkt_api(uart_temp, "SCRIPT LOADED OK, NO:", (uint8_t) sid ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
@@ -410,11 +411,15 @@ void su_script_selector() {
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         if (MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
             MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true) {
-            uint32_t time_diffuint32;
-            int32_t time_diffint32;
+            uint32_t qb_f_time_now = 0;
+            uint32_t time_diff_uint32;
+            int32_t time_diff_int32;
             get_time_QB50(&qb_f_time_now);
-            time_diffuint32 = (uint32_t) qb_f_time_now - MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time;
-            time_diffint32 = (int32_t) time_diffuint32;
+            time_diff_uint32 = (uint32_t) qb_f_time_now - MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time;
+            
+            //TODO add check that uint32 time_diff_uint32 value uses max 31 bits, so the cast back to int32 is valid
+            //((2^32)-1)/2 = 2147483647 , else if the difference is more than this then the time table is 24855.1348032 days ahead.
+            time_diff_int32 = (int32_t) time_diff_uint32;
 
             /* if time_diffint32 is > 0(zero) means that the current checking script
              * start time has passed over us, so the closest value > 0 and closest to zero is the script to be activated
@@ -423,7 +428,7 @@ void su_script_selector() {
              */
             //to become 60 secs, eg: 1 minute late max. and to sleepa after selection for 50 secs,
             //also see page 35 on mnlp icd.
-            if (time_diffint32 >= 0 && time_diffint32 <= 500) {
+            if (time_diff_int32 >= 0 && time_diff_int32 <= 500) {
 #if nMNLP_DEBUGGING_ACTIVE == 1
                 uint16_t size;
                 event_crt_pkt_api(uart_temp, "SCRIPT MARKED AS RUNNING SCRIPT IS:", (uint8_t) i, 0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
@@ -458,20 +463,20 @@ void su_script_selector() {
      * we run the last activated script continuously.
      */
     MNLP_data.active_script = *MNLP_data.su_nmlp_last_active_script;
+    /* assert that active script is not zero, if it is, we have an issue on sram regions propably
+     * so hard-set script 1 as the running script
+     */
+    if(!C_ASSERT(MNLP_data.active_script != (uint8_t) 0) ) { 
+       *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
 }
 
 void su_SCH(){
     
     if((*MNLP_data.su_nmlp_scheduler_active)) {
         
-        /* check if the active script is number zero, if it is, we have an issue on sram regions
-         * so hard-set script 1 as the running script
-         */
-        if(!C_ASSERT(MNLP_data.active_script != (uint8_t) 0) ) { *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
-                
         if(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
            MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true) {
-
+            
             //TODO: add a check here for the following.
             /*this script has not been executed on this day &&*/
             
@@ -485,35 +490,25 @@ void su_SCH(){
              */
             current_tt_pointer = SU_TT_OFFSET;
             /*finds the next tt that needs to be executed, it iterates all the tt to find the correct one*/
-            for (uint16_t b = current_tt_pointer;
-                    b < SU_MAX_FILE_SIZE; b++) { //TODO: check until when for will run
-
-                /*if the script has been deleted/updated abort this old instance of it*/
-                if (MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi != true) {
-                    break;
-                }
+            for (uint16_t b = current_tt_pointer;b < SU_MAX_FILE_SIZE; b++){
                 tt_call_state =
-                        polulate_next_time_table(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
-                        &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
-                        &current_tt_pointer);
-                if (tt_call_state == SATR_EOT) {
+                    polulate_next_time_table(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
+                    &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
+                    &current_tt_pointer);
+                if(tt_call_state == SATR_EOT) {
                     /*reached the last time table, go for another script, or this script, but on the NEXT day*/
-                    //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script
-                    
+                    //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script                    
 #if nMNLP_DEBUGGING_ACTIVE == 1
     uint16_t size;
     event_crt_pkt_api(uart_temp, "REACHED TIME TABLE END(see you tomorrow):", (uint8_t) MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index  ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
     HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
                     break;
-                } else if (tt_call_state == SATR_ERROR) {
+                }else
+                if(tt_call_state == SATR_ERROR){
                     /*non valid time table, go for next time table*/
                     continue;
-                } else {
-                    /*if the script has been deleted/updated abort this old instance of it*/
-                    if (MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi != true) {
-                        break;
-                    }
+                }else{
 #if nMNLP_DEBUGGING_ACTIVE == 1
     uint16_t size;
     event_crt_pkt_api(uart_temp, "MOVED TO TIME TABLE:", (uint8_t) MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index  ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
@@ -524,15 +519,18 @@ void su_SCH(){
                 uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
                 uint32_t secs_diff = 0;          /**/
                 int32_t casted_secs_diff = 0;    /**/
-                tt_utc.hour = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
-                tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
-                tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
-                get_time_UTC(&obc_day_utc_time);                
-                cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);                    
+                tt_utc.hour= MNLP_data.su_scripts[(uint8_t)(MNLP_data.active_script-1)].tt_header.hours;
+                tt_utc.min = MNLP_data.su_scripts[(uint8_t)(MNLP_data.active_script-1)].tt_header.min;
+                tt_utc.sec = MNLP_data.su_scripts[(uint8_t)(MNLP_data.active_script-1)].tt_header.sec;
+                get_time_UTC(&obc_day_utc_time);
+                cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
                 cnv_utc_to_secs(&obc_day_utc_time, &obc_day_moment_secs);
-                secs_diff = obc_day_moment_secs - tt_day_moment_secs; 
+                secs_diff = obc_day_moment_secs - tt_day_moment_secs;
                 casted_secs_diff = (int32_t) secs_diff;
-                /*the difference in here should be max. of 24 hours*/
+                /* the difference in here should be max. of 24 hours e.g 86400 seconds,
+                 * because we have choose the right active script
+                 * also, if diff is less than zero means that the tt's moment is in the future
+                 */
                 if( casted_secs_diff < 0 ){
                     /*time table execution is in future, sleep for casted_secs_diff-something*/
 #if nMNLP_DEBUGGING_ACTIVE == 1
@@ -540,6 +538,7 @@ void su_SCH(){
     event_crt_pkt_api(uart_temp, "Time Table time in future, delaying...:", (uint8_t) 0 ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
     HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
+                /*sleep this task for the moments difference/2 and wake up to recheck*/    
                     //HAL_sys_delay( casted_secs_diff*(-1)); //and *1000-
                     HAL_sys_delay( 3000); //three secs
                 }else if( casted_secs_diff > 0) { /*for some reason we have lost this time-table, go to next one*/
@@ -548,7 +547,6 @@ void su_SCH(){
     event_crt_pkt_api(uart_temp, "Time Table lost, moving to next one...:", (uint8_t) 0 ,0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
     HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
 #endif
-//                    *MNLP_data.su_next_time_table ++;
                     continue;
                 }
 #if nMNLP_DEBUGGING_ACTIVE == 1
@@ -611,15 +609,15 @@ void su_SCH(){
 #endif                        
 
                     }
+                }
             }//go for next time table
-                
+            
             //script handling for ends here, at this point every time table in (the current) script has been served.
             MNLP_data.su_state = SU_IDLE;
         }//script run validity check if ends here
     }else{
-        /*script marked as active is not valid either logicly || structural*/
+        /*scheduler not active*/
     }
-}
 }
 
 SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *ss_to_go) {
@@ -685,7 +683,7 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 //    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
     HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec));
 
-    if (mnlp_sim_active) { //route cmd to su nmlp simulator
+    if(mnlp_sim_active) { //route cmd to su nmlp simulator
         
         if( cmd->cmd_id == 0xF1){
             HAL_su_uart_tx( cmd->command, cmd->len+2);
@@ -703,20 +701,20 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
         }
         else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
 
-    } else { //route to real su mnlp
-
-        if (cmd->cmd_id == SU_OBC_SU_ON_CMD_ID) {
-            su_power_ctrl(P_ON);
-        } else if (cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID) {
-            su_power_ctrl(P_OFF);
-        } else if (cmd->cmd_id == SU_OBC_EOT_CMD_ID) {
-            return SATR_EOT;
-        } else {
+    }
+    else{ //route to real su mnlp
+    if (cmd->cmd_id == SU_OBC_SU_ON_CMD_ID) {
+        su_power_ctrl(P_ON);
+    } else if (cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID) {
+        su_power_ctrl(P_OFF);
+    } else if (cmd->cmd_id == SU_OBC_EOT_CMD_ID) {
+        return SATR_EOT;
+    } else {
             //            if(cmd->cmd_id == 0x05) {
             //                HAL_su_uart_tx( cmd->command, cmd->len+2);
             //            }
-            HAL_su_uart_tx(cmd->command, cmd->len + 2);
-        }
+    HAL_su_uart_tx(cmd->command, cmd->len + 2);
+           }
     }
 
     return SATR_OK;

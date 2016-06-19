@@ -91,7 +91,7 @@ void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
 
   RTC_DateTypeDef sDate;
 
-//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+  //sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
   sDate.Month = mon;
   sDate.Date = date;
   sDate.Year = year;

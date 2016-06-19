@@ -373,9 +373,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     if(res != FR_OK) { MS_ERR(res); } 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
-    if(sid <= SU_SCRIPT_7) {
-        handle_script_upload(sid);
-    }
+    if(sid <= SU_SCRIPT_7) { handle_script_upload(sid); }
     
     return SATR_OK;
 }
