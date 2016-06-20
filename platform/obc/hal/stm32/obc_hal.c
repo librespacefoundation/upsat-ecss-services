@@ -18,8 +18,12 @@ extern struct _wdg_state wdg;
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
-void HAL_sys_delay(uint32_t msec) {
-	osDelay(msec);
+void HAL_sys_delay(uint32_t msec){
+    osDelay(msec);
+}
+
+void HAL_sys_delay_until(uint32_t *PreviousWakeTime, uint32_t millisec){
+    osDelayUntil(PreviousWakeTime, millisec);
 }
 
 void HAL_obc_SD_ON() {
@@ -114,6 +118,10 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
 
 uint32_t HAL_sys_GetTick() {
   return HAL_GetTick();
+}
+
+TickType_t HAL_xTaskGetTickCount(){
+    return xTaskGetTickCount();
 }
 
 void HAL_obc_enableBkUpAccess() {

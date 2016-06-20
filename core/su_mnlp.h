@@ -257,6 +257,7 @@ extern uint8_t su_inc_buffer[];
 
 void su_INIT();
 
+void serve_tt();
 /*
  * Loads the scipts from permanent storage.
  */
