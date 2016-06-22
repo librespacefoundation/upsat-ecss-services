@@ -31,10 +31,11 @@ uint32_t sleep_until_msecs=0;
 struct _MNLP_data MNLP_data;
 
 uint8_t obc_su_err_seq_cnt = 1;
+
 /* if true all commands are routed to nmlp serial,
  * if false some commands are routed to cubesat subsystems. (obc_su_on, obc_su_off, )
  */
-uint8_t mnlp_sim_active = true;
+uint8_t mnlp_sim_active = false;
 
 struct time_utc obc_day_utc_time;
 
@@ -318,7 +319,7 @@ SAT_returnState su_incoming_rx() {
 void su_INIT(){
 
     MNLP_data.su_state = SU_POWER_OFF;
-    mnlp_sim_active = true;
+    mnlp_sim_active = false;
     su_load_all_scripts();
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
         if (MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
