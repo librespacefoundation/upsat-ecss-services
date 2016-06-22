@@ -311,11 +311,11 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    SU_POWER_OFF  = 1,
-    SU_RUNNING    = 2,
-    SU_IDLE       = 3,
-    SU_FINISHED   = 4,
-    LAST_SU_STATE = 5
+    SU_POWERED_OFF = 1,
+    SU_POWERED_ON  = 2,
+    SU_IDLE        = 3,
+    SU_FINISHED    = 4,
+    LAST_SU_STATE  = 5
 }SU_state;
 
 typedef enum {  

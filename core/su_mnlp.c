@@ -318,7 +318,18 @@ SAT_returnState su_incoming_rx() {
 
 void su_INIT(){
 
-    MNLP_data.su_state = SU_POWER_OFF;
+    //TODO remove this after tests
+    struct time_utc test_time;
+    test_time.day = 22;
+    test_time.month = 6;
+    test_time.year = 16;
+    test_time.hour = 12;
+    
+    test_time.min = 34;
+    test_time.sec = 30;
+    set_time_UTC(test_time);
+    
+    MNLP_data.su_state = SU_POWERED_OFF;
     mnlp_sim_active = false;
     su_load_all_scripts();
     for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
@@ -409,19 +420,22 @@ void su_load_specific_script(MS_sid sid){
 void su_script_selector() {
 
     /*script chooser code segment*/
-    for (MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++) {
-        if (MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
-            MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true) {
+    for(MS_sid i = SU_SCRIPT_1; i <= SU_SCRIPT_7; i++){
+        if(MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
+            MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true){
             uint32_t qb_f_time_now = 0;
             uint32_t time_diff_uint32;
-            int32_t time_diff_int32;
+            uint32_t time_diff;
             get_time_QB50(&qb_f_time_now);
-            time_diff_uint32 = (uint32_t) qb_f_time_now - MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time;
-            
-            //TODO add check that uint32 time_diff_uint32 value uses max 31 bits, so the cast back to int32 is valid
-            //((2^32)-1)/2 = 2147483647 , else if the difference is more than this then the time table is 24855.1348032 days ahead.
-            time_diff_int32 = (int32_t) time_diff_uint32;
-
+            /*save the casts to int32*/
+            if( qb_f_time_now > MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time){
+                /**/
+                time_diff = qb_f_time_now - MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time;
+            }else
+            if( qb_f_time_now < MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time){
+                /**/
+                time_diff = MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time - qb_f_time_now;
+            }
             /* if time_diffint32 is > 0(zero) means that the current checking script
              * start time has passed over us, so the closest value > 0 and closest to zero is the script to be activated
              * before others. Now, if time_diffint32 > zero AND time_diffint32 >=0 && time_diffint32 <=60 (secs)
@@ -429,7 +443,7 @@ void su_script_selector() {
              */
             //to become 60 secs, eg: 1 minute late max. and to sleepa after selection for 50 secs,
             //also see page 35 on mnlp icd.
-            if (time_diff_int32 >= 0 && time_diff_int32 <= 500) {
+            if(time_diff >= 0 && time_diff <= 500){
 #if nMNLP_DEBUGGING_ACTIVE == 1
                 uint16_t size;
                 event_crt_pkt_api(uart_temp, "SCRIPT MARKED AS RUNNING SCRIPT IS:", (uint8_t) i, 0, (uint8_t*) mnlp_sim_active, &size, SATR_OK);
@@ -472,91 +486,95 @@ void su_script_selector() {
        *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
 }
 
-void su_SCH(){
+void su_SCH() {
     
-    if ((*MNLP_data.su_nmlp_scheduler_active)) {
+    if (MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
+            MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true) {
+        //TODO: add a check here for the following.
+        /*this script has not been executed on this day &&*/
+        //if a reset occur when we have executed a script from start to end, then on the next boot,
+        //we will execute it again, we don't want that.
 
-        if (MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
-            MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true){
-
-            //TODO: add a check here for the following.
-            /*this script has not been executed on this day &&*/
-            //if a reset occur when we have executed a script from start to end, then on the next boot,
-            //we will execute it again, we don't want that.
-
-            /* the first byte after the 12-byte sized script header,
-             * points to the first time table, on the active_script script.
-             */
-            current_tt_pointer = SU_TT_OFFSET;
-            /*finds the next tt that needs to be executed, it iterates all the tt to find the correct one*/
-            for (uint16_t b = current_tt_pointer; b < SU_MAX_FILE_SIZE; b++){
-                tt_call_state =
-                        polulate_next_time_table(
-                        MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
-                        &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
-                        &current_tt_pointer);
-                if(tt_call_state == SATR_EOT){
-                    /*reached the last time table, go for another script, or this script, but on the NEXT day*/
-                    //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script
-                    break;
-                }else
-                if(tt_call_state == SATR_ERROR){
-                    /*non valid time table, go for next time table*/
-                    continue;
-                }else{
-                    /*check this day's moment time against time_table's start time, and wait for it to come.*/
-//                    previousWakeTime = HAL_xTaskGetTickCount();
-                    for (uint16_t i = 1; i < 86400; i++) {
-                        struct time_utc tt_utc;
-                        uint32_t obc_day_moment_secs = 0;
-                        uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
-                        uint32_t secs_diff = 0; /**/
-                        int32_t casted_secs_diff = 0; /**/
-                        tt_utc.hour = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
-                        tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
-                        tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
-                        get_time_UTC(&obc_day_utc_time);
-                        cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
-                        cnv_utc_to_secs(&obc_day_utc_time, &obc_day_moment_secs);
-                        secs_diff = obc_day_moment_secs - tt_day_moment_secs;
-                        casted_secs_diff = (int32_t) secs_diff;
-                        /* the difference in here should be max. of 24 hours e.g 86400 seconds,
-                         * because we have choose the right active script
-                         * also, if diff is less than zero means that the tt's moment is in the future
-                         */
-                        if(casted_secs_diff < 0){
-                            /*time table execution is in future, sleep the task for casted_secs_diff-something*/
-                            //previousWakeTime = HAL_xTaskGetTickCount();
-                            //HAL_sys_delay((casted_secs_diff*(-1)*1000 ));
-                            HAL_sys_delay(20000);//20 secs
-                            //HAL_sys_delay_until(previousWakeTime, (casted_secs_diff*(-1)*1000 ));
-                            //HAL_sys_delay_until(previousWakeTime, 20000 );
-                            get_time_UTC(&obc_day_utc_time);
-                            cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
-                            cnv_utc_to_secs(&obc_day_utc_time, &obc_day_moment_secs);
-                            secs_diff = obc_day_moment_secs - tt_day_moment_secs;
-                            casted_secs_diff = (int32_t) secs_diff;
-                        }else
-                        if(casted_secs_diff > 0 && casted_secs_diff < 10){ 
+        /* the first byte after the 12-byte sized script header,
+         * points to the first time table, on the active_script script.
+         */
+        current_tt_pointer = SU_TT_OFFSET;
+        /*finds the next tt that needs to be executed, it iterates all the tt to find the correct one*/
+        for(uint16_t b = current_tt_pointer; b < SU_MAX_FILE_SIZE; b++){
+            tt_call_state =
+                polulate_next_time_table(
+                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
+                &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
+                &current_tt_pointer);
+            if(tt_call_state == SATR_EOT){
+                /*reached the last time table, go for another script, or this script, but on the NEXT day*/
+                //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script?
+                break;
+            }else
+            if(tt_call_state == SATR_ERROR){
+                /*non valid time table, go for next time table*/
+                continue;
+            }else{ /*we have a time table to check*/
+                /*check this day's moment time against time_table's start time, and wait for it to come.*/
+                //                    previousWakeTime = HAL_xTaskGetTickCount();
+                for(uint16_t i = 1; i < 86400; i++){
+                    struct time_utc tt_utc;
+                    uint32_t obc_day_moment_secs = 0;
+                    uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
+                    uint32_t moment_diff = 0;        /**/
+                    tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
+                    tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
+                    tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
+                    get_time_UTC(&obc_day_utc_time);
+                    cnv_utc_to_secs(&obc_day_utc_time, &obc_day_moment_secs);
+                    cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
+                    /* the difference in here should be max. of 24 hours e.g 86400 seconds,
+                     * because we have choose the right active script
+                     * also, if diff is less than zero means that the tt's moment is in the future
+                     */
+                    if(obc_day_moment_secs > tt_day_moment_secs){
+                        moment_diff = obc_day_moment_secs - tt_day_moment_secs;
+                        if(moment_diff > 0 && moment_diff < 10){
                             /*span us 10 seconds*/
-                            break;
-                        }
-                        if(casted_secs_diff > 10 ){ 
-                            /*for some reason we have lost this time-table, go to next one*/
-                            break;
-                        }else{ /*execute at once*/
+                            //execute?
                             serve_tt();
                             break;
                         }
-                    }//for ends here
-                }
-                //go for next time table
+                        if(moment_diff > 10){
+                            /*for some reason we have lost this time-table, go to next one*/
+                            break;
+                        }
+                    }else
+                    if(obc_day_moment_secs < tt_day_moment_secs){
+                        /*time table is in the future, delay until that moment*/
+                        moment_diff = tt_day_moment_secs - obc_day_moment_secs;
+                        //wait here for moment_diff seconds
+//                        if(moment_diff < 0){
+                        /*time table execution is in future, sleep the task for casted_secs_diff-something*/
+                        //previousWakeTime = HAL_xTaskGetTickCount();
+                        //HAL_sys_delay((casted_secs_diff*(-1)*1000 ));
+                        HAL_sys_delay(moment_diff*1000); //20 secs
+                        //HAL_sys_delay_until(previousWakeTime, (casted_secs_diff*(-1)*1000 ));
+                        //HAL_sys_delay_until(previousWakeTime, 20000 );
+//                        get_time_UTC(&obc_day_utc_time);
+//                        cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
+//                        cnv_utc_to_secs(&obc_day_utc_time, &obc_day_moment_secs);
+//                        moment_diff = obc_day_moment_secs - tt_day_moment_secs;
+                            //                            casted_secs_diff = (int32_t) secs_diff;
+//                        }
+                        serve_tt();
+                        break;
+                    }else{ /*execute at once*/
+                        serve_tt();
+                        break;
+                    }
+                }//for 86400 ends here
             }
-            //script handling for ends here, at this point every time table in (the current) script has been served.
-            MNLP_data.su_state = SU_IDLE;
+            //go for next time table
         }
-    }else {
-        /*scheduler not active*/
+        //script handling for ends here, at this point every time table in (the current) script has been served.
+        //su state is updated in script command handler
+        //            MNLP_data.su_state = SU_POWERED_OFF
     }
 }
 
@@ -679,6 +697,7 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
 //    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
 //    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec));
+  //TODO add assertions
     HAL_sys_delay(3000);
     
     if(mnlp_sim_active) { //route cmd to su nmlp simulator
@@ -703,9 +722,11 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
     else{ //route to real su mnlp
     if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID){
         su_power_ctrl(P_ON);
+        MNLP_data.su_state = SU_POWERED_ON;
     }else
     if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID){
         su_power_ctrl(P_OFF);
+        MNLP_data.su_state = SU_POWERED_OFF;
     }else 
     if(cmd->cmd_id == SU_OBC_EOT_CMD_ID){
         return SATR_EOT;
