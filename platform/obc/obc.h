@@ -36,6 +36,8 @@ struct _obc_data
     uint8_t iac_flag;
     uint32_t iac_timeout;
 
+    struct adcs_data attitude_data;
+    
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;
@@ -49,7 +51,7 @@ struct _sys_data {
 
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
-
+extern struct _MNLP_data MNLP_data;
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState obc_INIT();

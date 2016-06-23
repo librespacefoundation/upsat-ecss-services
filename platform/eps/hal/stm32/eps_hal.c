@@ -65,11 +65,16 @@ void HAL_eps_SU_OFF() {
 	EPS_set_rail_switch(SU, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 }
 
+<<<<<<< HEAD
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
+=======
+void HAL_uart_tx_check(TC_TM_app_id app_id) {
+>>>>>>> f47eedbbb5228a052265c5302b59a381c38869d9
     
     HAL_UART_StateTypeDef res;
     UART_HandleTypeDef *huart;
 
+<<<<<<< HEAD
     if(app_id == EPS_APP_ID) { huart = &huart1; }
     else if(app_id == DBG_APP_ID) { huart = &huart3; }
     else if(app_id == COMMS_APP_ID) { huart = &huart4; }
@@ -82,6 +87,18 @@ SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
        res == HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
 
     return SATR_OK;
+=======
+    if(app_id == OBC_APP_ID) { huart = &huart3; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+
+    for(;;) { // should use hard limits
+        res = HAL_UART_GetState(huart);
+        if(res != HAL_UART_STATE_BUSY && \
+           res != HAL_UART_STATE_BUSY_TX && \
+           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
+        HAL_Delay(1);
+    }
+>>>>>>> f47eedbbb5228a052265c5302b59a381c38869d9
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {

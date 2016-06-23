@@ -245,7 +245,8 @@ typedef enum {
     EVENTS_REP      = 3,
     WOD_REP         = 4,
     EXT_WOD_REP     = 5,
-    LAST_STRUCT_ID  = 6
+    SU_SCI_HDR_REP  = 6,
+    LAST_STRUCT_ID  = 7
 }HK_struct_id;
 
 typedef enum {
@@ -303,11 +304,11 @@ typedef enum {
 }MS_mode;
 
 typedef enum {  
-    SU_POWER_OFF  = 1,
-    SU_RUNNING    = 2,
-    SU_IDLE       = 3,
-    SU_FINISHED   = 4,
-    LAST_SU_STATE = 5
+    SU_POWERED_OFF = 1,
+    SU_POWERED_ON  = 2,
+    SU_IDLE        = 3,
+    SU_FINISHED    = 4,
+    LAST_SU_STATE  = 5
 }SU_state;
 
 typedef enum {  

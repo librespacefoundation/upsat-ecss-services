@@ -66,7 +66,11 @@ SAT_returnState import_spi() {
 
 }
 
+<<<<<<< HEAD
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
+=======
+void HAL_uart_tx_check(TC_TM_app_id app_id) {
+>>>>>>> f47eedbbb5228a052265c5302b59a381c38869d9
     
     HAL_UART_StateTypeDef res;
     UART_HandleTypeDef *huart;
@@ -76,6 +80,7 @@ SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
     else if(app_id == COMMS_APP_ID) { huart = &huart4; }
     else if(app_id == ADCS_APP_ID) { huart = &huart6; }
 
+<<<<<<< HEAD
 
     res = HAL_UART_GetState(huart);
     if(res == HAL_UART_STATE_BUSY && \
@@ -83,6 +88,15 @@ SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
        res == HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
 
     return SATR_OK;
+=======
+    for(;;) { // should use hard limits
+        res = HAL_UART_GetState(huart);
+        if(res != HAL_UART_STATE_BUSY && \
+           res != HAL_UART_STATE_BUSY_TX && \
+           res != HAL_UART_STATE_BUSY_TX_RX) { break; }
+        osDelay(10);
+    }
+>>>>>>> f47eedbbb5228a052265c5302b59a381c38869d9
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
@@ -212,7 +226,7 @@ void uart_timeout_stop(UART_HandleTypeDef *huart) {
   // else if(huart == &huart6) { uart_timeout. = 0; }
 }
 
-void uart_timeout_check(UART_HandleTypeDef *huart) {
+void uart_timeout_check(UART_HandleTypeDef *huart){
 
   // uint32_t t = HAL_GetTick();
   // if(huart == &huart1 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
@@ -242,12 +256,13 @@ uint16_t err;
 
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
-
     uart_timeout_start(huart);
-    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+//    *huart->pRxBuffPtr++ = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    *(huart->pRxBuffPtr) = (uint8_t)(huart->Instance->DR & (uint8_t)0x00FFU);
+    huart->pRxBuffPtr++;
+    
     if(--huart->RxXferCount == 0U)
     {
-
       uart_timeout_stop(huart);
 
       __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
@@ -273,15 +288,12 @@ void HAL_su_uart_tx(uint8_t *buf, uint16_t size) {
     HAL_UART_Transmit_DMA(&huart2, buf, size);
 }
 
-SAT_returnState HAL_su_uart_rx() {
+SAT_returnState HAL_su_uart_rx(){
 
     UART_HandleTypeDef *huart;
-
     huart = &huart2;
-
     if(huart->RxState == HAL_UART_STATE_READY) {
-        //HAL_UART_Receive_IT(huart, &su_scripts.rx_buf[SU_SCI_HEADER], UART_SU_SIZE);
-      HAL_UART_Receive_IT(huart, &su_inc_buffer[22], 174);//&22,174
+      HAL_UART_Receive_IT(huart, &su_inc_buffer[21], 174);//&22,174
       return SATR_EOT;
     }
     return SATR_OK;

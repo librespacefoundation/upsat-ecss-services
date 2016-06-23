@@ -44,7 +44,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnvF_8(adcs_state.lat_sun, &pkt->data[53]);
         cnv32_8(adcs_actuator.m_RPM, &pkt->data[57]);
         pkt->len = 61;
-    }
+    }else if(sid == SU_SCI_HED_REP){
+        
+    } 
 
     return SATR_OK;
 }

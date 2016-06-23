@@ -146,7 +146,7 @@ void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
 
   RTC_DateTypeDef sDate;
 
-//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+  //sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
   sDate.Month = mon;
   sDate.Date = date;
   sDate.Year = year;
@@ -169,6 +169,10 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
 
 uint32_t HAL_sys_GetTick() {
   return HAL_GetTick();
+}
+
+TickType_t HAL_xTaskGetTickCount(){
+    return xTaskGetTickCount();
 }
 
 void HAL_obc_enableBkUpAccess() {
