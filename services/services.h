@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include "subsystems_ids.h"
 #include "system.h"
 
 /* TM TC services*/
@@ -54,15 +55,6 @@
 
 #define MAX_PKT_EXT_DATA    2048
 #define TC_MAX_PKT_EXT_SIZE 2060
-
-#define _OBC_APP_ID_   1
-#define _EPS_APP_ID_   2
-#define _ADCS_APP_ID_  3
-#define _COMMS_APP_ID_ 4
-#define _IAC_APP_ID_   5
-#define _GND_APP_ID_   6
-#define _DBG_APP_ID_   7
-#define _LAST_APP_ID_  8
 
 #if (SYSTEM_APP_ID == _EPS_APP_ID_)
 #define MAX_PKT_SIZE  210

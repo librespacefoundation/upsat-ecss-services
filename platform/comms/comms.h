@@ -21,6 +21,7 @@ struct _comms_data
 extern struct _comms_data comms_data;
 
 SAT_returnState tx_ecss(tc_tm_pkt *pkt);
+SAT_returnState rx_ecss(uint8_t *payload, const uint16_t payload_size);
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
