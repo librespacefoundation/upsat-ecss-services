@@ -28,6 +28,8 @@ mnlp_response_science_header flight_data;
 uint32_t previousWakeTime=0;
 uint32_t sleep_until_msecs=0;
 
+uint16_t last_su_incoming_time;
+
 struct _MNLP_data MNLP_data;
 
 uint8_t obc_su_err_seq_cnt = 1;
@@ -206,14 +208,17 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
     return SATR_OK;
 }
 
-SAT_returnState su_incoming_rx() {
+SAT_returnState su_incoming_rx(){
 
     uint16_t size = SU_LOG_SIZE;
     SAT_returnState res;
-    uint8_t error_array[SU_RSP_PCKT_SIZE];
+//    uint8_t error_array[SU_RSP_PCKT_SIZE];
+    
+//    HAL_sys_GetTick();
     
     res = HAL_su_uart_rx();
-    if( res == SATR_EOT ) {
+    
+    if(res == SATR_EOT){
         
 //        UTC = 7th June 2016 12:33
 //        roll = 10 deg
@@ -250,7 +255,7 @@ SAT_returnState su_incoming_rx() {
         uint16_t zeci = 6900;
         cnv16_8(zeci, &su_inc_buffer[20]);
         
-        switch( su_inc_buffer[22] )
+        switch(su_inc_buffer[22])
         {
             case (uint8_t)SU_LDP_RSP_ID:
                 mass_storage_storeFile( SU_LOG, 0 ,su_inc_buffer, &size);
@@ -325,7 +330,7 @@ void su_INIT(){
     test_time.year = 16;
     test_time.hour = 12;
     
-    test_time.min = 34;
+    test_time.min = 43; //34 to exec all script 1, 43 to none
     test_time.sec = 30;
     set_time_UTC(test_time);
     
@@ -337,13 +342,14 @@ void su_INIT(){
             MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true) {
             /*populate only script headers that are structural OK*/    
             su_populate_header(&(MNLP_data.su_scripts[(uint8_t) i - 1].scr_header), 
-                           MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
+                                 MNLP_data.su_scripts[(uint8_t) i - 1].file_load_buf);
         }
     }
     /*sort the scripts by increasing T_STARTTIME field (?)*/
     /*Enable the script scheduler*/
     *MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
     //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) true;
+    last_su_incoming_time = 0;
 }
 
 void su_load_all_scripts(){
@@ -486,10 +492,14 @@ void su_script_selector() {
        *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
 }
 
-void su_SCH() {
+su_mnlp_returnState su_SCH(uint32_t *sleep_val){
     
-    if (MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
-            MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true) {
+    struct time_utc tt_utc;
+    uint32_t obc_day_moment_secs = 0;
+    uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
+    uint32_t moment_diff = 0;        /**/
+    if(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
+       MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true){
         //TODO: add a check here for the following.
         /*this script has not been executed on this day &&*/
         //if a reset occur when we have executed a script from start to end, then on the next boot,
@@ -503,25 +513,39 @@ void su_SCH() {
         for(uint16_t b = current_tt_pointer; b < SU_MAX_FILE_SIZE; b++){
             tt_call_state =
                 polulate_next_time_table(
-                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
+                 MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
                 &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
                 &current_tt_pointer);
             if(tt_call_state == SATR_EOT){
                 /*reached the last time table, go for another script, or this script, but on the NEXT day*/
-                //TODO: here to save on non-volatile mem that we have finished executing all ss'es od currentnt active script?
-                break;
+                //here calculate the first time table's execution time, and sleep the task until then, to rerun it the next day.
+                current_tt_pointer = SU_TT_OFFSET;
+                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours = 0;
+                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min   = 0;
+                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec   = 0;
+                MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index = 0;
+                polulate_next_time_table(
+                     MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
+                    &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
+                    &current_tt_pointer);
+                tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
+                tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
+                tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
+                cnv_utc_to_secs(&tt_utc, &tt_day_moment_secs);
+                                
+                *sleep_val = 10000;
+                return su_sche_sleep;
             }else
             if(tt_call_state == SATR_ERROR){
                 /*non valid time table, go for next time table*/
                 continue;
             }else{ /*we have a time table to check*/
                 /*check this day's moment time against time_table's start time, and wait for it to come.*/
-                //                    previousWakeTime = HAL_xTaskGetTickCount();
                 for(uint16_t i = 1; i < 86400; i++){
-                    struct time_utc tt_utc;
-                    uint32_t obc_day_moment_secs = 0;
-                    uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
-                    uint32_t moment_diff = 0;        /**/
+//                    struct time_utc tt_utc;
+//                    uint32_t obc_day_moment_secs = 0;
+//                    uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
+//                    uint32_t moment_diff = 0;        /**/
                     tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
                     tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
                     tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
@@ -553,7 +577,7 @@ void su_SCH() {
                         /*time table execution is in future, sleep the task for casted_secs_diff-something*/
                         //previousWakeTime = HAL_xTaskGetTickCount();
                         //HAL_sys_delay((casted_secs_diff*(-1)*1000 ));
-                        HAL_sys_delay(moment_diff*1000); //20 secs
+                        HAL_sys_delay(moment_diff);//*1000 //20 secs
                         //HAL_sys_delay_until(previousWakeTime, (casted_secs_diff*(-1)*1000 ));
                         //HAL_sys_delay_until(previousWakeTime, 20000 );
 //                        get_time_UTC(&obc_day_utc_time);

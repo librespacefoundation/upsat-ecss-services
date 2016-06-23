@@ -216,7 +216,7 @@ void uart_timeout_stop(UART_HandleTypeDef *huart) {
   // else if(huart == &huart6) { uart_timeout. = 0; }
 }
 
-void uart_timeout_check(UART_HandleTypeDef *huart) {
+void uart_timeout_check(UART_HandleTypeDef *huart){
 
   // uint32_t t = HAL_GetTick();
   // if(huart == &huart1 && uart_timeout. != 0 && (t - uart_timeout. > TIMEOUT)) { 
@@ -278,7 +278,7 @@ void HAL_su_uart_tx(uint8_t *buf, uint16_t size) {
     HAL_UART_Transmit_DMA(&huart2, buf, size);
 }
 
-SAT_returnState HAL_su_uart_rx() {
+SAT_returnState HAL_su_uart_rx(){
 
     UART_HandleTypeDef *huart;
     huart = &huart2;

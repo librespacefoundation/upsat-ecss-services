@@ -121,6 +121,10 @@ typedef struct{
     
 }mnlp_response_science_header;
 
+typedef enum{
+    su_sche_sleep = 1
+}su_mnlp_returnState;
+
 /*
 fixed size: 12 bytes
 section 13.6
@@ -276,7 +280,7 @@ void su_script_selector();
 /**
  * Handles the science unit scripts.
  */
-void su_SCH();
+su_mnlp_returnState su_SCH(uint32_t *sleep_val);
 
 /**
  * 
