@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "services.h"
 
-#define MS_MAX_FILES            0x5F5E0FF //random num
+#define MS_MAX_FILES            50000
 
 SAT_returnState mass_storage_init();
 

@@ -746,3 +746,70 @@ SAT_returnState mass_storage_dirCheck() {
 void mass_storage_getState(uint8_t *state) {
     *state = MS_data.enabled;
 }
+
+uint32_t get_new_fileId(MS_sid sid) {
+
+    if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EXT_WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true) { return 0; }
+
+    if(sid == SU_LOG) {
+        (*obc_data.fs_su_head)++;
+        if(*obc_data.fs_su_head > MS_MAX_FILES) {
+            *obc_data.fs_su_head = 1;
+        }
+        if(*obc_data.fs_su_head == *obc_data.fs_su_tail) {
+            (*obc_data.fs_su_tail)++;
+            if(*obc_data.fs_su_tail > MS_MAX_FILES) {
+                *obc_data.fs_su_tail = 1;
+            }
+        }
+        return *obc_data.fs_su_head;
+
+    } else if(sid == WOD_LOG) {
+        (*obc_data.fs_wod_head)++;
+        if(*obc_data.fs_wod_head > MS_MAX_FILES) {
+            *obc_data.fs_wod_head = 1;
+        }
+        if(*obc_data.fs_wod_head == *obc_data.fs_wod_tail) {
+            (*obc_data.fs_wod_tail)++;
+            if(*obc_data.fs_wod_tail > MS_MAX_FILES) {
+                *obc_data.fs_wod_tail = 1;
+            }
+        }
+        return *obc_data.fs_wod_head;
+
+    } else if(sid == EXT_WOD_LOG) {
+        (*obc_data.fs_ext_head)++;
+        if(*obc_data.fs_ext_head > MS_MAX_FILES) {
+            *obc_data.fs_ext_head = 1;
+        }
+        if(*obc_data.fs_ext_head == *obc_data.fs_ext_tail) {
+            (*obc_data.fs_ext_tail)++;
+            if(*obc_data.fs_ext_tail > MS_MAX_FILES) {
+                *obc_data.fs_ext_tail = 1;
+            }
+        }
+        return *obc_data.fs_ext_head;
+
+    } else if(sid == EVENT_LOG) {
+        (*obc_data.fs_ev_head)++;
+        if(*obc_data.fs_ev_head > MS_MAX_FILES) {
+            *obc_data.fs_ev_head = 1;
+        }
+        if(*obc_data.fs_ev_head == *obc_data.fs_ev_tail) {
+            (*obc_data.fs_ev_tail)++;
+            if(*obc_data.fs_ev_tail > MS_MAX_FILES) {
+                *obc_data.fs_ev_tail = 1;
+            }
+        }
+        return *obc_data.fs_ev_head;
+
+    } else if(sid == FOTOS) {
+        (*obc_data.fs_fotos)++;
+        if(*obc_data.fs_fotos > MS_MAX_FILES) {
+            *obc_data.fs_fotos = 1;
+        }
+        return *obc_data.fs_fotos;
+    }
+
+}
+

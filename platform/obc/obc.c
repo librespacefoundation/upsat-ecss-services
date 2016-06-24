@@ -157,57 +157,16 @@ void bkup_sram_INIT() {
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
-    if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 0; }
-    if(!C_ASSERT(*obc_data.fs_wod_head < MS_MAX_FILES) == true)   { *obc_data.fs_wod_head = 0; }
-    if(!C_ASSERT(*obc_data.fs_ext_head < MS_MAX_FILES) == true)   { *obc_data.fs_ext_head = 0; }
-    if(!C_ASSERT(*obc_data.fs_ev_head < MS_MAX_FILES) == true)    { *obc_data.fs_ev_head = 0; }
-    if(!C_ASSERT(*obc_data.fs_su_tail < MS_MAX_FILES) == true)    { *obc_data.fs_su_tail = 0; }
-    if(!C_ASSERT(*obc_data.fs_wod_tail < MS_MAX_FILES) == true)   { *obc_data.fs_wod_tail = 0; }
-    if(!C_ASSERT(*obc_data.fs_ext_tail < MS_MAX_FILES) == true)   { *obc_data.fs_ext_tail = 0; }
-    if(!C_ASSERT(*obc_data.fs_ev_tail < MS_MAX_FILES) == true)    { *obc_data.fs_ev_tail = 0; }
-    if(!C_ASSERT(*obc_data.fs_fotos < MS_MAX_FILES) == true)      { *obc_data.file_id_fotos = 0; }
+    if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_wod_head < MS_MAX_FILES) == true)   { *obc_data.fs_wod_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_ext_head < MS_MAX_FILES) == true)   { *obc_data.fs_ext_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_ev_head < MS_MAX_FILES) == true)    { *obc_data.fs_ev_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_su_tail < MS_MAX_FILES) == true)    { *obc_data.fs_su_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_wod_tail < MS_MAX_FILES) == true)   { *obc_data.fs_wod_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_ext_tail < MS_MAX_FILES) == true)   { *obc_data.fs_ext_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_ev_tail < MS_MAX_FILES) == true)    { *obc_data.fs_ev_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_fotos < MS_MAX_FILES) == true)      { *obc_data.fs_fotos = 1; }
 
-}
-
-uint32_t get_new_fileId(MS_sid sid) {
-
-    if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EXT_WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true) { return 0; }
-
-    if(sid == SU_LOG) {
-        (*obc_data.file_id_su)++;
-        if(*obc_data.file_id_su > MAX_FILE_NUM) {
-            *obc_data.file_id_su = 1;
-        }
-        return *obc_data.file_id_su;
-
-    } else if(sid == WOD_LOG) {
-        (*obc_data.file_id_wod)++;
-        if(*obc_data.file_id_wod > MAX_FILE_NUM) {
-            *obc_data.file_id_wod = 1;
-        }
-        return *obc_data.file_id_wod;
-
-    } else if(sid == EXT_WOD_LOG) {
-        (*obc_data.file_id_ext)++;
-        if(*obc_data.file_id_ext > MAX_FILE_NUM) {
-            *obc_data.file_id_ext = 1;
-        }
-        return *obc_data.file_id_ext;
-
-    } else if(sid == EVENT_LOG) {
-        (*obc_data.file_id_ev)++;
-        if(*obc_data.file_id_ev > MAX_FILE_NUM) {
-            *obc_data.file_id_ev = 1;
-        }
-        return *obc_data.file_id_ev;
-
-    } else if(sid == FOTOS) {   //need to change this
-        (*obc_data.file_id_fotos)++;
-        if(*obc_data.file_id_fotos > MAX_FILE_NUM) {
-            *obc_data.file_id_fotos = 1;
-        }
-        return *obc_data.file_id_fotos;
-    }
 }
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
