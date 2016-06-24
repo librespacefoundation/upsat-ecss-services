@@ -129,17 +129,17 @@ void bkup_sram_INIT() {
     sys_data.boot_counter = HAL_obc_BKPSRAM_BASE() + 2;
     obc_data.wod_cnt = HAL_obc_BKPSRAM_BASE() + 3;
 
-    obc_data.fs_su_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 4;
-    obc_data.fs_wod_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 5;
-    obc_data.fs_ext_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 6;
-    obc_data.fs_ev_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 7;
+    obc_data.fs_su_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 4;
+    obc_data.fs_wod_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 5;
+    obc_data.fs_ext_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 6;
+    obc_data.fs_ev_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 7;
 
-    obc_data.fs_su_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 8;
-    obc_data.fs_wod_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 9;
-    obc_data.fs_ext_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 10;
-    obc_data.fs_ev_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 11;
+    obc_data.fs_su_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 8;
+    obc_data.fs_wod_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 9;
+    obc_data.fs_ext_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 10;
+    obc_data.fs_ev_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 11;
 
-    obc_data.fs_fotos = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 12;
+    obc_data.fs_fotos = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 12;
     
     MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) HAL_obc_BKPSRAM_BASE()+13;
     //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
