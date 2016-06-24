@@ -128,33 +128,44 @@ void bkup_sram_INIT() {
     obc_data.log_state = HAL_obc_BKPSRAM_BASE() + 1;
     sys_data.boot_counter = HAL_obc_BKPSRAM_BASE() + 2;
     obc_data.wod_cnt = HAL_obc_BKPSRAM_BASE() + 3;
-    obc_data.file_id_su = HAL_obc_BKPSRAM_BASE() + 4;
-    obc_data.file_id_wod = HAL_obc_BKPSRAM_BASE() + 5;
-    obc_data.file_id_ext = HAL_obc_BKPSRAM_BASE() + 6;
-    obc_data.file_id_ev = HAL_obc_BKPSRAM_BASE() + 7;
-    obc_data.file_id_fotos = HAL_obc_BKPSRAM_BASE() + 8;
+
+    obc_data.fs_su_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 4;
+    obc_data.fs_wod_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 5;
+    obc_data.fs_ext_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 6;
+    obc_data.fs_ev_head = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 7;
+
+    obc_data.fs_su_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 8;
+    obc_data.fs_wod_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 9;
+    obc_data.fs_ext_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 10;
+    obc_data.fs_ev_tail = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 11;
+
+    obc_data.fs_fotos = (uint8_t*)HAL_obc_BKPSRAM_BASE() + 12;
     
-    MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) HAL_obc_BKPSRAM_BASE()+9;
+    MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) HAL_obc_BKPSRAM_BASE()+13;
     //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
-    MNLP_data.su_nmlp_last_active_script = (uint8_t*) HAL_obc_BKPSRAM_BASE()+10;
+    MNLP_data.su_nmlp_last_active_script = (uint8_t*) HAL_obc_BKPSRAM_BASE()+14;
     //*MNLP_data.su_nmlp_last_active_script = 0;
-    MNLP_data.su_next_time_table = (uint8_t*) HAL_obc_BKPSRAM_BASE()+11;
+    MNLP_data.su_next_time_table = (uint8_t*) HAL_obc_BKPSRAM_BASE()+15;
 //    *MNLP_data.su_next_time_table = 0;
-    MNLP_data.su_next_script_seq = (uint8_t*) HAL_obc_BKPSRAM_BASE()+11;
+    MNLP_data.su_next_script_seq = (uint8_t*) HAL_obc_BKPSRAM_BASE()+16;
 //    *MNLP_data.su_next_script_seq = 0;
-    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+12; //264; //265;
+    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+17; //264; //265;
     //*MNLP_data.su_nmlp_perm_state_pnt = 0;
     
-    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 13;
-    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 14 + (EV_MAX_BUFFER);
+    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 18;
+    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 19 + (EV_MAX_BUFFER);
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
-    if(!C_ASSERT(*obc_data.file_id_su < MS_MAX_FILES) == true)    { *obc_data.file_id_su = 0; }
-    if(!C_ASSERT(*obc_data.file_id_wod < MS_MAX_FILES) == true)   { *obc_data.file_id_wod = 0; }
-    if(!C_ASSERT(*obc_data.file_id_ext < MS_MAX_FILES) == true)   { *obc_data.file_id_ext = 0; }
-    if(!C_ASSERT(*obc_data.file_id_ev < MS_MAX_FILES) == true)    { *obc_data.file_id_ev = 0; }
-    if(!C_ASSERT(*obc_data.file_id_fotos < MS_MAX_FILES) == true) { *obc_data.file_id_fotos = 0; }
+    if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 0; }
+    if(!C_ASSERT(*obc_data.fs_wod_head < MS_MAX_FILES) == true)   { *obc_data.fs_wod_head = 0; }
+    if(!C_ASSERT(*obc_data.fs_ext_head < MS_MAX_FILES) == true)   { *obc_data.fs_ext_head = 0; }
+    if(!C_ASSERT(*obc_data.fs_ev_head < MS_MAX_FILES) == true)    { *obc_data.fs_ev_head = 0; }
+    if(!C_ASSERT(*obc_data.fs_su_tail < MS_MAX_FILES) == true)    { *obc_data.fs_su_tail = 0; }
+    if(!C_ASSERT(*obc_data.fs_wod_tail < MS_MAX_FILES) == true)   { *obc_data.fs_wod_tail = 0; }
+    if(!C_ASSERT(*obc_data.fs_ext_tail < MS_MAX_FILES) == true)   { *obc_data.fs_ext_tail = 0; }
+    if(!C_ASSERT(*obc_data.fs_ev_tail < MS_MAX_FILES) == true)    { *obc_data.fs_ev_tail = 0; }
+    if(!C_ASSERT(*obc_data.fs_fotos < MS_MAX_FILES) == true)      { *obc_data.file_id_fotos = 0; }
 
 }
 
