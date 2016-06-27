@@ -1,7 +1,10 @@
 #include "adcs_hal.h"
 
+extern RTC_HandleTypeDef hrtc;
+
 #undef __FILE_ID__
 #define __FILE_ID__ 13
+
 
 void HAL_sys_delay(uint32_t sec) {
 	HAL_Delay(sec);
@@ -150,6 +153,56 @@ void HAL_reset_source(uint8_t *src) {
 	*src |= (__HAL_RCC_GET_FLAG(RCC_FLAG_LPWRRST) << 6);
 
 	__HAL_RCC_CLEAR_RESET_FLAGS();
+
+}
+
+void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec) {
+
+  RTC_TimeTypeDef sTime;
+
+  sTime.Hours = hours;
+  sTime.Minutes = mins;
+  sTime.Seconds = sec;
+  sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
+  sTime.StoreOperation = RTC_STOREOPERATION_RESET;
+  HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+
+
+}
+
+void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
+
+  RTC_TimeTypeDef sTime;
+
+  HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+
+   *hours = sTime.Hours;
+   *mins = sTime.Minutes;
+   *sec = sTime.Seconds;
+}
+
+void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
+
+  RTC_DateTypeDef sDate;
+
+//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+  sDate.Month = mon;
+  sDate.Date = date;
+  sDate.Year = year;
+
+  HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+}
+
+void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
+
+  RTC_DateTypeDef sDate;
+
+  HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+
+  *mon = sDate.Month;
+  *date = sDate.Date;
+  *year = sDate.Year;
 
 }
 
