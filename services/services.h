@@ -236,13 +236,14 @@ typedef enum {
  */
 #define nMNLP_DEBUGGING_ACTIVE 1
 
-typedef enum {  
+typedef enum {
     HEALTH_REP      = 1,
     EX_HEALTH_REP   = 2,
     EVENTS_REP      = 3,
     WOD_REP         = 4,
     EXT_WOD_REP     = 5,
-    LAST_STRUCT_ID  = 6
+    SU_SCI_HDR_REP  = 6,
+    LAST_STRUCT_ID  = 7
 }HK_struct_id;
 
 typedef enum {
