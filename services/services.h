@@ -241,7 +241,7 @@ typedef enum {
  */
 #define nMNLP_DEBUGGING_ACTIVE 1
 
-typedef enum {  
+typedef enum {
     HEALTH_REP      = 1,
     EX_HEALTH_REP   = 2,
     EVENTS_REP      = 3,
