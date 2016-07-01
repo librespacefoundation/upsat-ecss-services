@@ -187,13 +187,15 @@ typedef enum {
 
 #define TC_MS_ENABLE                    1
 #define TC_MS_DISABLE                   2
-#define TC_MS_CONTENT                   8
+#define TM_MS_CONTENT                   8
 #define TC_MS_DOWNLINK                  9
 #define TC_MS_DELETE                    11
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
 #define TC_MS_UPLINK                    14
 #define TC_MS_FORMAT                    15 /* custom service*/
+#define TC_MS_LIST                      16 /* custom service*/
+#define TM_MS_CATALOGUE_LIST            17
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
@@ -300,7 +302,8 @@ typedef enum {
     SPECIFIC    = 3,
     LAST_PART   = 4,
     NO_MODE     = 5,
-    LAST_MODE   = 6
+    HARD_DELETE = 6,
+    LAST_MODE   = 7
 }MS_mode;
 
 typedef enum {  
