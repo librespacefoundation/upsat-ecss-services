@@ -131,17 +131,12 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
             cnv8_16(&pkt->data[2], &to);
 
-            for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-                if((res = mass_storage_delete_api(sid, to, mode)) != SATRF_LOCKED) { break; }
-                HAL_sys_delay(1);
-            }
+            res = mass_storage_delete_api(sid, to);
+
         }
     } else if(pkt->ser_subtype == TC_MS_REPORT) {
 
-        for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-            if((res = mass_storage_report_api(pkt)) != SATRF_LOCKED) { break; }
-            HAL_sys_delay(1);
-        }
+        res = mass_storage_report_api(pkt);
 
     } else if(pkt->ser_subtype == TC_MS_LIST) {
 
@@ -240,7 +235,7 @@ SAT_returnState mass_storage_hard_delete(MS_sid sid) {
 
     if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }  //add more error checking
 
-    for (i = 0; i < MS_MAX_FILES; i++) {
+    for (i = 0; i < (MS_MAX_FILES * 2); i++) {
 
         if((res = f_readdir(&dir, &fno)) != FR_OK) {
             f_closedir(&dir);
@@ -376,15 +371,12 @@ SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid) {
 
     mass_storage_crtPkt(&temp_pkt, app_id, PKT_NORMAL);
 
-    if(sid <= SU_SCRIPT_7) {
-
-    } else {
-        uint32_t iter = 0;
+    uint16_t iter = 0;
         
-        cnv8_32(&pkt->data[1], &iter);
+    cnv8_16(&pkt->data[1], &iter);
 
-        res = mass_storage_list(sid, temp_pkt->data, &size, &iter); 
-    }
+    res = mass_storage_list(sid, temp_pkt->data, &size, &iter); 
+
 
     if(!(res == SATR_OK || res == SATR_EOT || res == SATR_MS_MAX_FILES)) { free_pkt(temp_pkt); return res; }
 
@@ -396,7 +388,7 @@ SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid) {
     return SATR_OK;
 }
 
-SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint32_t *iter) {
+SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint16_t *iter) {
 
     DIR dir;
     FILINFO fno;
@@ -714,7 +706,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
         if(res != SATR_OK)                              { free_pkt(temp_pkt); return res; }
         if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
     }
-    mass_storage_updatePkt(temp_pkt, size, TC_MS_CONTENT);
+    mass_storage_updatePkt(temp_pkt, size, TM_MS_CONTENT);
     route_pkt(temp_pkt);
 
     return SATR_OK;
@@ -722,7 +714,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
 /*delete handles deletion of mass storage. sid denotes the store id.*/
 /*if to is 0: it deletes every file of the sid else it deletes every file which time is lower then the time denoted in to*/
-SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, uint16_t num) {
+SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to) {
 
     uint16_t *head = 0;
     uint16_t *tail = 0;
@@ -733,14 +725,16 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, uint16_t num) {
                  sid == EVENT_LOG || \
                  sid == FOTOS) == true) { return 0; }
     if(!C_ASSERT(to < MS_MAX_FILES) == true)  { return 0; }
-    if(!C_ASSERT(num < MS_MAX_FILES) == true) { return 0; }
 
     if(sid == SU_LOG)           { head = obc_data.fs_su_head;  tail = obc_data.fs_su_tail; }
     else if(sid == WOD_LOG)     { head = obc_data.fs_wod_head; tail = obc_data.fs_wod_tail; }
     else if(sid == EXT_WOD_LOG) { head = obc_data.fs_ext_head; tail = obc_data.fs_ext_tail; }
     else if(sid == EVENT_LOG)   { head = obc_data.fs_ev_head;  tail = obc_data.fs_ev_tail; }
 
-    *tail += num;
+    uint16_t files_num = *head - *tail;
+    if(!C_ASSERT(to <= files_num) == true)  { return 0; }
+
+    *tail += to;
 
     if(*tail > MS_MAX_FILES) { tail -= MS_MAX_FILES; }
     return SATR_OK;
@@ -798,7 +792,7 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
         else if(sid == SU_SCRIPT_5)     { strncpy((char*)path, MS_SU_SCRIPT_5, MS_MAX_PATH); }
         else if(sid == SU_SCRIPT_6)     { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
         else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
-        if(sid == SU_LOG) {
+        else if(sid == SU_LOG) {
 
             head = obc_data.fs_su_head;
             tail = obc_data.fs_su_tail;
@@ -900,6 +894,8 @@ uint16_t get_filePos(MS_sid sid, uint16_t rel_pos) {
     uint16_t abs_pos = 0;
 
     abs_pos = *tail + rel_pos;
+
+    if(!C_ASSERT(abs_pos <= *head) == true) { return 0; }
     if(abs_pos > MS_MAX_FILES) { abs_pos -= MS_MAX_FILES; }
 
     return abs_pos;

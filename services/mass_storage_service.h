@@ -10,7 +10,7 @@ SAT_returnState mass_storage_init();
 
 SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 
-SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, uint16_t num);
+SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to);
 
 SAT_returnState mass_storage_hard_delete(MS_sid sid);
 
@@ -63,7 +63,7 @@ uint16_t get_filePos(MS_sid sid, uint16_t rel_pos);
 
 uint16_t get_new_fileId(MS_sid sid);
 
-SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint32_t *iter);
+SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint16_t *iter);
 
 SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid);
 
