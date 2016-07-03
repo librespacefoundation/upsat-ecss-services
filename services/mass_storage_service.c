@@ -131,7 +131,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
             cnv8_16(&pkt->data[2], &to);
 
-            res = mass_storage_delete_api(sid, to);
+            res = mass_storage_delete_api(sid, to, mode);
 
         }
     } else if(pkt->ser_subtype == TC_MS_REPORT) {
@@ -714,7 +714,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
 /*delete handles deletion of mass storage. sid denotes the store id.*/
 /*if to is 0: it deletes every file of the sid else it deletes every file which time is lower then the time denoted in to*/
-SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to) {
+SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, MS_mode mode) {
 
     uint16_t *head = 0;
     uint16_t *tail = 0;
@@ -731,12 +731,18 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to) {
     else if(sid == EXT_WOD_LOG) { head = obc_data.fs_ext_head; tail = obc_data.fs_ext_tail; }
     else if(sid == EVENT_LOG)   { head = obc_data.fs_ev_head;  tail = obc_data.fs_ev_tail; }
 
-    uint16_t files_num = *head - *tail;
-    if(!C_ASSERT(to <= files_num) == true)  { return 0; }
+    if(mode == DELETE_ALL) {
+        *head = 0;
+        *tail = 0;
+    } else {
 
-    *tail += to;
+        uint16_t files_num = *head - *tail;
+        if(!C_ASSERT(to <= files_num) == true)  { return 0; }
 
-    if(*tail > MS_MAX_FILES) { tail -= MS_MAX_FILES; }
+        *tail += to;
+
+        if(*tail > MS_MAX_FILES) { tail -= MS_MAX_FILES; }
+    }
     return SATR_OK;
 }
 

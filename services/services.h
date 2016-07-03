@@ -303,7 +303,8 @@ typedef enum {
     LAST_PART   = 4,
     NO_MODE     = 5,
     HARD_DELETE = 6,
-    LAST_MODE   = 7
+    DELETE_ALL  = 7,
+    LAST_MODE   = 8
 }MS_mode;
 
 typedef enum {  

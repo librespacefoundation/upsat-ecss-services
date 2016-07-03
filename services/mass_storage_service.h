@@ -10,7 +10,7 @@ SAT_returnState mass_storage_init();
 
 SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 
-SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to);
+SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, MS_mode mode);
 
 SAT_returnState mass_storage_hard_delete(MS_sid sid);
 
