@@ -60,14 +60,21 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-    cnv8_16(&pkt->data[1], &ld_num);
+    /*
+     * Convert properly the sequence number.
+     * NOTE: We assume that the transmitter complies with the network byte order
+     */
+    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
 
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
 
     if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID) == true) { return SATR_ERROR; }
     if(!C_ASSERT(ld_num == 0) == true)                                  { return SATR_ERROR; }
-    if(!C_ASSERT(size > LD_PKT_DATA) == true)                           { return SATR_ERROR; } 
+
+    if(C_ASSERT(size > LD_PKT_DATA)){
+      return SATR_ERROR;
+    }
     //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
     size -= LD_PKT_DATA_HDR_SIZE;
 
@@ -110,14 +117,24 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-    cnv8_16(&pkt->data[1], &ld_num);
+    /*
+     * Convert properly the sequence number.
+     * NOTE: We assume that the transmitter complies with the network byte order
+     */
+    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
 
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
 
     if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID) == true)   { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.ld_num + 1 >= ld_num) == true)                 { return SATR_ERROR; }
-    if(!C_ASSERT(size > LD_PKT_DATA) == true)                             { return SATR_ERROR; } 
+
+    if (C_ASSERT(LD_status.ld_num + 1 >= ld_num)) {
+      return SATR_ERROR;
+    }
+
+    if(C_ASSERT(size > LD_PKT_DATA)) {
+      return SATR_ERROR;
+    }
     //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
     size -= LD_PKT_DATA_HDR_SIZE;
 
@@ -156,7 +173,11 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-    cnv8_16(&pkt->data[1], &ld_num);
+    /*
+     * Convert properly the sequence number.
+     * NOTE: We assume that the transmitter complies with the network byte order
+     */
+    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
 
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
