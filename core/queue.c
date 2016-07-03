@@ -8,7 +8,7 @@ struct _queue {
     uint8_t tail;
 };
 
-static _queue queue = { .head = 0, .tail = 0}
+static struct _queue queue = { .head = 0, .tail = 0};
 
 SAT_returnState queuePush(tc_tm_pkt *pkt, TC_TM_app_id app_id) {
 
