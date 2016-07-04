@@ -4,13 +4,17 @@
 #include <stdint.h>
 #include "services.h"
 
+/**
+ * The different states of the Large data stae machine
+ */
 typedef enum {
-    LD_STATE_FREE           = 1,
-    LD_STATE_RECEIVING      = 2,
-    LD_STATE_TRANSMITING    = 3,
-    LD_STATE_REPORT         = 4,
-    LD_STATE_DOWNLINK       = 5,
-    LAST_STATE              = 6
+    LD_STATE_FREE           = 1,//!< LD_STATE_FREE No large data activity
+    LD_STATE_RECEIVING      = 2,//!< LD_STATE_RECEIVING the large data FSM receives data
+    LD_STATE_TRANSMITING    = 3,//!< LD_STATE_TRANSMITING the large data FSM transmits data
+    LD_STATE_REPORT         = 4,//!< LD_STATE_REPORT ???
+    LD_STATE_DOWNLINK       = 5,//!< LD_STATE_DOWNLINK ???
+    LD_STATE_RECV_OK        = 6,//!< LD_STATE_RECV_OK the large data FSM successfully received the last frame
+    LAST_STATE              = 7 //!< LAST_STATE
 }LD_states;
 
 /**
@@ -20,8 +24,8 @@ struct _ld_status {
     LD_states state;        		/**< Service state machine, state variable*/
     TC_TM_app_id app_id;    		/**< Destination app id */
     uint8_t ld_num;         		/**< Sequence number of last fragmented packet stored */
-    uint32_t timeout;       /**/
-    uint8_t started;        /**/
+    uint32_t timeout;       		/**< Time of last large data action */
+    uint32_t started;                   /**< Time that the large data transfer started */
 
     uint8_t buf[MAX_PKT_EXT_DATA]; 	/**< Buffer that holds the sequential fragmented packets */
     uint16_t rx_size;         		/**< The number of bytes stored already in the buffer */
@@ -60,6 +64,8 @@ SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n, u
 SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t dest_id, uint8_t subtype);
 
 void large_data_IDLE();
+
+void large_data_init();
 
 SAT_returnState large_data_timeout();
 
