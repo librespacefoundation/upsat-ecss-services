@@ -538,6 +538,16 @@ SAT_returnState mass_storage_FORMAT() {
 
     FRESULT res;
 
+    /*resets pointers*/
+    *obc_data.fs_su_head = 0;
+    *obc_data.fs_su_tail = 0;
+    *obc_data.fs_wod_head = 0;
+    *obc_data.fs_wod_tail = 0;
+    *obc_data.fs_ext_head = 0;
+    *obc_data.fs_ext_tail = 0;
+    *obc_data.fs_ev_head = 0;
+    *obc_data.fs_ev_tail = 0;
+
     for(uint8_t i = 0; i < 5; i++ ) {
 
         res = f_mount(0, "", 0);
@@ -836,6 +846,11 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
 
             res = f_stat((char*)path, &fno);
 
+            if(res != FR_OK) {
+                fno.fsize = 0;
+                fno.fdate = 0;
+                fno.ftime = 0;
+            }
             cnv32_8(fno.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);
 
@@ -852,8 +867,20 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
             cnv16_8(files_num, &buf[(*size)]);
             *size += sizeof(uint16_t);
 
-            f_stat(f_head, &fno_head);
-            f_stat(f_tail, &fno_tail);
+            res = f_stat(f_head, &fno_head);
+
+            if(res != FR_OK) {
+                fno_head.fsize = 0;
+                fno_head.fdate = 0;
+                fno_head.ftime = 0;
+            }
+            res = f_stat(f_tail, &fno_tail);
+
+            if(res != FR_OK) {
+                fno_tail.fsize = 0;
+                fno_tail.fdate = 0;
+                fno_tail.ftime = 0;
+            }
 
             cnv32_8(fno_tail.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);
