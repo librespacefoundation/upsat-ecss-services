@@ -9,20 +9,7 @@
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
    
-   if(sid == EX_HEALTH_REP) {
-
-        struct time_utc temp_time;
-
-        temp_time.day = pkt->data[1];
-        temp_time.month = pkt->data[2];
-        temp_time.year = pkt->data[3];
-        
-        temp_time.hour = pkt->data[4];
-        temp_time.min = pkt->data[5];
-        temp_time.sec = pkt->data[6];
-    }
-
-   return SATR_OK;
+   return SATR_ERROR;
 }
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {

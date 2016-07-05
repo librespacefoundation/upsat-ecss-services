@@ -5,7 +5,7 @@ extern RTC_HandleTypeDef hrtc;
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
-<<<<<<< HEAD
+
 SAT_returnState HAL_takeMutex(TC_TM_app_id app_id) {
   return SATR_OK;
 }
@@ -14,15 +14,8 @@ SAT_returnState HAL_giveMutex(TC_TM_app_id app_id) {
   return SATR_OK;
 }
 
-void
-HAL_sys_delay (uint32_t sec)
-{
-  HAL_Delay (sec);
-=======
-
-void HAL_sys_delay(uint32_t sec) {
-	HAL_Delay(sec);
->>>>>>> e135713e84db9a3257974cb080e98bbf1c5f61cd
+void HAL_sys_delay (uint32_t sec) {
+  HAL_Delay(sec);
 }
 
 void HAL_adcs_SD_ON() {
