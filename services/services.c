@@ -31,7 +31,7 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
 
 extern uint8_t uart_temp[]; 
 
-uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e) {
+uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, char *e) {
   
   uint16_t size = 0;
   int res;

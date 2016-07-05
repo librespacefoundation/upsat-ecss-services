@@ -36,6 +36,8 @@ SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t dest_
 
 void large_data_IDLE();
 
+void large_data_init();
+
 SAT_returnState large_data_timeout();
 
 #endif
