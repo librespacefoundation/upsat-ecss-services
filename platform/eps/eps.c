@@ -52,9 +52,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     SAT_returnState res;
     TC_TM_app_id id;
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
-    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                       { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true)  { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                       { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
 
     if(pkt->type == TC)         { id = pkt->app_id; } 
     else if(pkt->type == TM)    { id = pkt->dest_id; }
@@ -68,15 +68,12 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = test_app(pkt);
     } 
-    else if(id == COMMS_APP_ID)    { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
-    else if(id == ADCS_APP_ID)     { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
-    else if(id == OBC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
-    else if(id == IAC_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
-    else if(id == GND_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
-    else if(id == DBG_APP_ID)      { export_pkt(OBC_APP_ID, pkt, &eps_data.obc_uart); }
+    else if(id == COMMS_APP_ID)    { queuePush(pkt, OBC_APP_ID); }
+    else if(id == ADCS_APP_ID)     { queuePush(pkt, OBC_APP_ID); }
+    else if(id == OBC_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
+    else if(id == GND_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
+    else if(id == DBG_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
 
-    verification_app(pkt);
-    free_pkt(pkt);
     return SATR_OK;
 }
 

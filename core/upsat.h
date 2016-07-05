@@ -2,6 +2,7 @@
 #define __UPSAT_H
 
 #include "services.h"
+#include "pkt_pool.h"
 
 #define EV_MAX_BUFFER  1024
 #define EV_BUFFER_PART 205
@@ -27,16 +28,25 @@
 #define TIMEOUT_V_SU_BYTE   5000
 #define TIMEOUT_V_DBG       5000
 
+struct adcs_data{
+    int16_t roll;
+    int16_t pitch;
+    int16_t yaw;
+    int16_t rolldot;
+    int16_t pitchdot;
+    int16_t yawdot;
+    int16_t x_eci;
+    int16_t y_eci;
+    int16_t z_eci;    
+};
+
 struct uart_data {
     uint8_t uart_buf[UART_BUF_SIZE];
     uint8_t uart_unpkt_buf[UART_BUF_SIZE];
-
     uint8_t deframed_buf[MAX_PKT_SIZE];
-
     uint8_t uart_pkted_buf[UART_BUF_SIZE];
     uint8_t framed_buf[UART_BUF_SIZE];
     uint16_t uart_size;
-    
     uint32_t last_com_time;
 };
 
@@ -52,7 +62,7 @@ struct _subs_last_comm {
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
-SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
 SAT_returnState sys_data_INIT();
 

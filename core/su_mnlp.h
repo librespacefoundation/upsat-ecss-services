@@ -90,7 +90,7 @@ REQ: MNLP-031
 /* the 13th byte is the first byte 
  * of a time table script record.
  */
-#define SU_TT_OFFSET    12
+#define SU_TT_OFFSET        12
 
 /*
  *This header is to be attached in every response from the m-nlp scientific instrument.
@@ -120,6 +120,10 @@ typedef struct{
     uint16_t z_eci;
     
 }mnlp_response_science_header;
+
+typedef enum{
+    su_sche_sleep = 1
+}su_mnlp_returnState;
 
 /*
 fixed size: 12 bytes
@@ -228,31 +232,61 @@ typedef struct
 }science_unit_script_inst;
 
 struct _MNLP_data{
-    /*True is mNLP schedule is active, false otherwise*/
-    uint8_t su_nmlp_sche_active;
+    /*True if mNLP scheduler is active/running, false otherwise*/
+    uint8_t *su_nmlp_scheduler_active;
     
-    mnlp_response_science_header mnlp_science_header;\
+    uint32_t *su_nmlp_perm_state_pnt;
+    
+    /*last active script chosen by the scheduler, and saved on sram region*/
+    uint8_t *su_nmlp_last_active_script;
+    
+    /*points to the time table that needs to be executed when the scheduler will run*/
+    uint8_t *su_next_time_table;
+    
+    /*point to the script sequence that needs to be executed when the scheduler will run*/
+    uint8_t *su_next_script_seq;
+    
+    /*the current (runtime) active script*/
+    MS_sid active_script;
+    
+    /*the state of the science unit*/
+    SU_state su_state;
+    
+    mnlp_response_science_header mnlp_science_header;
     science_unit_script_inst su_scripts[SU_MAX_SCRIPTS_POPU];
 };
 
 extern struct _MNLP_data MNLP_data;
 extern uint8_t su_inc_buffer[];
 
-//ToDo
-//  add check for su status off
-//  add calendar
-
 void su_INIT();
 
+void serve_tt();
 /*
  * Loads the scipts from permanent storage.
  */
-void su_load_scripts();
+void su_load_all_scripts();
 
-/*this is to be called from a freeRTOS task, continually*/
-void su_SCH();
+/**
+ * Loads a specific scipts from permanent storage.
+ */
+void su_load_specific_script(MS_sid sid);
+/**
+ * Selects the appropriate script that is eligible to run, and marks
+ * it as the ''running script''.
+ */
+void su_script_selector();
 
-void handle_su_error();
+/**
+ * Handles the science unit scripts.
+ */
+su_mnlp_returnState su_SCH(uint32_t *sleep_val);
+
+/**
+ * 
+ * @param err_source
+ */
+void handle_su_error(uint8_t err_source);
 /* 
  * traverses the script sequences to find the one requested by
  * *ss_to_go parameter, the resulting offset is stored on 
@@ -283,6 +317,7 @@ SAT_returnState su_next_cmd(uint8_t *buf,  science_unit_script_sequence *cmd, ui
 
 SAT_returnState su_power_ctrl(FM_fun_id fid);
 
-SAT_returnState generate_obc_su_error(uint8_t *buffer);
+SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t err_source);
 
+SAT_returnState handle_script_upload(MS_sid sid);
 #endif

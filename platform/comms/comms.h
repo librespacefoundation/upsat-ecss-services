@@ -14,8 +14,7 @@
 struct _comms_data
 {
     uint16_t comms_seq_cnt;
-    
-    struct uart_data dbg_uart;
+
     struct uart_data obc_uart;
 };
 

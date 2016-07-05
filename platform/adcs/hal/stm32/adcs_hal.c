@@ -6,8 +6,16 @@ extern RTC_HandleTypeDef hrtc;
 #define __FILE_ID__ 13
 
 
-void HAL_sys_delay(uint32_t sec) {
-	HAL_Delay(sec);
+SAT_returnState HAL_takeMutex(TC_TM_app_id app_id) {
+  return SATR_OK;
+}
+
+SAT_returnState HAL_giveMutex(TC_TM_app_id app_id) {
+  return SATR_OK;
+}
+
+void HAL_sys_delay (uint32_t sec) {
+  HAL_Delay(sec);
 }
 
 void HAL_adcs_SD_ON() {
@@ -18,25 +26,20 @@ void HAL_adcs_SD_OFF() {
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 }
 
-void HAL_uart_tx_check(TC_TM_app_id app_id) {
+SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
+    
+    HAL_UART_StateTypeDef res;
+    UART_HandleTypeDef *huart;
 
-	HAL_UART_StateTypeDef res;
-	UART_HandleTypeDef *huart;
+   if (app_id == OBC_APP_ID)      { huart = &huart2; } 
+   else if (app_id == DBG_APP_ID) { huart = &huart2; }
+   
+   res = HAL_UART_GetState(huart);
+   if(res == HAL_UART_STATE_BUSY && \
+      res == HAL_UART_STATE_BUSY_TX && \
+      res == HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
 
-	if (app_id == OBC_APP_ID) {
-		huart = &huart2;
-	} else if (app_id == DBG_APP_ID) {
-		huart = &huart2;
-	}
-
-	for (;;) { // should use hard limits
-		res = HAL_UART_GetState(huart);
-		if (res != HAL_UART_STATE_BUSY && res != HAL_UART_STATE_BUSY_TX
-				&& res != HAL_UART_STATE_BUSY_TX_RX) {
-			break;
-		}
-		HAL_Delay(1);
-	}
+    return SATR_OK;
 }
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {

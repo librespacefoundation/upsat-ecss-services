@@ -148,6 +148,26 @@ SAT_returnState event_pkt_pool_timeout() {
     return SATR_OK;
 }
 
+SAT_returnState event_ms_err(uint8_t err, uint16_t l) {
+
+    tc_tm_pkt *temp_pkt = 0;
+
+    if(event_crt_pkt(&temp_pkt, EV_ms_err) != SATR_OK) { return SATR_ERROR; }
+
+    /*zero padding for fixed length*/
+    temp_pkt->data[5] = err;
+    cnv32_8(l, &(temp_pkt->data[6]));
+    for(uint8_t i = 8; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+    
+    if(SYSTEM_APP_ID == OBC_APP_ID) {
+        event_log(temp_pkt->data, EV_DATA_SIZE);
+    } else {
+        route_pkt(temp_pkt);
+
+    }
+    return SATR_OK;
+}
+
 SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, const EV_event event) {
 
     *pkt = get_pkt(PKT_NORMAL);

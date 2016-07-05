@@ -5,6 +5,10 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 2
 
+struct _pkt_state {
+    uint8_t seq_cnt[LAST_APP_ID];
+};
+
 static struct _pkt_state pkt_state;
 
 // need to check endiannes
@@ -280,4 +284,29 @@ SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8
 SAT_returnState sys_data_INIT() {
   for(uint8_t i = 0; i < LAST_APP_ID; i++) { pkt_state.seq_cnt[i] = 0; }
   return SATR_OK;
+}
+
+/*FIXME: Get the endianness from each subsystem. For now they assume big endian*/
+uint16_t
+htons (uint16_t x)
+{
+  return x;
+}
+
+uint16_t
+ntohs (uint16_t x)
+{
+  return x;
+}
+
+uint32_t
+htonl (uint32_t x)
+{
+  return x;
+}
+
+uint32_t
+ntohl (uint32_t x)
+{
+  return x;
 }

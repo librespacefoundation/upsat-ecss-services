@@ -4,21 +4,23 @@
 #include <stdint.h>
 #include "services.h"
 
-#define MS_MAX_FILES            0x5F5E0FF //random num
+#define MS_MAX_FILES            50000
 
 SAT_returnState mass_storage_init();
 
 SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 
-SAT_returnState mass_storage_delete_api(MS_sid sid, uint32_t to, MS_mode mode);
+SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, MS_mode mode);
+
+SAT_returnState mass_storage_hard_delete(MS_sid sid);
 
 SAT_returnState mass_storage_delete_su_scr(MS_sid sid);
 
-SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint32_t file) ;
+SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t file, uint8_t num);
 
 SAT_returnState mass_storage_store_api(MS_sid sid, MS_mode mode, uint8_t *buf, uint16_t *size, uint32_t part);
 
-SAT_returnState mass_storage_report_api(tc_tm_pkt *pkt, MS_sid sid);
+SAT_returnState mass_storage_report_api(tc_tm_pkt *pkt);
 
 SAT_returnState mass_storage_report(MS_sid sid, uint8_t *buf, uint16_t *size, uint32_t *iter);
 
@@ -54,5 +56,15 @@ SAT_returnState mass_storage_FORMAT();
 SAT_returnState mass_storage_dirCheck();
 
 void mass_storage_getState(uint8_t *state);
+
+SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size);
+
+uint16_t get_filePos(MS_sid sid, uint16_t rel_pos);
+
+uint16_t get_new_fileId(MS_sid sid);
+
+SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint16_t *iter);
+
+SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid);
 
 #endif

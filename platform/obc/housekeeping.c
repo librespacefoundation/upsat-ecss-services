@@ -34,6 +34,35 @@ struct _sat_ext_status {
 
     uint32_t comms_tx_state;
 
+    uint8_t eps_batterypack_health_status;
+    uint8_t eps_heaters_status;
+
+    uint16_t eps_top_voltage;
+    uint16_t eps_top_current;
+
+    uint8_t eps_top_pwm_duty_cycle;
+
+    uint16_t eps_bottom_voltage;
+    uint16_t eps_bottom_current;
+
+    uint8_t eps_bottom_pwm_duty_cycle;
+
+    uint16_t eps_left_voltage;
+    uint16_t eps_left_current;
+
+    uint8_t eps_left_pwm_duty_cycle;
+
+    uint16_t eps_right_voltage;
+    uint16_t eps_right_current;
+
+    uint8_t eps_right_pwm_duty_cycle;
+
+    uint8_t eps_deployment_status;
+
+    uint8_t eps_safety_battery_mode;
+
+    uint8_t eps_safety_temperature_mode;
+
 };
 
 static struct _sat_ext_status sat_ext_status;
@@ -47,7 +76,7 @@ void hk_INIT() {
 }
 
 void hk_SCH() {
-
+    
     hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
     HAL_sys_delay(1000);
@@ -142,24 +171,59 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
     } else if(app_id == ADCS_APP_ID && sid == EX_HEALTH_REP) {
 
         cnv8_32(&data[1], &sat_ext_status.adcs_sys_time);
-        cnv8_F(&data[1], &sat_ext_status.adcs_gyro[0]);
-        cnv8_F(&data[5], &sat_ext_status.adcs_gyro[0]);
-        cnv8_F(&data[9], &sat_ext_status.adcs_gyro[1]);
-        cnv8_F(&data[13], &sat_ext_status.adcs_gyro[2]);
-        cnv8_F(&data[17], &sat_ext_status.adcs_rm_mag[0]);
-        cnv8_F(&data[21], &sat_ext_status.adcs_rm_mag[1]);
-        cnv8_F(&data[25], &sat_ext_status.adcs_rm_mag[2]);
-        cnv8_F(&data[29], &sat_ext_status.adcs_vsun[0]);
-        cnv8_F(&data[33], &sat_ext_status.adcs_vsun[1]);
-        cnv8_F(&data[37], &sat_ext_status.adcs_vsun[2]);
-        cnv8_F(&data[41], &sat_ext_status.adcs_vsun[3]);
-        cnv8_F(&data[45], &sat_ext_status.adcs_vsun[4]);
-        cnv8_F(&data[49], &sat_ext_status.adcs_long_sun);
-        cnv8_F(&data[53], &sat_ext_status.adcs_lat_sun);
-        cnv8_32(&data[57], &sat_ext_status.adcs_m_RPM);
+        //cnv8_F(&data[1], &sat_ext_status.adcs_gyro[0]);
+        //cnv8_F(&data[5], &sat_ext_status.adcs_gyro[0]);
+        //cnv8_F(&data[9], &sat_ext_status.adcs_gyro[1]);
+        //cnv8_F(&data[13], &sat_ext_status.adcs_gyro[2]);
+        //cnv8_F(&data[17], &sat_ext_status.adcs_rm_mag[0]);
+        //cnv8_F(&data[21], &sat_ext_status.adcs_rm_mag[1]);
+        //cnv8_F(&data[25], &sat_ext_status.adcs_rm_mag[2]);
+        //cnv8_F(&data[29], &sat_ext_status.adcs_vsun[0]);
+        //cnv8_F(&data[33], &sat_ext_status.adcs_vsun[1]);
+        //cnv8_F(&data[37], &sat_ext_status.adcs_vsun[2]);
+        //cnv8_F(&data[41], &sat_ext_status.adcs_vsun[3]);
+        //cnv8_F(&data[45], &sat_ext_status.adcs_vsun[4]);
+        //cnv8_F(&data[49], &sat_ext_status.adcs_long_sun);
+        //cnv8_F(&data[53], &sat_ext_status.adcs_lat_sun);
+        //cnv8_32(&data[57], &sat_ext_status.adcs_m_RPM);
 
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
+        // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
 
+        // /* heater status*/
+        // EPS_switch_control_status heaters_status = EPS_get_control_switch_status(BATTERY_HEATERS);
+        // pkt->data[6] = (uint8_t)heaters_status;
+
+
+        // /*power module top*/
+        // cnv16_8( power_module_top.voltage, &pkt->data[7]);
+        // cnv16_8( power_module_top.current, &pkt->data[9]);
+        // pkt->data[11] = (uint8_t)power_module_top.pwm_duty_cycle;
+
+        // /*power module bottom*/
+        // cnv16_8( power_module_bottom.voltage, &pkt->data[12]);
+        // cnv16_8( power_module_bottom.current, &pkt->data[14]);
+        // pkt->data[16] = (uint8_t)power_module_bottom.pwm_duty_cycle;
+
+        // /*power module left*/
+        // cnv16_8( power_module_left.voltage, &pkt->data[17]);
+        // cnv16_8( power_module_left.current, &pkt->data[19]);
+        // pkt->data[21] = (uint8_t)power_module_left.pwm_duty_cycle;
+
+        // /*power module right*/
+        // cnv16_8( power_module_right.voltage, &pkt->data[22]);
+        // cnv16_8( power_module_right.current, &pkt->data[24]);
+        // pkt->data[26] = (uint8_t)power_module_right.pwm_duty_cycle;
+
+        // /* deployment status*/
+        // EPS_deployment_status deployment_status = EPS_check_deployment_status();
+        // pkt->data[27] = (uint8_t)deployment_status;
+
+        // /* battery voltage safety */
+        // pkt->data[28] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
+
+        // /* battery voltage safety */
+        // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
         cnv8_32(&data[1], &sat_ext_status.comms_sys_time);
         cnv8_32(&data[5], &sat_ext_status.comms_tx_state);
@@ -225,6 +289,43 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 4;
         cnv32_8(sat_ext_status.adcs_sys_time, &pkt->data[size]);
         size += 4;
+
+        // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
+
+        // /* heater status*/
+        // EPS_switch_control_status heaters_status = EPS_get_control_switch_status(BATTERY_HEATERS);
+        // pkt->data[6] = (uint8_t)heaters_status;
+
+
+        // /*power module top*/
+        // cnv16_8( power_module_top.voltage, &pkt->data[7]);
+        // cnv16_8( power_module_top.current, &pkt->data[9]);
+        // pkt->data[11] = (uint8_t)power_module_top.pwm_duty_cycle;
+
+        // /*power module bottom*/
+        // cnv16_8( power_module_bottom.voltage, &pkt->data[12]);
+        // cnv16_8( power_module_bottom.current, &pkt->data[14]);
+        // pkt->data[16] = (uint8_t)power_module_bottom.pwm_duty_cycle;
+
+        // /*power module left*/
+        // cnv16_8( power_module_left.voltage, &pkt->data[17]);
+        // cnv16_8( power_module_left.current, &pkt->data[19]);
+        // pkt->data[21] = (uint8_t)power_module_left.pwm_duty_cycle;
+
+        // /*power module right*/
+        // cnv16_8( power_module_right.voltage, &pkt->data[22]);
+        // cnv16_8( power_module_right.current, &pkt->data[24]);
+        // pkt->data[26] = (uint8_t)power_module_right.pwm_duty_cycle;
+
+        // /* deployment status*/
+        // EPS_deployment_status deployment_status = EPS_check_deployment_status();
+        // pkt->data[27] = (uint8_t)deployment_status;
+
+        // /* battery voltage safety */
+        // pkt->data[28] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
+
+        // /* battery voltage safety */
+        // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
 
         cnvF_8(sat_ext_status.adcs_gyro[0], &pkt->data[size]);
         size += 4;

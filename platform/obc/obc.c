@@ -6,11 +6,12 @@
 #include "housekeeping.h"
 #include "mass_storage_service.h"
 #include "wdg.h"
+#include "su_mnlp.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
-extern SAT_returnState export_pkt(TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
+extern SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
 extern uint32_t * HAL_obc_BKPSRAM_BASE();
 
@@ -41,7 +42,7 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 }, /*TC_LARGE_DATA_SERVICE*/
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /*TC_MASS_STORAGE_SERVICE*/
+    { 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 }, /*TC_MASS_STORAGE_SERVICE*/
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, /*TC_TEST_SERVICE*/
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -57,9 +58,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     SAT_returnState res;
     TC_TM_app_id id;
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
-    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                       { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true)  { verification_app(pkt); free_pkt(pkt); return SATR_ERROR; }
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                       { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
 
     if(pkt->type == TC)         { id = pkt->app_id; } 
     else if(pkt->type == TM)    { id = pkt->dest_id; }
@@ -72,31 +73,29 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         res = hk_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
         res = function_management_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
+        //TODO: ADD C_ASSERT
+        res = time_management_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SCHEDULING_SERVICE) {
+        //TODO: ADD C_ASSERT
+        res = scheduling_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_MASS_STORAGE_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = mass_storage_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TEST_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
         res = test_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SCHEDULING_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = scheduling_app(pkt);
+
     }else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_SU_MNLP_SERVICE) {
         //TODO: ADD C_ASSERT
         res = su_nmlp_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TIME_MANAGEMENT_SERVICE) {
-        //TODO: ADD C_ASSERT
-        res = time_management_app(pkt);
     }
-    else if(id == EPS_APP_ID)      { export_pkt(EPS_APP_ID, pkt, &obc_data.eps_uart); }
-    else if(id == ADCS_APP_ID)     { export_pkt(ADCS_APP_ID, pkt, &obc_data.adcs_uart); }
-    else if(id == COMMS_APP_ID)    { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
-    else if(id == IAC_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
-    else if(id == GND_APP_ID)      { export_pkt(COMMS_APP_ID, pkt, &obc_data.comms_uart); }
-    else if(id == DBG_APP_ID)      { export_pkt(DBG_APP_ID, pkt, &obc_data.dbg_uart); }
+    else if(id == EPS_APP_ID)      { queuePush(pkt, EPS_APP_ID); }
+    else if(id == ADCS_APP_ID)     { queuePush(pkt, ADCS_APP_ID); }
+    else if(id == COMMS_APP_ID)    { queuePush(pkt, COMMS_APP_ID); }
+    else if(id == GND_APP_ID)      { queuePush(pkt, COMMS_APP_ID); }
+    else if(id == DBG_APP_ID)      { queuePush(pkt, DBG_APP_ID); }
 
-    verification_app(pkt);
-    free_pkt(pkt);
     return SATR_OK;
 }
 
@@ -129,65 +128,45 @@ void bkup_sram_INIT() {
     obc_data.log_state = HAL_obc_BKPSRAM_BASE() + 1;
     sys_data.boot_counter = HAL_obc_BKPSRAM_BASE() + 2;
     obc_data.wod_cnt = HAL_obc_BKPSRAM_BASE() + 3;
-    obc_data.file_id_su = HAL_obc_BKPSRAM_BASE() + 4;
-    obc_data.file_id_wod = HAL_obc_BKPSRAM_BASE() + 5;
-    obc_data.file_id_ext = HAL_obc_BKPSRAM_BASE() + 6;
-    obc_data.file_id_ev = HAL_obc_BKPSRAM_BASE() + 7;
-    obc_data.file_id_fotos = HAL_obc_BKPSRAM_BASE() + 8;
 
-    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 9;
+    obc_data.fs_su_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 4;
+    obc_data.fs_wod_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 5;
+    obc_data.fs_ext_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 6;
+    obc_data.fs_ev_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 7;
 
-    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 10 + (EV_MAX_BUFFER);
+    obc_data.fs_su_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 8;
+    obc_data.fs_wod_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 9;
+    obc_data.fs_ext_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 10;
+    obc_data.fs_ev_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 11;
+
+    obc_data.fs_fotos = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 12;
+    
+    MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) HAL_obc_BKPSRAM_BASE()+13;
+    //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
+    MNLP_data.su_nmlp_last_active_script = (uint8_t*) HAL_obc_BKPSRAM_BASE()+14;
+    //*MNLP_data.su_nmlp_last_active_script = 0;
+    MNLP_data.su_next_time_table = (uint8_t*) HAL_obc_BKPSRAM_BASE()+15;
+//    *MNLP_data.su_next_time_table = 0;
+    MNLP_data.su_next_script_seq = (uint8_t*) HAL_obc_BKPSRAM_BASE()+16;
+//    *MNLP_data.su_next_script_seq = 0;
+    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+17; //264; //265;
+    //*MNLP_data.su_nmlp_perm_state_pnt = 0;
+    
+    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 18;
+    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 19 + (EV_MAX_BUFFER);
     
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
-    if(!C_ASSERT(*obc_data.file_id_su < MS_MAX_FILES) == true)    { *obc_data.file_id_su = 0; }
-    if(!C_ASSERT(*obc_data.file_id_wod < MS_MAX_FILES) == true)   { *obc_data.file_id_wod = 0; }
-    if(!C_ASSERT(*obc_data.file_id_ext < MS_MAX_FILES) == true)   { *obc_data.file_id_ext = 0; }
-    if(!C_ASSERT(*obc_data.file_id_ev < MS_MAX_FILES) == true)    { *obc_data.file_id_ev = 0; }
-    if(!C_ASSERT(*obc_data.file_id_fotos < MS_MAX_FILES) == true) { *obc_data.file_id_fotos = 0; }
+    if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_wod_head < MS_MAX_FILES) == true)   { *obc_data.fs_wod_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_ext_head < MS_MAX_FILES) == true)   { *obc_data.fs_ext_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_ev_head < MS_MAX_FILES) == true)    { *obc_data.fs_ev_head = 1; }
+    if(!C_ASSERT(*obc_data.fs_su_tail < MS_MAX_FILES) == true)    { *obc_data.fs_su_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_wod_tail < MS_MAX_FILES) == true)   { *obc_data.fs_wod_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_ext_tail < MS_MAX_FILES) == true)   { *obc_data.fs_ext_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_ev_tail < MS_MAX_FILES) == true)    { *obc_data.fs_ev_tail = 1; }
+    if(!C_ASSERT(*obc_data.fs_fotos < MS_MAX_FILES) == true)      { *obc_data.fs_fotos = 1; }
 
-}
-
-uint32_t get_new_fileId(MS_sid sid) {
-
-    if(!C_ASSERT(sid == SU_LOG || sid == WOD_LOG || sid == EXT_WOD_LOG || sid == EVENT_LOG || sid == FOTOS) == true) { return 0; }
-
-    if(sid == SU_LOG) {
-        (*obc_data.file_id_su)++;
-        if(*obc_data.file_id_su > MAX_FILE_NUM) {
-            *obc_data.file_id_su = 1;
-        }
-        return *obc_data.file_id_su;
-
-    } else if(sid == WOD_LOG) {
-        (*obc_data.file_id_wod)++;
-        if(*obc_data.file_id_wod > MAX_FILE_NUM) {
-            *obc_data.file_id_wod = 1;
-        }
-        return *obc_data.file_id_wod;
-
-    } else if(sid == EXT_WOD_LOG) {
-        (*obc_data.file_id_ext)++;
-        if(*obc_data.file_id_ext > MAX_FILE_NUM) {
-            *obc_data.file_id_ext = 1;
-        }
-        return *obc_data.file_id_ext;
-
-    } else if(sid == EVENT_LOG) {
-        (*obc_data.file_id_ev)++;
-        if(*obc_data.file_id_ev > MAX_FILE_NUM) {
-            *obc_data.file_id_ev = 1;
-        }
-        return *obc_data.file_id_ev;
-
-    } else if(sid == FOTOS) {   //need to change this
-        (*obc_data.file_id_fotos)++;
-        if(*obc_data.file_id_fotos > MAX_FILE_NUM) {
-            *obc_data.file_id_fotos = 1;
-        }
-        return *obc_data.file_id_fotos;
-    }
 }
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {

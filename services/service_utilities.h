@@ -4,9 +4,6 @@
 #include <stdint.h>
 #include "services.h"
 
-struct _pkt_state {
-    uint8_t seq_cnt[LAST_APP_ID];
-};
 
 SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_crc);
 
@@ -29,5 +26,11 @@ void cnv8_16(uint8_t *from, uint16_t *to);
 void cnvF_8(const float from, uint8_t *to);
 
 void cnv8_F(uint8_t *from, float *to);
+
+uint16_t htons(uint16_t x);
+uint16_t ntohs(uint16_t x);
+uint32_t htonl(uint32_t x);
+uint32_t ntohl(uint32_t x);
+
 
 #endif

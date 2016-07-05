@@ -7,9 +7,9 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid,
-		uint8_t *data) {
-	return SATR_ERROR;
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+   
+   return SATR_ERROR;
 }
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {

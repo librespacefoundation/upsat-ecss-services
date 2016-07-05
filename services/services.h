@@ -127,9 +127,12 @@ typedef enum {
     SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
     SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
     
-    SATRF_DIR_ERROR            = 49, 
+    SATRF_DIR_ERROR            = 49,
+
+    SATR_SD_DISABLED           = 50,
+    SATR_QUEUE_FULL            = 51,
     /*LAST*/
-    SATR_LAST                  = 50
+    SATR_LAST                  = 52
 }SAT_returnState;
 
 /*services types*/
@@ -184,13 +187,15 @@ typedef enum {
 
 #define TC_MS_ENABLE                    1
 #define TC_MS_DISABLE                   2
-#define TC_MS_CONTENT                   8
+#define TM_MS_CONTENT                   8
 #define TC_MS_DOWNLINK                  9
 #define TC_MS_DELETE                    11
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
 #define TC_MS_UPLINK                    14
 #define TC_MS_FORMAT                    15 /* custom service*/
+#define TC_MS_LIST                      16 /* custom service*/
+#define TM_MS_CATALOGUE_LIST            17
 
 #define TC_CT_PERFORM_TEST              1
 #define TM_CT_REPORT_TEST               2
@@ -297,15 +302,17 @@ typedef enum {
     SPECIFIC    = 3,
     LAST_PART   = 4,
     NO_MODE     = 5,
-    LAST_MODE   = 6
+    HARD_DELETE = 6,
+    DELETE_ALL  = 7,
+    LAST_MODE   = 8
 }MS_mode;
 
 typedef enum {  
-    SU_POWER_OFF  = 1,
-    SU_RUNNING    = 2,
-    SU_IDLE       = 3,
-    SU_FINISHED   = 4,
-    LAST_SU_STATE = 5
+    SU_POWERED_OFF = 1,
+    SU_POWERED_ON  = 2,
+    SU_IDLE        = 3,
+    SU_FINISHED    = 4,
+    LAST_SU_STATE  = 5
 }SU_state;
 
 typedef enum {  
@@ -320,7 +327,8 @@ typedef enum {
     EV_su_error          = 9,
     EV_su_scr_start      = 10,
     EV_pkt_pool_timeout  = 11,
-    LAST_EV_EVENT        = 12
+    EV_ms_err            = 12,
+    LAST_EV_EVENT        = 13
 }EV_event;
 
 typedef enum {
@@ -382,30 +390,9 @@ typedef struct {
 /*Lookup table that returns if a service with its subtype with TC or TM is supported and valid*/
 extern const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2];
 
-//ToDo
-//  add reset counter, reset source finder.
-//  add it uart
-//  add assertions for pkt size related to the service type, subtype
-//  check hldlc, its buggy.
-//  define in unpack the MIN_PKT_SIZE and MAX_PKT_SIZE
-//  need to check pkt len for not overruning to checksum
-//  sort definitions relating to file system and packet sizes etc.
-//  add verification steps in each service.
-//  assert for 0 in modes, ids when applicable.
-//  verify HK_struct_id modes
-//  check that cnv functions are used correctly
-//  function management set time.
-//  finalize TC_MAX_PKT_SIZE
-//  add event log book function
-//  test assertion definition for stm
-//  finish assertions
-//  add assertions in each service for its subtype
-//  architecture overview
-//  add definitions for packet len calculations
-
 //stub
 uint32_t time_now();
 
-uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e);
+uint8_t tst_debugging(uint8_t *f, uint16_t fi, uint32_t l, char *e);
 
 #endif

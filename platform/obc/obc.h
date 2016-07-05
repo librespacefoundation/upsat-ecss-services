@@ -20,22 +20,29 @@ typedef enum {
 struct _obc_data
 {
     uint16_t obc_seq_cnt;
-    uint32_t *file_id_su;
-    uint32_t *file_id_wod;
-    uint32_t *file_id_ext;
-    uint32_t *file_id_ev;
-    uint32_t *file_id_fotos;
+    uint16_t *fs_su_head;
+    uint16_t *fs_wod_head;
+    uint16_t *fs_ext_head;
+    uint16_t *fs_ev_head;
+    uint16_t *fs_su_tail;
+    uint16_t *fs_wod_tail;
+    uint16_t *fs_ext_tail;
+    uint16_t *fs_ev_tail;
+    uint16_t *fs_fotos;
+    
     uint8_t *log;
     uint32_t *log_cnt;
     uint32_t *log_state;
     uint8_t *wod_log;
     uint32_t *wod_cnt;
-    
+
     uint8_t iac_in[IAC_PKT_SIZE];
     uint8_t iac_out[IAC_PKT_SIZE];
     uint8_t iac_flag;
     uint32_t iac_timeout;
 
+    struct adcs_data attitude_data;
+    
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;
@@ -49,15 +56,13 @@ struct _sys_data {
 
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
-
+extern struct _MNLP_data MNLP_data;
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState obc_INIT();
 
 
 void bkup_sram_INIT();
-
-uint32_t get_new_fileId(MS_sid sid);
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
