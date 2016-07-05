@@ -9,6 +9,8 @@
 
 #include "upsat.h"
 
+extern uint8_t dbg_msg;
+
 struct _adcs_data {
 	uint16_t adcs_seq_cnt;
 	uint8_t rsrc;

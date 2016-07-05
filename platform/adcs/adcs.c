@@ -3,7 +3,7 @@
 #include "adcs_switch.h"
 #include <stdlib.h>
 
-extern uint8_t dbg_msg;
+uint8_t dbg_msg;
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
