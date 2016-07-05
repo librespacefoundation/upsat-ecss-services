@@ -35,6 +35,8 @@
 #define MS_MIN_SU_FILE          1   //min is the header.
 #define MAX_F_RETRIES           3
 
+#define LOGS_LIST_SIZE          10
+
 #undef __FILE_ID__
 #define __FILE_ID__ 8
 
@@ -369,18 +371,24 @@ SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid) {
 
     TC_TM_app_id app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
 
-    mass_storage_crtPkt(&temp_pkt, app_id, PKT_NORMAL);
+    mass_storage_crtPkt(&temp_pkt, app_id, MAX_PKT_EXT_DATA);
 
     uint16_t iter = 0;
-        
+
     cnv8_16(&pkt->data[1], &iter);
 
-    res = mass_storage_list(sid, temp_pkt->data, &size, &iter); 
+    temp_pkt->data[0] = sid;
 
+    /*in case the store is empty it puts the file as zero to indicate that*/
+    temp_pkt->data[1] = 0;
+    temp_pkt->data[2] = 0;
+
+    res = mass_storage_list(sid, &temp_pkt->data[1], &size, &iter);
 
     if(!(res == SATR_OK || res == SATR_EOT || res == SATR_MS_MAX_FILES)) { free_pkt(temp_pkt); return res; }
 
-    temp_pkt->len = size;
+    if(size == 0) { size = 2; }
+    size++;
 
     mass_storage_updatePkt(temp_pkt, size, TM_MS_CATALOGUE_LIST);
     route_pkt(temp_pkt);
@@ -393,7 +401,7 @@ SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint
     DIR dir;
     FILINFO fno;
     FRESULT res = 0;
-    uint32_t ret;
+    uint16_t ret;
     uint8_t *fn;
     uint8_t start_flag = 0;
     uint8_t path[MS_MAX_PATH];
@@ -414,8 +422,11 @@ SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint
     if(*iter == 0) { start_flag = 1; }
     else { start_flag = 0; }
 
+    /*first filename should be the file for the next iteration, 0 if its not reached max pkt len*/
+    *size += sizeof(uint16_t);
+
     if((res = f_opendir(&dir, (char*)path)) != FR_OK) { MS_ERR(res); }
-    for (i = 0; i < MS_MAX_FILES; i++) {
+    for (i = 0; i < MS_MAX_FILES*2; i++) {
 
         if((res = f_readdir(&dir, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); }  /* Break on error */
         else if(fno.fname[0] == 0)    { f_closedir(&dir); return SATR_EOT; }  /* Break on end of dir */
@@ -427,11 +438,25 @@ SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint
         if(start_flag == 0 && *iter == ret) { start_flag = 1; }
         if(start_flag == 1) {
 
-            sprintf(temp_path,"%s/%s", path, (char*)fn);
-            if((res = f_stat(temp_path, &fno)) != FR_OK) { f_closedir(&dir); MS_ERR(res); } 
+            if((*size + 3 + LOGS_LIST_SIZE) >= MAX_PKT_EXT_DATA) {
 
-            cnv32_8(ret, &buf[(*size)]);
-            *size += sizeof(uint32_t);
+                /*Here we put the next filename for the iteration*/
+                cnv16_8(ret, buf);
+                *size += sizeof(uint16_t);
+
+                f_closedir(&dir);
+                return SATR_OK;
+            }
+
+            sprintf(temp_path,"%s/%s", path, (char*)fn);
+            if((res = f_stat(temp_path, &fno)) != FR_OK) {
+                fno.fsize = 0xFFFFFFFF;
+                fno.fdate = 0xFFFF;
+                fno.ftime = 0xFFFF;
+            }
+
+            cnv16_8(ret, &buf[(*size)]);
+            *size += sizeof(uint16_t);
 
             cnv32_8(fno.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);
@@ -442,7 +467,6 @@ SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint
             cnv16_8(fno.ftime, &buf[(*size)]);
             *size += sizeof(uint16_t);
  
-            if(*size >= MAX_PKT_DATA + (sizeof(uint32_t) * 4)) { f_closedir(&dir); return SATR_OK; }
         } 
 
     }
@@ -710,8 +734,12 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
     mass_storage_crtPkt(&temp_pkt, app_id, MAX_PKT_EXT_DATA);
 
+    temp_pkt->data[0] = sid;
+    cnv16_8(file, &temp_pkt->data[1]);
+    size = 3;
+
     for(uint8_t i = 0; i < num; i++) {
-        res = mass_storage_downlinkFile(sid, file, temp_pkt->data, &size);
+        res = mass_storage_downlinkFile(sid, file, &temp_pkt->data[size], &size);
 
         if(res != SATR_OK)                              { free_pkt(temp_pkt); return res; }
         if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
