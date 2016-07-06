@@ -33,7 +33,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[2], &pkt->data[29]);
 		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[3], &pkt->data[31]);
 		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[4], &pkt->data[33]);
-		cnv16_8(adcs_actuator.spin_torquer.m_RPM, &pkt->data[35]);
+		cnv16_8((int16_t)adcs_actuator.spin_torquer.m_RPM, &pkt->data[35]);
 		pkt->len = 37;
 	} else if (sid == SU_SCI_HDR_REP) {
 		cnv16_8((int16_t)(40.0 / 0.01), &pkt->data[1]); // Roll in deg
