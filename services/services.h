@@ -53,13 +53,13 @@
 #define TC_MAX_PKT_SIZE     210
 #define TC_MIN_PKT_SIZE     11 //12  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + ECSS_CRC_SIZE*/
 
-#define MAX_PKT_EXT_DATA    2048
-#define TC_MAX_PKT_EXT_SIZE 2060
+#define MAX_PKT_EXT_DATA    2051
+#define TC_MAX_PKT_EXT_SIZE 2063
 
 #if (SYSTEM_APP_ID == _EPS_APP_ID_)
 #define MAX_PKT_SIZE  210
 #else
-#define MAX_PKT_SIZE  2060
+#define MAX_PKT_SIZE  2063
 #endif
 
 typedef enum {  

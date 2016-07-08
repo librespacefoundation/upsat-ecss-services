@@ -160,10 +160,13 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     } else if(pkt->ser_subtype == TC_MS_UPLINK) {
 
-        uint16_t size = pkt->len -1;
-        
+        uint16_t size = pkt->len -3;
+        uint16_t file = 0;
+
+        cnv8_16(&pkt->data[1], &file);
+
         for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-            if((res = mass_storage_storeFile(sid, 0,&pkt->data[1], &size)) != SATRF_LOCKED) { break; }
+            if((res = mass_storage_storeFile(sid, 0,&pkt->data[3], &size)) != SATRF_LOCKED) { break; }
             HAL_sys_delay(1);
         }
 
