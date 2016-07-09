@@ -12,7 +12,7 @@
 //  need to make the change from the two different typedefs
 
 extern struct _comms_data comms_data;
-extern UART_HandleTypeDef huart5;
+
 
 SAT_returnState HAL_takeMutex(TC_TM_app_id app_id);
 
