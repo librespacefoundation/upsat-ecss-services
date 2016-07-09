@@ -4,6 +4,8 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 13
 
+extern UART_HandleTypeDef huart5;
+
 SAT_returnState HAL_takeMutex(TC_TM_app_id app_id) {
   return SATR_OK;
 }
@@ -30,15 +32,19 @@ SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
     HAL_UART_StateTypeDef res;
     UART_HandleTypeDef *huart;
 
-    if(app_id == EPS_APP_ID) { huart = &huart1; }
-    else if(app_id == DBG_APP_ID) { huart = &huart3; }
-    else if(app_id == COMMS_APP_ID) { huart = &huart4; }
-    else if(app_id == ADCS_APP_ID) { huart = &huart6; }
-
+    if (app_id == OBC_APP_ID) {
+      huart = &huart5;
+    }
+    else if (app_id == DBG_APP_ID) {
+      huart = &huart5;
+    }
+    else {
+      return SATR_ERROR;
+    }
 
     res = HAL_UART_GetState(huart);
-    if(res == HAL_UART_STATE_BUSY && \
-       res == HAL_UART_STATE_BUSY_TX && \
+    if(res == HAL_UART_STATE_BUSY &&
+       res == HAL_UART_STATE_BUSY_TX &&
        res == HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
 
     return SATR_OK;
@@ -49,8 +55,15 @@ void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size) {
     HAL_StatusTypeDef res;
     UART_HandleTypeDef *huart;
 
-    if(app_id == OBC_APP_ID) { huart = &huart5; }
-    else if(app_id == DBG_APP_ID) { huart = &huart5; }
+    if (app_id == OBC_APP_ID) {
+      huart = &huart5;
+    }
+    else if (app_id == DBG_APP_ID) {
+      huart = &huart5;
+    }
+    else {
+      return;
+    }
 
     //HAL_UART_Transmit(&huart2, buf, size, 10);
     for(;;) { // should use hard limits
@@ -64,7 +77,15 @@ SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data) {
 
     UART_HandleTypeDef *huart;
 
-    if(app_id == OBC_APP_ID) { huart = &huart5; }
+    if (app_id == OBC_APP_ID) {
+      huart = &huart5;
+    }
+    else if (app_id == DBG_APP_ID) {
+      huart = &huart5;
+    }
+    else {
+      return SATR_ERROR;
+    }
 
     if(huart->RxState == HAL_UART_STATE_READY) {
         data->uart_size = huart->RxXferSize - huart->RxXferCount;

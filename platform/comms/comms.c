@@ -8,15 +8,10 @@
 #include <string.h>
 #include <stdio.h>
 #include "pkt_pool.h"
+#include "queue.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
-
-extern SAT_returnState
-export_pkt (TC_TM_app_id app_id, tc_tm_pkt *pkt, struct uart_data *data);
-
-extern SAT_returnState
-free_pkt (tc_tm_pkt *pkt);
 
 extern SAT_returnState
 verification_app (tc_tm_pkt *pkt);
@@ -79,7 +74,13 @@ route_pkt (tc_tm_pkt *pkt)
     return SATR_ERROR;
   }
 
-  if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
+  if( id == SYSTEM_APP_ID &&
+               pkt->ser_type == TC_HOUSEKEEPING_SERVICE &&
+               pkt->ser_subtype == TM_HK_PARAMETERS_REPORT &&
+               pkt->data[0] == WOD_REP) {
+
+  }
+  else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
     res = hk_app (pkt);
   }
@@ -89,8 +90,8 @@ route_pkt (tc_tm_pkt *pkt)
   }
   else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_LARGE_DATA_SERVICE) {
     res = large_data_app (pkt);
-    if(res == SATR_OK){
-      free_pkt(pkt);
+    if (res == SATR_OK) {
+      free_pkt (pkt);
       return SATR_OK;
     }
   }
@@ -99,45 +100,29 @@ route_pkt (tc_tm_pkt *pkt)
     res = test_app (pkt);
   }
   else if (id == EPS_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &comms_data.obc_uart);
+    queuePush (pkt, OBC_APP_ID);
   }
   else if (id == ADCS_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &comms_data.obc_uart);
+    queuePush (pkt, OBC_APP_ID);
   }
   else if (id == OBC_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &comms_data.obc_uart);
+    queuePush (pkt, OBC_APP_ID);
   }
   else if (id == IAC_APP_ID) {
-    export_pkt (OBC_APP_ID, pkt, &comms_data.obc_uart);
+    queuePush (pkt, OBC_APP_ID);
   }
   else if (id == GND_APP_ID) {
-
-    if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
-        //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
-        res = hk_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE) {
-        res = function_management_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_LARGE_DATA_SERVICE) {
-        //res = large_data_app(pkt);
-    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_TEST_SERVICE) {
-        //C_ASSERT(pkt->ser_subtype == 1 || pkt->ser_subtype == 2 || pkt->ser_subtype == 9 || pkt->ser_subtype == 11 || pkt->ser_subtype == 12 || pkt->ser_subtype == 13) { free_pkt(pkt); return SATR_ERROR; }
-        res = test_app(pkt);
-    } else if( id == SYSTEM_APP_ID && \
-               pkt->ser_type == TC_HOUSEKEEPING_SERVICE && \
-               pkt->ser_subtype == TM_HK_PARAMETERS_REPORT && \
-               pkt->data[0] == WOD_REP) {
-
+    if (pkt->len > MAX_PKT_DATA) {
+      large_data_downlinkTx_api (pkt);
     }
-    else if(id == EPS_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
-    else if(id == ADCS_APP_ID)     { queuePush(pkt, OBC_APP_ID); }
-    else if(id == OBC_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
-    else if(id == GND_APP_ID)      {
-      if(pkt->len > MAX_PKT_DATA)  { large_data_downlinkTx_api(pkt); }
-      else { tx_ecss(pkt); }
+    else {
+      tx_ecss (pkt);
     }
-    else if(id == DBG_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
-
-    return SATR_OK;
+  }
+  else if (id == DBG_APP_ID) {
+    queuePush (pkt, OBC_APP_ID);
+  }
+  return SATR_OK;
 }
 
 /**
@@ -198,10 +183,4 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
 }
 SAT_returnState check_timeouts() {
     return SATR_OK;
-}
-
-void
-HAL_comms_DBG (uint8_t var,uint8_t val)
-{
-  dbg_msg = val;
 }

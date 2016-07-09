@@ -17,8 +17,7 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
         //HAL_adcs_SD_ON();
     }
     else if(did == SYS_DBG && fid == SET_VAL)    {
-
-        HAL_comms_DBG(state[0], state[1]);
+      //FIXME
     }
 
     return SATR_OK;
