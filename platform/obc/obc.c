@@ -255,10 +255,6 @@ SAT_returnState wod_log() {
     (*obc_data.wod_cnt)++;
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.mode;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
     return SATR_OK;
 }
 

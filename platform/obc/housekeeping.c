@@ -88,7 +88,7 @@ void hk_SCH() {
     HAL_sys_delay(14000);
 
     wdg.hk_valid = true;
-    HAL_sys_delay(15000);
+    HAL_sys_delay(14000);
 
     wod_log();
     clear_wod();
@@ -96,28 +96,28 @@ void hk_SCH() {
     route_pkt(&hk_pkt);
     HAL_sys_delay(1000);
 
-    hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
-    route_pkt(&hk_pkt);
-    HAL_sys_delay(1000);
+    //hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
+    //route_pkt(&hk_pkt);
+    //HAL_sys_delay(1000);
 
-    hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
-    route_pkt(&hk_pkt);
-    HAL_sys_delay(1000);
+    //hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
+    //route_pkt(&hk_pkt);
+    //HAL_sys_delay(1000);
 
-    hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
-    route_pkt(&hk_pkt);
-    HAL_sys_delay(1000);
+    // hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
+    // route_pkt(&hk_pkt);
+    // HAL_sys_delay(1000);
 
-    wdg.hk_valid = true;
-    HAL_sys_delay(12500);
+    // wdg.hk_valid = true;
+    // HAL_sys_delay(12500);
 
-    wdg.hk_valid = true;
-    HAL_sys_delay(12500);  
+    // wdg.hk_valid = true;
+    // HAL_sys_delay(12500);  
 
-    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
-    route_pkt(&hk_pkt);
-    clear_ext_wod();
-    HAL_sys_delay(1000);
+    // hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
+    // route_pkt(&hk_pkt);
+    // clear_ext_wod();
+    // HAL_sys_delay(1000);
 }
 
 void clear_wod() {
@@ -270,9 +270,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8(time_temp, &pkt->data[5]);
         wod_log_load(&pkt->data[9]);
 
-        uint16_t size = 4+(32*8);
+        uint16_t size = 4+(32*7);
         mass_storage_storeFile(WOD_LOG, 0, &pkt->data[1], &size);
-        pkt->len = 1+4+(32*8);
+        pkt->len = 1+4+(32*7);
     } else if(sid == EXT_WOD_REP) {
 
         uint16_t size = 1;
