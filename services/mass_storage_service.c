@@ -913,6 +913,9 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
                 fno_tail.ftime = 0;
             }
 
+            cnv16_8(*tail, &buf[(*size)]);
+            *size += sizeof(uint16_t);
+
             cnv32_8(fno_tail.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);
 
@@ -922,6 +925,8 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
             cnv16_8(fno_tail.ftime, &buf[(*size)]);
             *size += sizeof(uint16_t);
 
+            cnv16_8(*head, &buf[(*size)]);
+            *size += sizeof(uint16_t);
 
             cnv32_8(fno_head.fsize, &buf[(*size)]);
             *size += sizeof(uint32_t);
