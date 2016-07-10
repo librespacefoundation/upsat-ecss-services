@@ -1,14 +1,18 @@
 #include "flash.h"
 #include "stm32f4xx_hal.h"
 
-#define SECTOR_3_ADD_START 
-#define SECTOR_3_ADD_FIN   0x0800FFFF
 #define SECTOR_3_SIZE	   0x1000
 
 #define TRANSMIT_VAR_ADD   0x0800C000
 
-#pragma location = 0x0800C000 
-const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0xa94249da, 0x0A };
+#ifdef __GNUC__
+const uint32_t __attribute__((section (".comms_storage_section"))) occupy_sector[SECTOR_3_SIZE] __attribute__ ((aligned (4)))
+    =
+      { 0x16264e84, 0x0A };
+#else
+#pragma location = 0x0800C000
+const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0x16264e84, 0x0A };
+#endif
 
 uint32_t flash_INIT() {
     return occupy_sector[0];
