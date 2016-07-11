@@ -58,7 +58,7 @@ SAT_returnState import_spi() {
                                                                             obc_data.iac_in[13], \
                                                                             obc_data.iac_in[14], \
                                                                             obc_data.iac_in[15] );
-      event_dbg_api(uart_temp, spi_data_buf, &size);
+      //event_dbg_api(uart_temp, spi_data_buf, &size);
       HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
   } else if( hspi3.State == HAL_SPI_STATE_READY) {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);

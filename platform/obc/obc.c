@@ -51,6 +51,7 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 
 struct _obc_data obc_data;
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
+struct _task_times task_times;
 static struct _sys_data sys_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {

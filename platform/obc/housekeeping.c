@@ -79,10 +79,12 @@ void hk_SCH() {
     
     hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
+    wake_uart_task();
     HAL_sys_delay(1000);
 
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, HEALTH_REP);
     route_pkt(&hk_pkt);
+    wake_uart_task();
 
     wdg.hk_valid = true;
     HAL_sys_delay(14000);
@@ -94,6 +96,7 @@ void hk_SCH() {
     clear_wod();
     hk_crt_pkt_TM(&hk_pkt, COMMS_APP_ID, WOD_REP);
     route_pkt(&hk_pkt);
+    wake_uart_task();
     HAL_sys_delay(1000);
 
     //hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
@@ -244,15 +247,23 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         get_time_UTC(&temp_time);
 
-        pkt->data[1] = temp_time.day;
-        pkt->data[2] = temp_time.month;
-        pkt->data[3] = temp_time.year;
+        cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
+
+        pkt->data[5] = temp_time.day;
+        pkt->data[6] = temp_time.month;
+        pkt->data[7] = temp_time.year;
         
-        pkt->data[4] = temp_time.hour;
-        pkt->data[5] = temp_time.min;
-        pkt->data[6] = temp_time.sec;
-        
-        pkt->len = 7;
+        pkt->data[8] = temp_time.hour;
+        pkt->data[9] = temp_time.min;
+        pkt->data[10] = temp_time.sec;
+
+        cnv32_8(task_times.uart_time, &pkt->data[11]);
+        cnv32_8(task_times.idle_time, &pkt->data[15]);
+        cnv32_8(task_times.hk_time, &pkt->data[19]);
+        cnv32_8(task_times.su_time, &pkt->data[23]);
+        cnv32_8(task_times.sch_time, &pkt->data[27]);
+
+        pkt->len = 28;
     } else if(sid == WOD_REP) {
 
         uint32_t time_temp;

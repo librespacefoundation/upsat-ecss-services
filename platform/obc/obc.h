@@ -54,6 +54,15 @@ struct _sys_data {
     uint32_t *boot_counter;
 };
 
+struct _task_times {
+  uint32_t uart_time;
+  uint32_t idle_time;
+  uint32_t hk_time;
+  uint32_t su_time;
+  uint32_t sch_time;
+};
+
+extern struct _task_times task_times;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
 extern struct _MNLP_data MNLP_data;
