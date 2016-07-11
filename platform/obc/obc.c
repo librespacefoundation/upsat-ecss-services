@@ -68,6 +68,7 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = event_app(pkt);
+        pkt->app_id = DBG_APP_ID; //Temp, for testing we forward the events
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = hk_app(pkt);
@@ -180,8 +181,7 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
     cnv.cnv32 = tmp_time;
 
     for(uint16_t i = 0; i < 4; i++) {
-        obc_data.log[*obc_data.log_cnt] = cnv.cnv8[i];
-        if(++(*obc_data.log_cnt) >= EV_MAX_BUFFER) { *obc_data.log_cnt = 0; }
+        buf[i + 6] = cnv.cnv8[i];
     }
 
     for(uint16_t i = 0; i < size; i++) {
