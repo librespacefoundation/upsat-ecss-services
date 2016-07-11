@@ -78,7 +78,7 @@ route_pkt (tc_tm_pkt *pkt)
                pkt->ser_type == TC_HOUSEKEEPING_SERVICE &&
                pkt->ser_subtype == TM_HK_PARAMETERS_REPORT &&
                pkt->data[0] == WOD_REP) {
-
+    tx_ecss(pkt);
   }
   else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
