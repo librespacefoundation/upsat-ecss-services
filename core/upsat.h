@@ -7,7 +7,7 @@
 #define EV_MAX_BUFFER  1024
 #define EV_BUFFER_PART 205
 
-#define WOD_MAX_BUFFER 256
+#define WOD_MAX_BUFFER 224
 
 #define IAC_PKT_SIZE 205 /*1 cmd, 4 fname, 210 data*/
 
