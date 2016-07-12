@@ -102,7 +102,7 @@ SAT_returnState time_management_report_in_qb50(tc_tm_pkt **pkt, TC_TM_app_id des
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
     get_time_QB50(&qb_temp_secs);
     
-    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_UTC, dest_id);
+    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_QB50, dest_id);
     
     cnv32_8(qb_temp_secs, (*pkt)->data);
     (*pkt)->len = 4;
