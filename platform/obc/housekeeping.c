@@ -99,28 +99,34 @@ void hk_SCH() {
     wake_uart_task();
     HAL_sys_delay(1000);
 
-    //hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
-    //route_pkt(&hk_pkt);
-    //HAL_sys_delay(1000);
 
-    //hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
-    //route_pkt(&hk_pkt);
-    //HAL_sys_delay(1000);
+    hk_crt_pkt_TC(&hk_pkt, EPS_APP_ID, EX_HEALTH_REP);
+    route_pkt(&hk_pkt);
+    wake_uart_task();
+    HAL_sys_delay(1000);
 
-    // hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
-    // route_pkt(&hk_pkt);
-    // HAL_sys_delay(1000);
+    hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
+    route_pkt(&hk_pkt);
+    wake_uart_task();
+    HAL_sys_delay(1000);
+
+    hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
+    route_pkt(&hk_pkt);
+    wake_uart_task();
+    HAL_sys_delay(1000);
 
     // wdg.hk_valid = true;
-    // HAL_sys_delay(12500);
+    //HAL_sys_delay(12500);
 
     // wdg.hk_valid = true;
-    // HAL_sys_delay(12500);  
+    HAL_sys_delay(26000);  
 
-    // hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
-    // route_pkt(&hk_pkt);
+    //hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
+    route_pkt(&hk_pkt);
+    wake_uart_task();
     // clear_ext_wod();
-    // HAL_sys_delay(1000);
+    HAL_sys_delay(1000);
 }
 
 void clear_wod() {
@@ -191,6 +197,8 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         //cnv8_32(&data[57], &sat_ext_status.adcs_m_RPM);
 
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
+
+        cnv8_32(&data[1], &sat_ext_status.eps_sys_time);
         // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
 
         // /* heater status*/
@@ -229,7 +237,7 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
         cnv8_32(&data[1], &sat_ext_status.comms_sys_time);
-        cnv8_32(&data[5], &sat_ext_status.comms_tx_state);
+        //cnv8_32(&data[5], &sat_ext_status.comms_tx_state);
     } else {
         return SATR_ERROR; // this should change to inv pkt
     }
@@ -301,6 +309,17 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8(sat_ext_status.adcs_sys_time, &pkt->data[size]);
         size += 4;
 
+        cnv32_8(task_times.uart_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(task_times.idle_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(task_times.hk_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(task_times.su_time, &pkt->data[size]);
+        size += 4;
+        cnv32_8(task_times.sch_time, &pkt->data[size]);
+        size += 4;
+
         // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
 
         // /* heater status*/
@@ -338,39 +357,39 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         // /* battery voltage safety */
         // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
 
-        cnvF_8(sat_ext_status.adcs_gyro[0], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_gyro[1], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_gyro[2], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_rm_mag[0], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_rm_mag[1], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_rm_mag[2], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_vsun[0], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_vsun[1], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_vsun[2], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_vsun[3], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_vsun[4], &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_long_sun, &pkt->data[size]);
-        size += 4;
-        cnvF_8(sat_ext_status.adcs_lat_sun, &pkt->data[size]);
-        size += 4;
-        cnv32_8(sat_ext_status.adcs_m_RPM, &pkt->data[size]);
-        size += 4;
+        // cnvF_8(sat_ext_status.adcs_gyro[0], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_gyro[1], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_gyro[2], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_rm_mag[0], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_rm_mag[1], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_rm_mag[2], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_vsun[0], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_vsun[1], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_vsun[2], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_vsun[3], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_vsun[4], &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_long_sun, &pkt->data[size]);
+        // size += 4;
+        // cnvF_8(sat_ext_status.adcs_lat_sun, &pkt->data[size]);
+        // size += 4;
+        // cnv32_8(sat_ext_status.adcs_m_RPM, &pkt->data[size]);
+        // size += 4;
 
-        cnv32_8(sat_ext_status.comms_tx_state, &pkt->data[size]);
-        size += 4;
+        // cnv32_8(sat_ext_status.comms_tx_state, &pkt->data[size]);
+        // size += 4;
         
-        mass_storage_storeFile(EXT_WOD_LOG, 0, &pkt->data[1], &size);
+        //mass_storage_storeFile(EXT_WOD_LOG, 0, &pkt->data[1], &size);
         pkt->len = size;
     }
 
