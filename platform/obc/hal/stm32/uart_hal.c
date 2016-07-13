@@ -123,16 +123,19 @@ SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data) {
   */
 void HAL_OBC_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
-  uint32_t tmp1 = 0U, tmp2 = 0U;
 
-  tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
-  tmp2 = __HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE);
-  /* UART in mode Receiver ---------------------------------------------------*/
-  if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+   uint32_t isrflags   = READ_REG(huart->Instance->SR);
+   uint32_t cr1its     = READ_REG(huart->Instance->CR1);
+
+  /* UART in mode Receiver -------------------------------------------------*/
+  if(((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+  {
     UART_OBC_Receive_IT(huart);
+    return;
   }
+
 }
+
 uint16_t err;
 /**
   * @brief  Receives an amount of data in non blocking mode 
@@ -162,15 +165,13 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
       
       uart_timeout_stop(huart);
 
-      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
-
-      /* Disable the UART Parity Error Interrupt */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+      /* Disable the UART Parity Error Interrupt and RXNE interrupt*/
+      CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
 
       /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+      CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
-	  /* Rx process is completed, restore huart->RxState to Ready */
+      /* Rx process is completed, restore huart->RxState to Ready */
       huart->RxState = HAL_UART_STATE_READY;
 
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -226,18 +227,17 @@ void uart_timeout_check(UART_HandleTypeDef *huart){
 
 void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
-  uint32_t tmp1 = 0U, tmp2 = 0U;
+   uint32_t isrflags   = READ_REG(huart->Instance->SR);
+   uint32_t cr1its     = READ_REG(huart->Instance->CR1);
 
-  tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
-  tmp2 = __HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE);
-  /* UART in mode Receiver ---------------------------------------------------*/
-  if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+  /* UART in mode Receiver -------------------------------------------------*/
+  if(((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+  {
     UART_OBC_SU_Receive_IT(huart);
+    return;
   }
-}
 
-uint16_t err;
+}
 
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
@@ -250,15 +250,13 @@ HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
     {
       uart_timeout_stop(huart);
 
-      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
-
-      /* Disable the UART Parity Error Interrupt */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+      /* Disable the UART Parity Error Interrupt and RXNE interrupt*/
+      CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
 
       /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+      CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
-	  /* Rx process is completed, restore huart->RxState to Ready */
+      /* Rx process is completed, restore huart->RxState to Ready */
       huart->RxState = HAL_UART_STATE_READY;
      
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
