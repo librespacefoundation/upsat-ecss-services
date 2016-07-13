@@ -8,6 +8,7 @@
 #include "fatfs.h"
 #include "service_utilities.h"
 #include "obc.h"
+#include "sysview.h"
 
 #define MS_SD_PATH "0:"
 
@@ -103,14 +104,18 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     } else if(pkt->ser_subtype == TC_MS_FORMAT) {
 
+        trace_MS_FORM_START();
         res = mass_storage_FORMAT();
         if(res == SATR_OK) { 
 
             if(mass_storage_dirCheck() != SATR_OK) { res = SATRF_DIR_ERROR; }
 
         }
+        trace_MS_FORM_STOP();
 
     } else if(pkt->ser_subtype == TC_MS_DELETE) {
+
+        trace_MS_DEL_START();
 
         uint16_t to;
         MS_mode mode;
@@ -136,16 +141,23 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
             res = mass_storage_delete_api(sid, to, mode);
 
         }
+
+        trace_MS_DEL_STOP();
+
     } else if(pkt->ser_subtype == TC_MS_REPORT) {
 
+        trace_MS_REP_START();
         res = mass_storage_report_api(pkt);
+        trace_MS_REP_STOP();
 
     } else if(pkt->ser_subtype == TC_MS_LIST) {
 
+        trace_MS_LIST_START();
         for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
             if((res = mass_storage_list_api(pkt, sid)) != SATRF_LOCKED) { break; }
             HAL_sys_delay(1);
         }
+        trace_MS_LIST_STOP();
 
     } else if(pkt->ser_subtype == TC_MS_DOWNLINK) {
 
@@ -282,6 +294,8 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
 
+    trace_MS_DOWN_START();
+
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
     if(!C_ASSERT(sid < LAST_SID) == true)               { return SATR_ERROR; }
@@ -310,6 +324,8 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     res = f_read(&fp, buf, *size, (void *)&byteswritten);
     f_close(&fp);
 
+    trace_MS_DOWN_STOP();
+
     if(res != FR_OK) { MS_ERR(res); } 
     else if(byteswritten == 0) { MS_ERR(res); } 
     *size = byteswritten;
@@ -325,6 +341,8 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
 
     uint16_t byteswritten;
     uint8_t path[MS_MAX_PATH];
+
+    trace_MS_STORE_START();
 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
@@ -359,7 +377,9 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(byteswritten == 0) { return SATR_ERROR; } 
 
     if(sid <= SU_SCRIPT_7) { handle_script_upload(sid); }
-    
+
+    trace_MS_STORE_STOP();
+
     return SATR_OK;
 }
 
@@ -577,7 +597,11 @@ SAT_returnState mass_storage_FORMAT() {
 
     for(uint8_t i = 0; i < 5; i++ ) {
 
+        size_t fr = xPortGetFreeHeapSize();
+
         res = f_mount(0, "", 0);
+
+        fr = xPortGetFreeHeapSize();
 
         HAL_Delay(300);
 
@@ -591,6 +615,8 @@ SAT_returnState mass_storage_FORMAT() {
 
         /* Register work area (do not care about error) */
         res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
+
+        fr = xPortGetFreeHeapSize();
 
         HAL_Delay(100);
 
