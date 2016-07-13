@@ -72,6 +72,22 @@ void sysview_init();
 #define traceGET_PKT(ID)   ;
 #define traceFREE_PKT(ID)  ;
 
+#define trace_MS_DOWN_START()  ;
+#define trace_MS_DOWN_STOP()   ;
+#define trace_MS_STORE_START() ;
+#define trace_MS_STORE_STOP()  ;
+#define trace_MS_REP_START()   ;
+#define trace_MS_REP_STOP()    ;
+#define trace_MS_LIST_START()  ;
+#define trace_MS_LIST_STOP()   ;
+#define trace_MS_DEL_START()   ;
+#define trace_MS_DEL_STOP()    ;
+#define trace_MS_FORM_START()  ;
+#define trace_MS_FORM_STOP()   ;
+
+#define traceIMPORT(ID) ;
+#define traceEXPORT(ID) ;
+
 #endif
 
 #endif
