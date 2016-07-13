@@ -128,6 +128,10 @@ void bkup_sram_INIT() {
 
     uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
 
+    //for(uint32_t i = 0; i < 4096; i++) {
+    //    base_pointer[i] = 0;
+    //}
+
     obc_data.log_cnt = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
 
