@@ -177,18 +177,15 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
         cnv8_16(&pkt->data[1], &file);
 
-        for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-            if((res = mass_storage_storeFile(sid, 0,&pkt->data[3], &size)) != SATRF_LOCKED) { break; }
-            HAL_sys_delay(1);
-        }
+        res = mass_storage_storeFile(sid, 0,&pkt->data[3], &size);
 
-    } else { return SATR_ERROR; }
+    } else { 
+        res = SATR_ERROR;
+    }
 
     pkt->verification_state = res;
 
-    if(res != SATR_OK) { return SATR_ERROR; }
-
-    return SATR_OK; 
+    return res; 
 }
 
 /**
@@ -368,10 +365,20 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         if(res != FR_NO_FILE) { return SATRF_EXIST; }
     }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE)) != FR_OK) { MS_ERR(res); } 
+    for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
+        res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
+        if(res != FR_OK) { 
+            HAL_sys_delay(1);
+            continue;
+        } 
 
-    res = f_write(&fp, buf, *size, (void *)&byteswritten);
-    f_close(&fp);
+        res = f_write(&fp, buf, *size, (void *)&byteswritten);
+        f_close(&fp);
+        if(res == FR_OK) {
+            break;
+        }
+        HAL_sys_delay(1);
+    }
 
     if(res != FR_OK) { MS_ERR(res); } 
     else if(byteswritten == 0) { return SATR_ERROR; } 
