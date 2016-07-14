@@ -770,8 +770,10 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
     for(uint8_t i = 0; i < num; i++) {
         res = mass_storage_downlinkFile(sid, file, &temp_pkt->data[size], &size);
 
+        size += 3;
         if(res != SATR_OK)                              { free_pkt(temp_pkt); return res; }
         if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
+
     }
     mass_storage_updatePkt(temp_pkt, size, TM_MS_CONTENT);
     route_pkt(temp_pkt);
