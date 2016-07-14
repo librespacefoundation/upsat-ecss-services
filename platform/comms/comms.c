@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include "pkt_pool.h"
 #include "queue.h"
+#include "stats.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
@@ -28,6 +29,7 @@ extern UART_HandleTypeDef huart5;
 
 static uint8_t send_buf[TC_MAX_PKT_SIZE];
 struct _comms_data comms_data;
+extern comms_rf_stat_t comms_stats;
 
 const uint8_t services_verification_COMMS_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 /*    0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 */
@@ -160,21 +162,27 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
 
 
 SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
-
     int32_t ret = 0;
-    
     uint16_t size = 0;
     SAT_returnState res;
 
+    if(pkt == NULL){
+      comms_rf_stats_frame_transmitted(&comms_stats, 0, SATR_ERROR);
+      return SATR_ERROR;
+    }
+
     res = pack_pkt(send_buf, pkt, &size);
     if(res != SATR_OK){
+      comms_rf_stats_frame_transmitted(&comms_stats, 0, res);
       return ret;
     }
 
     ret = send_payload(send_buf, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
     if(ret < 1){
+      comms_rf_stats_frame_transmitted(&comms_stats, 0, ret);
       return SATR_ERROR;
     }
+    comms_rf_stats_frame_transmitted(&comms_stats, 1, 0);
     return SATR_OK;
 }
 
