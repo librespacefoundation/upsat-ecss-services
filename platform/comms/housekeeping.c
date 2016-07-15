@@ -2,6 +2,10 @@
 #include "sensors.h"
 #include "comms_manager.h"
 #include "flash.h"
+#include "stats.h"
+#include "wod_handling.h"
+
+extern comms_rf_stat_t comms_stats;
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
@@ -21,11 +25,14 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
 }
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
-    
+    float temp;
     pkt->data[0] = (HK_struct_id)sid;
-
-	if(sid == HEALTH_REP) {
-        pkt->data[1] = (uint8_t)(get_temp_adt7420());
+    if(sid == HEALTH_REP) {
+        temp = comms_rf_stats_get_temperature(&comms_stats);
+        if(isnanf(temp)){
+          return SATR_ERROR;
+        }
+        pkt->data[1] = wod_convert_temperature(temp);
 
         pkt->len = 2;
     } else if(sid == EX_HEALTH_REP) {
