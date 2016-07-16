@@ -7,8 +7,17 @@
 /*Must use real pins*/
 SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) {
 
-    if(!C_ASSERT(did == ADCS_SD_DEV_ID || did == ADCS_SENSORS || did == ADCS_GPS || did == ADCS_MAGNETO || did == ADCS_SPIN || did == SYS_DBG) == true)                             { return SATR_ERROR; }
-    if(!C_ASSERT(fid == P_OFF || fid == P_ON || fid == P_RESET || fid == SET_VAL) == true)    { return SATR_ERROR; }
+    if(!C_ASSERT(did == ADCS_SD_DEV_ID ||
+                 did == ADCS_SENSORS ||
+                 did == ADCS_GPS ||
+                 did == ADCS_MAGNETO ||
+                 did == ADCS_SPIN ||
+                 did == ADCS_TLE ||
+                 did == SYS_DBG) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(fid == P_OFF ||
+                 fid == P_ON ||
+                 fid == P_RESET ||
+                 fid == SET_VAL) == true) { return SATR_ERROR; }
 
     if(did == ADCS_SD_DEV_ID && fid == P_ON)         { HAL_adcs_SD_ON(); }
     else if(did == ADCS_SD_DEV_ID && fid == P_OFF)   { HAL_adcs_SD_OFF(); }
@@ -35,6 +44,20 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
         cnv8_32(state, &current_x);
         cnv8_32(&state[4], &current_y);
         HAL_adcs_MAGNETO (current_x, current_y);
+    }
+    else if (did == ADCS_TLE && fid == SET_VAL) {
+        for (uint8_t i = 1; i < TLE_SIZE + 1; i++) {
+            tle_string[i] = state[i];
+        }
+    }
+    else if (did == ADCS_CTRL_GAIN && fid == SET_VAL) {
+        uint16_t g1 = 0;
+        uint16_t g2 = 0;
+        uint16_t g3 = 0;
+
+        cnv8_16(state, &g1);
+        cnv8_16(state, &g2);
+        cnv8_16(state, &g3);
     }
     else if(did == SYS_DBG && fid == SET_VAL)    {
 

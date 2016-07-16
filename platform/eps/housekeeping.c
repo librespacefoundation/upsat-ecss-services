@@ -44,50 +44,67 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->len = 7;
     } else if(sid == EX_HEALTH_REP) {
 
-        //cnv.cnv32 = time.now();
+        uint16_t size = 1;
+
         cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
+        size += 4;
 
         /*batterypack health status*/
-        pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
+        pkt->data[size] = (uint8_t)(eps_board_state.batterypack_health_status);
+        size += 1;
 
         /* heater status*/
         EPS_switch_control_status heaters_status = EPS_get_control_switch_status(BATTERY_HEATERS);
-        pkt->data[6] = (uint8_t)heaters_status;
-
+        pkt->data[size] = (uint8_t)heaters_status;
+        size += 1;
 
         /*power module top*/
-    	cnv16_8( power_module_top.voltage, &pkt->data[7]);
-    	cnv16_8( power_module_top.current, &pkt->data[9]);
-    	pkt->data[11] = (uint8_t)power_module_top.pwm_duty_cycle;
+    	cnv16_8( power_module_top.voltage, &pkt->data[size]);
+        size += 2;
+    	cnv16_8( power_module_top.current, &pkt->data[size]);
+        size += 2;
+    	pkt->data[size] = (uint8_t)power_module_top.pwm_duty_cycle;
+        size += 1;
 
         /*power module bottom*/
-    	cnv16_8( power_module_bottom.voltage, &pkt->data[12]);
-    	cnv16_8( power_module_bottom.current, &pkt->data[14]);
-    	pkt->data[16] = (uint8_t)power_module_bottom.pwm_duty_cycle;
+    	cnv16_8( power_module_bottom.voltage, &pkt->data[size]);
+        size += 2;
+    	cnv16_8( power_module_bottom.current, &pkt->data[size]);
+        size += 2;
+    	pkt->data[size] = (uint8_t)power_module_bottom.pwm_duty_cycle;
+        size += 1;
 
         /*power module left*/
-    	cnv16_8( power_module_left.voltage, &pkt->data[17]);
-    	cnv16_8( power_module_left.current, &pkt->data[19]);
-    	pkt->data[21] = (uint8_t)power_module_left.pwm_duty_cycle;
+    	cnv16_8( power_module_left.voltage, &pkt->data[size]);
+        size += 2;
+    	cnv16_8( power_module_left.current, &pkt->data[size]);
+        size += 2;
+    	pkt->data[size] = (uint8_t)power_module_left.pwm_duty_cycle;
+        size += 1;
 
         /*power module right*/
-    	cnv16_8( power_module_right.voltage, &pkt->data[22]);
-    	cnv16_8( power_module_right.current, &pkt->data[24]);
-    	pkt->data[26] = (uint8_t)power_module_right.pwm_duty_cycle;
+    	cnv16_8( power_module_right.voltage, &pkt->data[size]);
+        size += 2;
+    	cnv16_8( power_module_right.current, &pkt->data[size]);
+        size += 2;
+    	pkt->data[size] = (uint8_t)power_module_right.pwm_duty_cycle;
+        size += 1;
 
     	/* deployment status*/
     	EPS_deployment_status deployment_status = EPS_check_deployment_status();
-    	pkt->data[27] = (uint8_t)deployment_status;
+    	pkt->data[size] = (uint8_t)deployment_status;
+        size += 1;
 
     	/* battery voltage safety */
-    	pkt->data[28] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
+    	pkt->data[size] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
+        size += 1;
 
     	/* battery voltage safety */
-    	pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
-
+    	pkt->data[size] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
+        size += 1;
 
         /*edo vale fash*/
-        pkt->len = 30;
+        pkt->len = size;
     }
 
     return SATR_OK;
