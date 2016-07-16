@@ -42,28 +42,48 @@ SAT_returnState import_spi() {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
       snprintf(spi_data_buf, MAX_PKT_DATA, "IAC Rec %x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", \
-                                                                            obc_data.iac_in[0], \
-                                                                            obc_data.iac_in[1], \
-                                                                            obc_data.iac_in[2], \
-                                                                            obc_data.iac_in[3], \
-                                                                            obc_data.iac_in[4], \
-                                                                            obc_data.iac_in[5], \
-                                                                            obc_data.iac_in[6], \
-                                                                            obc_data.iac_in[7], \
-                                                                            obc_data.iac_in[8], \
-                                                                            obc_data.iac_in[9], \
-                                                                            obc_data.iac_in[10], \
-                                                                            obc_data.iac_in[11], \
-                                                                            obc_data.iac_in[12], \
-                                                                            obc_data.iac_in[13], \
-                                                                            obc_data.iac_in[14], \
+                                                                            obc_data.iac_in[0],
+                                                                            obc_data.iac_in[1],
+                                                                            obc_data.iac_in[2],
+                                                                            obc_data.iac_in[3],
+                                                                            obc_data.iac_in[4],
+                                                                            obc_data.iac_in[5],
+                                                                            obc_data.iac_in[6],
+                                                                            obc_data.iac_in[7],
+                                                                            obc_data.iac_in[8],
+                                                                            obc_data.iac_in[9],
+                                                                            obc_data.iac_in[10],
+                                                                            obc_data.iac_in[11],
+                                                                            obc_data.iac_in[12],
+                                                                            obc_data.iac_in[13],
+                                                                            obc_data.iac_in[14],
                                                                             obc_data.iac_in[15] );
-      event_dbg_api(uart_temp, spi_data_buf, &size);
+      //event_dbg_api(uart_temp, spi_data_buf, &size);
       HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
   } else if( hspi3.State == HAL_SPI_STATE_READY) {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
   }
 
+}
+
+SAT_returnState hal_kill_uart(TC_TM_app_id app_id) {
+
+    UART_HandleTypeDef *huart;
+    HAL_StatusTypeDef res;
+    SAT_returnState ret = SATR_ERROR;
+
+    if(app_id == EPS_APP_ID) { huart = &huart1; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+    else if(app_id == COMMS_APP_ID) { huart = &huart4; }
+    else if(app_id == ADCS_APP_ID) { huart = &huart6; }
+
+    HAL_UART_DeInit(huart);
+    res = HAL_UART_Init(huart);
+    if (res == HAL_OK)
+    {
+      ret = SATR_OK;
+    }
+    return ret;
 }
 
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
@@ -123,16 +143,19 @@ SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data) {
   */
 void HAL_OBC_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
-  uint32_t tmp1 = 0U, tmp2 = 0U;
 
-  tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
-  tmp2 = __HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE);
-  /* UART in mode Receiver ---------------------------------------------------*/
-  if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+   uint32_t isrflags   = READ_REG(huart->Instance->SR);
+   uint32_t cr1its     = READ_REG(huart->Instance->CR1);
+
+  /* UART in mode Receiver -------------------------------------------------*/
+  if(((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+  {
     UART_OBC_Receive_IT(huart);
+    return;
   }
+
 }
+
 uint16_t err;
 /**
   * @brief  Receives an amount of data in non blocking mode 
@@ -162,15 +185,13 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
       
       uart_timeout_stop(huart);
 
-      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
-
-      /* Disable the UART Parity Error Interrupt */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+      /* Disable the UART Parity Error Interrupt and RXNE interrupt*/
+      CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
 
       /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+      CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
-	  /* Rx process is completed, restore huart->RxState to Ready */
+      /* Rx process is completed, restore huart->RxState to Ready */
       huart->RxState = HAL_UART_STATE_READY;
 
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -226,18 +247,17 @@ void uart_timeout_check(UART_HandleTypeDef *huart){
 
 void HAL_OBC_SU_UART_IRQHandler(UART_HandleTypeDef *huart)
 {
-  uint32_t tmp1 = 0U, tmp2 = 0U;
+   uint32_t isrflags   = READ_REG(huart->Instance->SR);
+   uint32_t cr1its     = READ_REG(huart->Instance->CR1);
 
-  tmp1 = __HAL_UART_GET_FLAG(huart, UART_FLAG_RXNE);
-  tmp2 = __HAL_UART_GET_IT_SOURCE(huart, UART_IT_RXNE);
-  /* UART in mode Receiver ---------------------------------------------------*/
-  if((tmp1 != RESET) && (tmp2 != RESET))
-  { 
+  /* UART in mode Receiver -------------------------------------------------*/
+  if(((isrflags & USART_SR_RXNE) != RESET) && ((cr1its & USART_CR1_RXNEIE) != RESET))
+  {
     UART_OBC_SU_Receive_IT(huart);
+    return;
   }
-}
 
-uint16_t err;
+}
 
 HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
 {
@@ -250,15 +270,13 @@ HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
     {
       uart_timeout_stop(huart);
 
-      __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE);
-
-      /* Disable the UART Parity Error Interrupt */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_PE);
+      /* Disable the UART Parity Error Interrupt and RXNE interrupt*/
+      CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE | USART_CR1_PEIE));
 
       /* Disable the UART Error Interrupt: (Frame error, noise error, overrun error) */
-      __HAL_UART_DISABLE_IT(huart, UART_IT_ERR);
+      CLEAR_BIT(huart->Instance->CR3, USART_CR3_EIE);
 
-	  /* Rx process is completed, restore huart->RxState to Ready */
+      /* Rx process is completed, restore huart->RxState to Ready */
       huart->RxState = HAL_UART_STATE_READY;
      
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;

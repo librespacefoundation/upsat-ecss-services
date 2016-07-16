@@ -17,24 +17,24 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 	pkt->data[0] = (HK_struct_id) sid;
 
 	if (sid == EX_HEALTH_REP) {
-		//cnv.cnv32 = time.now();
-		//cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[0], &pkt->data[1]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[1], &pkt->data[3]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[2], &pkt->data[5]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[0], &pkt->data[7]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[1], &pkt->data[9]);
-		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[2], &pkt->data[11]);
-		cnv32_8(adcs_sensors.magn_sensor.rm_raw[0], &pkt->data[15]);
-		cnv32_8(adcs_sensors.magn_sensor.rm_raw[1], &pkt->data[19]);
-		cnv32_8(adcs_sensors.magn_sensor.rm_raw[2], &pkt->data[23]);
-		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[0], &pkt->data[25]);
-		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[1], &pkt->data[27]);
-		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[2], &pkt->data[29]);
-		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[3], &pkt->data[31]);
-		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[4], &pkt->data[33]);
-		cnv16_8((int16_t)adcs_actuator.spin_torquer.m_RPM, &pkt->data[35]);
-		pkt->len = 37;
+
+		cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[0], &pkt->data[5]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[1], &pkt->data[7]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.gyr_raw[2], &pkt->data[9]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[0], &pkt->data[11]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[1], &pkt->data[13]);
+		cnv16_8(adcs_sensors.lsm9ds0_sensor.xm_raw[2], &pkt->data[17]);
+		cnv32_8(adcs_sensors.magn_sensor.rm_raw[0], &pkt->data[19]);
+		cnv32_8(adcs_sensors.magn_sensor.rm_raw[1], &pkt->data[23]);
+		cnv32_8(adcs_sensors.magn_sensor.rm_raw[2], &pkt->data[27]);
+		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[0], &pkt->data[29]);
+		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[1], &pkt->data[31]);
+		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[2], &pkt->data[33]);
+		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[3], &pkt->data[35]);
+		cnv16_8(adcs_sensors.sun_sensor.v_sun_raw[4], &pkt->data[37]);
+		cnv16_8((int16_t)adcs_actuator.spin_torquer.m_RPM, &pkt->data[39]);
+		pkt->len = 40;
 	} else if (sid == SU_SCI_HDR_REP) {
 		cnv16_8((int16_t)(40.0 / 0.01), &pkt->data[1]); // Roll in deg
 		cnv16_8((int16_t)(-45.0 / 0.01), &pkt->data[3]); // Pitch in deg

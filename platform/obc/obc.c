@@ -48,9 +48,18 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
+ 
+struct _obc_data obc_data = { .dbg_uart.init_time = 0,
+                              .comms_uart.init_time = 0,
+                              .adcs_uart.init_time = 0,
+                              .eps_uart.init_time = 0,
+                              .vbat = 0,
+                              .adc_time = 0,
+                              .adc_flag = false };
 
-struct _obc_data obc_data;
+
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
+struct _task_times task_times;
 static struct _sys_data sys_data;
 
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
@@ -68,6 +77,7 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = event_app(pkt);
+        pkt->app_id = DBG_APP_ID; //Temp, for testing we forward the events
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = hk_app(pkt);
@@ -122,39 +132,89 @@ SAT_returnState obc_INIT() {
     return SATR_OK;
 }
 
+SAT_returnState sram_hard_delete() {
+
+    uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
+
+    for(uint32_t i = 0; i < 2048; i++) {
+        base_pointer[i] = 0;
+    }
+
+    return SATR_OK;
+}
+
 void bkup_sram_INIT() {
 
-    obc_data.log_cnt = HAL_obc_BKPSRAM_BASE();
-    obc_data.log_state = HAL_obc_BKPSRAM_BASE() + 1;
-    sys_data.boot_counter = HAL_obc_BKPSRAM_BASE() + 2;
-    obc_data.wod_cnt = HAL_obc_BKPSRAM_BASE() + 3;
+    uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
 
-    obc_data.fs_su_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 4;
-    obc_data.fs_wod_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 5;
-    obc_data.fs_ext_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 6;
-    obc_data.fs_ev_head = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 7;
+    //for(uint32_t i = 0; i < 4096; i++) {
+    //    base_pointer[i] = 0;
+    //}
 
-    obc_data.fs_su_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 8;
-    obc_data.fs_wod_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 9;
-    obc_data.fs_ext_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 10;
-    obc_data.fs_ev_tail = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 11;
+    obc_data.log_cnt = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
 
-    obc_data.fs_fotos = (uint16_t*)HAL_obc_BKPSRAM_BASE() + 12;
+    obc_data.log_state = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
+
+    sys_data.boot_counter = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
+
+    obc_data.wod_cnt = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
+
+    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) base_pointer; //264; //265;
+    base_pointer += sizeof(uint32_t);
+
+    obc_data.fs_su_head = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_wod_head = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_ext_head = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_ev_head = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_su_tail = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_wod_tail = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_ext_tail = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_ev_tail = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.fs_fotos = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
     
-    MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) HAL_obc_BKPSRAM_BASE()+13;
+    MNLP_data.su_nmlp_scheduler_active =  (uint8_t*) base_pointer;
+    base_pointer += sizeof(uint8_t);
+
     //*MNLP_data.su_nmlp_scheduler_active = (uint8_t) false;
-    MNLP_data.su_nmlp_last_active_script = (uint8_t*) HAL_obc_BKPSRAM_BASE()+14;
+    MNLP_data.su_nmlp_last_active_script = (uint8_t*) base_pointer;
+    base_pointer += sizeof(uint8_t);
+
     //*MNLP_data.su_nmlp_last_active_script = 0;
-    MNLP_data.su_next_time_table = (uint8_t*) HAL_obc_BKPSRAM_BASE()+15;
+    MNLP_data.su_next_time_table = (uint8_t*) base_pointer;
+    base_pointer += sizeof(uint8_t);
 //    *MNLP_data.su_next_time_table = 0;
-    MNLP_data.su_next_script_seq = (uint8_t*) HAL_obc_BKPSRAM_BASE()+16;
+    MNLP_data.su_next_script_seq = (uint8_t*) base_pointer;
+    base_pointer += sizeof(uint8_t);
 //    *MNLP_data.su_next_script_seq = 0;
-    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) HAL_obc_BKPSRAM_BASE()+17; //264; //265;
+
     //*MNLP_data.su_nmlp_perm_state_pnt = 0;
     
-    obc_data.log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 18;
-    obc_data.wod_log = (uint8_t *)HAL_obc_BKPSRAM_BASE() + 19 + (EV_MAX_BUFFER);
-    
+    obc_data.log = (uint8_t *)base_pointer;
+    base_pointer += sizeof(uint8_t);
+    obc_data.wod_log = (uint8_t *)base_pointer + (EV_MAX_BUFFER);
+    base_pointer += sizeof(uint8_t);
+
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
     if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 1; }
@@ -180,8 +240,7 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size) {
     cnv.cnv32 = tmp_time;
 
     for(uint16_t i = 0; i < 4; i++) {
-        obc_data.log[*obc_data.log_cnt] = cnv.cnv8[i];
-        if(++(*obc_data.log_cnt) >= EV_MAX_BUFFER) { *obc_data.log_cnt = 0; }
+        buf[i + 6] = cnv.cnv8[i];
     }
 
     for(uint16_t i = 0; i < size; i++) {
@@ -252,10 +311,6 @@ SAT_returnState wod_log() {
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 
     obc_data.wod_log[*obc_data.wod_cnt] = sat_status.batt_volt;
-    (*obc_data.wod_cnt)++;
-    if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
-
-    obc_data.wod_log[*obc_data.wod_cnt] = sat_status.mode;
     (*obc_data.wod_cnt)++;
     if(*obc_data.wod_cnt >= WOD_MAX_BUFFER) { *obc_data.wod_cnt = 0; }
 

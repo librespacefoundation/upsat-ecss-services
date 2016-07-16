@@ -8,7 +8,7 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 666
 
-#define EV_DATA_SIZE 12
+#define EV_DATA_SIZE 16
 
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_sys_GetTick();
@@ -28,98 +28,15 @@ SAT_returnState event_app(tc_tm_pkt * pkt) {
     return SATR_OK;
 }
 
-
-SAT_returnState event_crt_pkt_api(uint8_t *buf, uint8_t *f, uint16_t fi, uint32_t l, uint8_t *e, uint16_t *size, SAT_returnState mode) {
-
-    uint8_t sub_type;
-    uint8_t res_crc;
-
-    if(mode == SATR_OK) { sub_type = TM_EV_NORMAL_REPORT; }
-    else { sub_type = TM_EV_ERROR_REPORT; }
-
-    buf[0] = HLDLC_START_FLAG;
-    buf[1] = 0x08;
-    buf[2] = SYSTEM_APP_ID;
-    buf[3] = 0xC0;
-    buf[4] = 5;
-
-    buf[7] = 16;
-    buf[8] = TC_EVENT_SERVICE;
-    buf[9] = sub_type;
-    buf[10] = DBG_APP_ID;
-
-    if(strnlen(e, 200) > 200) { e = strNo; }
-
-    if(mode == SATR_OK){ 
-        sprintf((char*)&buf[11], "Event %s,%d,%d,%s\n", f, fi, l, e); }
-    else{ 
-        sprintf((char*)&buf[11], "Error %s,%d,%d,%s\n", f, fi, l, e); }
-
-    *size = strnlen(&buf[11], 200);
-    event_log(&buf[11], *size);
-
-    *size += 11 + 1;
-    buf[*size] = 0;
-
-    buf[5] = 0;
-    buf[6] = *size - 6 -2 + 2;
-    checkSum(&buf[1], *size - 1, &res_crc);
-    buf[(*size)+1] = res_crc;
-    buf[(*size)+2] = HLDLC_START_FLAG;
-
-    *size += 3;
-
-    return SATR_OK;
-}
-
-SAT_returnState event_dbg_api(uint8_t *buf, uint8_t *str, uint16_t *size) {
-
-    uint8_t sub_type = 0;
-    uint8_t res_crc = 0;
-    
-    *size = 0;
-
-    sub_type = TM_EV_NORMAL_REPORT;
-
-    buf[0] = HLDLC_START_FLAG;
-    buf[1] = 0x08;
-    buf[2] = SYSTEM_APP_ID;
-    buf[3] = 0xC0;
-    buf[4] = 5;
-
-    buf[7] = 16;
-    buf[8] = TC_EVENT_SERVICE;
-    buf[9] = sub_type;
-    buf[10] = DBG_APP_ID;
-
-    *size = strnlen(str, MAX_PKT_DATA);
-
-    memcpy(&buf[11], str, *size);
-
-    *size += 11;
-    buf[*size] = 0;
-
-    buf[5] = 0;
-    buf[6] = *size - ECSS_HEADER_SIZE;
-    checkSum(&buf[1], *size - 1, &res_crc);
-    buf[*size + 1] = res_crc;
-    buf[*size + 2] = HLDLC_START_FLAG;
-
-    *size += 3;
-
-    return SATR_OK;
-}
-
-SAT_returnState event_boot(const uint8_t reset_source, const uint8_t boot_counter) {
+SAT_returnState event_boot(const uint8_t reset_source, const uint32_t boot_counter) {
 
     tc_tm_pkt *temp_pkt = 0;
 
     if(event_crt_pkt(&temp_pkt, EV_sys_boot) != SATR_OK) { return SATR_ERROR; }
-    temp_pkt->data[5] = reset_source;
-    temp_pkt->data[6] = boot_counter;
+    temp_pkt->data[10] = reset_source;
+    cnv32_8(boot_counter, &(temp_pkt->data[11]));
 
-    /*zero padding for fixed length*/
-    for(uint8_t i = 7; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+    for(uint8_t i = 15; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
 
     if(SYSTEM_APP_ID == OBC_APP_ID) {
         event_log(temp_pkt->data, EV_DATA_SIZE);
@@ -137,8 +54,8 @@ SAT_returnState event_pkt_pool_timeout() {
     if(event_crt_pkt(&temp_pkt, EV_pkt_pool_timeout) != SATR_OK) { return SATR_ERROR; }
 
     /*zero padding for fixed length*/
-    for(uint8_t i = 6; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
-    
+    for(uint8_t i = 10; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+
     if(SYSTEM_APP_ID == OBC_APP_ID) {
         event_log(temp_pkt->data, EV_DATA_SIZE);
     } else {
@@ -155,10 +72,11 @@ SAT_returnState event_ms_err(uint8_t err, uint16_t l) {
     if(event_crt_pkt(&temp_pkt, EV_ms_err) != SATR_OK) { return SATR_ERROR; }
 
     /*zero padding for fixed length*/
-    temp_pkt->data[5] = err;
-    cnv32_8(l, &(temp_pkt->data[6]));
-    for(uint8_t i = 8; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
-    
+    temp_pkt->data[10] = err;
+    cnv16_8(l, &(temp_pkt->data[11]));
+
+    for(uint8_t i = 14; i < EV_DATA_SIZE; i++) { temp_pkt->data[i] = 0; }
+
     if(SYSTEM_APP_ID == OBC_APP_ID) {
         event_log(temp_pkt->data, EV_DATA_SIZE);
     } else {
@@ -176,10 +94,15 @@ SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, const EV_event event) {
     crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, SYSTEM_APP_ID);
 
     uint32_t time_temp = HAL_sys_GetTick();
-    (*pkt)->data[0] = event;
-    cnv32_8(time_temp, &((*pkt)->data[1]));
+    (*pkt)->data[0] = (TC_TM_app_id)SYSTEM_APP_ID;
+    (*pkt)->data[1] = event;
+    cnv32_8(time_temp, &((*pkt)->data[2]));
+    (*pkt)->data[6] = 0;
+    (*pkt)->data[7] = 0;
+    (*pkt)->data[8] = 0;
+    (*pkt)->data[9] = 0;
 
-    (*pkt)->len = 12;
+    (*pkt)->len = EV_DATA_SIZE;
 
     return SATR_OK;
 }

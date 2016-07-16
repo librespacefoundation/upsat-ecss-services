@@ -93,15 +93,13 @@ void pkt_pool_IDLE() {
 
     for(uint8_t i = 0; i < POOL_PKT_SIZE; i++) {
         if(pkt_pool.free[i] == false && pkt_pool.time[i] - tmp_time > PKT_TIMEOUT) {
-            pkt_pool.free[i] = 0;
-            event_pkt_pool_timeout();
+            pkt_pool.free[i] = true;
         }
     }
 
     for(uint8_t i = 0; i < POOL_PKT_EXT_SIZE; i++) {
         if(pkt_pool.free_ext[i] == false && pkt_pool.time_ext[i] - tmp_time > PKT_TIMEOUT) {
-            pkt_pool.free[i] = 0;
-            event_pkt_pool_timeout();
+            pkt_pool.free_ext[i] = true;
         }
     }
 

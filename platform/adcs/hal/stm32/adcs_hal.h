@@ -28,6 +28,8 @@ void HAL_ADCS_UART_IRQHandler(UART_HandleTypeDef *huart);
 
 void UART_ADCS_Receive_IT(UART_HandleTypeDef *huart);
 
+SAT_returnState hal_kill_uart(TC_TM_app_id app_id);
+
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id);
 
 void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);

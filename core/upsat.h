@@ -7,7 +7,7 @@
 #define EV_MAX_BUFFER  1024
 #define EV_BUFFER_PART 205
 
-#define WOD_MAX_BUFFER 256
+#define WOD_MAX_BUFFER 224
 
 #define IAC_PKT_SIZE 205 /*1 cmd, 4 fname, 210 data*/
 
@@ -48,6 +48,7 @@ struct uart_data {
     uint8_t framed_buf[UART_BUF_SIZE];
     uint16_t uart_size;
     uint32_t last_com_time;
+    uint32_t init_time;
 };
 
 /* These values represent the time of last complete packet
@@ -59,6 +60,8 @@ struct _subs_last_comm {
     uint32_t last_com_iac;
     uint32_t last_com_eps;
 };
+
+void uart_killer(TC_TM_app_id app_id, struct uart_data *data, uint32_t time);
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data);
 

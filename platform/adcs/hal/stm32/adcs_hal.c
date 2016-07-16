@@ -26,6 +26,24 @@ void HAL_adcs_SD_OFF() {
 	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_15, GPIO_PIN_RESET);
 }
 
+SAT_returnState hal_kill_uart(TC_TM_app_id app_id) {
+
+    UART_HandleTypeDef *huart;
+    HAL_StatusTypeDef res;
+    SAT_returnState ret = SATR_ERROR;
+
+    if (app_id == OBC_APP_ID)      { huart = &huart2; }
+    else if (app_id == DBG_APP_ID) { huart = &huart2; }
+
+    HAL_UART_DeInit(&huart);
+    res = HAL_UART_Init(&huart);
+    if (res == HAL_OK)
+    {
+      ret = SATR_OK;
+    }
+    return ret;
+}
+
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
     
     HAL_UART_StateTypeDef res;

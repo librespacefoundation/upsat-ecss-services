@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "services.h"
 
-#define MS_MAX_FILES            50000
+#define MS_MAX_FILES            5000
 
 SAT_returnState mass_storage_init();
 

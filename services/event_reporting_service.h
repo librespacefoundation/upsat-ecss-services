@@ -7,7 +7,7 @@
 
 SAT_returnState event_app(tc_tm_pkt * pkt);
 
-SAT_returnState event_boot(const uint8_t reset_source, const uint8_t boot_counter);
+SAT_returnState event_boot(const uint8_t reset_source, const uint32_t boot_counter);
 
 SAT_returnState event_pkt_pool_timeout();
 

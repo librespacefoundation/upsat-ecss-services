@@ -8,6 +8,10 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 1
 
+#define HOUR 360000
+
+extern SAT_returnState hal_kill_uart(TC_TM_app_id app_id);
+
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
 
 extern tc_tm_pkt * queuePeak(TC_TM_app_id app_id);
@@ -47,7 +51,7 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
     tc_tm_pkt *pkt = 0;
     uint16_t size = 0;
-    SAT_returnState res;    
+    SAT_returnState res = SATR_ERROR;
 
     /* Checks if the tx is busy */
     if((res = HAL_uart_tx_check(app_id)) == SATR_ALREADY_SERVICING) { return res; }
@@ -67,4 +71,15 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     free_pkt(pkt);
 
     return SATR_OK;
+}
+
+void uart_killer(TC_TM_app_id app_id, struct uart_data *data, uint32_t time) {
+
+    if(time - data->init_time > 160000) {
+
+        SAT_returnState res = hal_kill_uart(app_id);
+        if(res == SATR_OK) {
+            data->init_time = time;
+        }
+    }
 }

@@ -19,8 +19,15 @@ extern osMessageQId queueADCS;
 extern osMessageQId queueDBG;
 extern osMessageQId queueEPS;
 
+extern TaskHandle_t xTask_UART;
+
 #undef __FILE_ID__
 #define __FILE_ID__ 13
+
+void wake_uart_task() {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
+}
 
 
 SAT_returnState queuePush(tc_tm_pkt *pkt, TC_TM_app_id app_id) {
@@ -187,7 +194,7 @@ uint32_t * HAL_obc_BKPSRAM_BASE() {
 }
 
 void HAL_obc_IWDG_Start() {
-  HAL_IWDG_Start(&hiwdg);;
+  HAL_IWDG_Start(&hiwdg);
 }
 
 void HAL_obc_IWDG_Refresh() {
