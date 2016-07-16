@@ -13,6 +13,8 @@ void uart_timeout_stop(UART_HandleTypeDef *huart);
 
 void uart_timeout_check(UART_HandleTypeDef *huart);
 
+SAT_returnState hal_kill_uart(TC_TM_app_id app_id);
+
 
 void HAL_OBC_UART_IRQHandler(UART_HandleTypeDef *huart);
 

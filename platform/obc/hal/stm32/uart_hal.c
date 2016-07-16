@@ -42,21 +42,21 @@ SAT_returnState import_spi() {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
       HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET);
       snprintf(spi_data_buf, MAX_PKT_DATA, "IAC Rec %x%x%x%x%x%x%x%x%x%x%x%x%x%x%x%x\n", \
-                                                                            obc_data.iac_in[0], \
-                                                                            obc_data.iac_in[1], \
-                                                                            obc_data.iac_in[2], \
-                                                                            obc_data.iac_in[3], \
-                                                                            obc_data.iac_in[4], \
-                                                                            obc_data.iac_in[5], \
-                                                                            obc_data.iac_in[6], \
-                                                                            obc_data.iac_in[7], \
-                                                                            obc_data.iac_in[8], \
-                                                                            obc_data.iac_in[9], \
-                                                                            obc_data.iac_in[10], \
-                                                                            obc_data.iac_in[11], \
-                                                                            obc_data.iac_in[12], \
-                                                                            obc_data.iac_in[13], \
-                                                                            obc_data.iac_in[14], \
+                                                                            obc_data.iac_in[0],
+                                                                            obc_data.iac_in[1],
+                                                                            obc_data.iac_in[2],
+                                                                            obc_data.iac_in[3],
+                                                                            obc_data.iac_in[4],
+                                                                            obc_data.iac_in[5],
+                                                                            obc_data.iac_in[6],
+                                                                            obc_data.iac_in[7],
+                                                                            obc_data.iac_in[8],
+                                                                            obc_data.iac_in[9],
+                                                                            obc_data.iac_in[10],
+                                                                            obc_data.iac_in[11],
+                                                                            obc_data.iac_in[12],
+                                                                            obc_data.iac_in[13],
+                                                                            obc_data.iac_in[14],
                                                                             obc_data.iac_in[15] );
       //event_dbg_api(uart_temp, spi_data_buf, &size);
       HAL_uart_tx(DBG_APP_ID, (uint8_t *)uart_temp, size);
@@ -64,6 +64,26 @@ SAT_returnState import_spi() {
       res = HAL_SPI_TransmitReceive_IT(&hspi3, obc_data.iac_out, obc_data.iac_in, 16);
   }
 
+}
+
+SAT_returnState hal_kill_uart(TC_TM_app_id app_id) {
+
+    UART_HandleTypeDef *huart;
+    HAL_StatusTypeDef res;
+    SAT_returnState ret = SATR_ERROR;
+
+    if(app_id == EPS_APP_ID) { huart = &huart1; }
+    else if(app_id == DBG_APP_ID) { huart = &huart3; }
+    else if(app_id == COMMS_APP_ID) { huart = &huart4; }
+    else if(app_id == ADCS_APP_ID) { huart = &huart6; }
+
+    HAL_UART_DeInit(huart);
+    res = HAL_UART_Init(huart);
+    if (res == HAL_OK)
+    {
+      ret = SATR_OK;
+    }
+    return ret;
 }
 
 SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
