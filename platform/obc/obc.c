@@ -48,8 +48,16 @@ const uint8_t services_verification_OBC_TC[MAX_SERVICES][MAX_SUBTYPES] = {
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
     { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
 };
+ 
+struct _obc_data obc_data = { .dbg_uart.init_time = 0,
+                              .comms_uart.init_time = 0,
+                              .adcs_uart.init_time = 0,
+                              .eps_uart.init_time = 0,
+                              .vbat = 0,
+                              .adc_time = 0,
+                              .adc_flag = false };
 
-struct _obc_data obc_data;
+
 struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
 struct _task_times task_times;
 static struct _sys_data sys_data;
@@ -121,6 +129,17 @@ SAT_returnState obc_INIT() {
     su_INIT();
 
     scheduling_init_service();
+    return SATR_OK;
+}
+
+SAT_returnState sram_hard_delete() {
+
+    uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
+
+    for(uint32_t i = 0; i < 2048; i++) {
+        base_pointer[i] = 0;
+    }
+
     return SATR_OK;
 }
 

@@ -46,7 +46,11 @@ struct _obc_data
     struct uart_data dbg_uart;
     struct uart_data comms_uart;
     struct uart_data adcs_uart;
-    struct uart_data eps_uart;   
+    struct uart_data eps_uart;
+
+    uint16_t vbat;
+    uint32_t adc_time;
+    uint8_t adc_flag;
 };
 
 struct _sys_data {
