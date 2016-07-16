@@ -4,9 +4,12 @@
 #include "time_management_service.h"
 #include "wdg.h"
 
+#include "stm32f4xx_hal.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 666
+
+extern UART_HandleTypeDef huart3;
 
 extern void HAL_sys_delay(uint32_t sec);
 
@@ -122,7 +125,7 @@ void hk_SCH() {
     HAL_sys_delay(26000);  
 
     //hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
-    hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     wake_uart_task();
     // clear_ext_wod();
@@ -277,17 +280,8 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         uint32_t time_temp;
         get_time_QB50(&time_temp);
 
-        //cnv32_8(time_temp, &pkt->data[1]);
-        //wod_log_load(&pkt->data[5]);
-
-
-        pkt->data[1] = 0xFE;
-        pkt->data[2] = 0xED;
-        pkt->data[3] = 0xBE;
-        pkt->data[4] = 0xEF;
-
-        cnv32_8(time_temp, &pkt->data[5]);
-        wod_log_load(&pkt->data[9]);
+        cnv32_8(time_temp, &pkt->data[1]);
+        wod_log_load(&pkt->data[5]);
 
         uint16_t size = 4+(32*7);
         mass_storage_storeFile(WOD_LOG, 0, &pkt->data[1], &size);
@@ -320,6 +314,11 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8(task_times.sch_time, &pkt->data[size]);
         size += 4;
 
+        cnv32_8(obc_data.vbat, &pkt->data[size]);
+        size += 2;
+
+        //pkt->data[size] = (uint8_t)HAL_UART_GetState(&huart3);
+        //size++;
         // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
 
         // /* heater status*/
