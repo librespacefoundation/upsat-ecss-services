@@ -248,7 +248,8 @@ typedef enum {
     WOD_REP         = 4,
     EXT_WOD_REP     = 5,
     SU_SCI_HDR_REP  = 6,
-    LAST_STRUCT_ID  = 7
+    ADCS_TLE_REP    = 7,
+    LAST_STRUCT_ID  = 8
 }HK_struct_id;
 
 typedef enum {
@@ -273,8 +274,10 @@ typedef enum {
     ADCS_GPS        = 11,
     ADCS_MAGNETO    = 12,
     ADCS_SPIN       = 13,
-    SYS_DBG         = 14,
-    LAST_DEV_ID     = 15
+    ADCS_TLE        = 14,
+    ADCS_CTRL_GAIN  = 15,
+    SYS_DBG         = 16,
+    LAST_DEV_ID     = 17
 }FM_dev_id;
 
 /*Mass storage ids*/
@@ -343,10 +346,11 @@ typedef enum {
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
 
 union _cnv {
+    double cnvD;
     float cnvF;
     uint32_t cnv32;
-    uint16_t cnv16[2];
-    uint8_t cnv8[4];
+    uint16_t cnv16[4];
+    uint8_t cnv8[8];
 };
 
 extern void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);

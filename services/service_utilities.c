@@ -78,6 +78,37 @@ void cnv8_F(uint8_t *from, float *to) {
 
 }
 
+void cnvD_8(const double from, uint8_t *to) {
+
+    union _cnv cnv;
+
+    cnv.cnvD = from;
+    to[0] = cnv.cnv8[0];
+    to[1] = cnv.cnv8[1];
+    to[2] = cnv.cnv8[2];
+    to[3] = cnv.cnv8[3];
+    to[4] = cnv.cnv8[4];
+    to[5] = cnv.cnv8[5];
+    to[6] = cnv.cnv8[6];
+    to[7] = cnv.cnv8[7];
+}
+
+void cnvD_F(uint8_t *from, double *to) {
+
+    union _cnv cnv;
+
+    cnv.cnv8[7] = from[7];
+    cnv.cnv8[6] = from[6];
+    cnv.cnv8[5] = from[5];
+    cnv.cnv8[4] = from[4];
+    cnv.cnv8[3] = from[3];
+    cnv.cnv8[2] = from[2];
+    cnv.cnv8[1] = from[1];
+    cnv.cnv8[0] = from[0];
+    *to = cnv.cnvD;
+
+}
+
 SAT_returnState checkSum(const uint8_t *data, const uint16_t size, uint8_t *res_crc) {
 
     if(!C_ASSERT(data != NULL && size != 0) == true)                         { return SATR_ERROR; }
