@@ -130,9 +130,13 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
         } else if(mode == HARD_DELETE) {
 
-            for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-                if((res = mass_storage_hard_delete(sid)) != SATRF_LOCKED) { break; }
-                HAL_sys_delay(1);
+            if(sid == SRAM) {
+                res = sram_hard_delete();
+            } else {
+                for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
+                    if((res = mass_storage_hard_delete(sid)) != SATRF_LOCKED) { break; }
+                    HAL_sys_delay(1);
+                }
             }
         } else {
 
@@ -172,7 +176,7 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     } else if(pkt->ser_subtype == TC_MS_UPLINK) {
 
-        uint16_t size = pkt->len -3;
+        uint16_t size = pkt->len - 3;
         uint16_t file = 0;
 
         cnv8_16(&pkt->data[1], &file);
@@ -295,9 +299,9 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
-    if(!C_ASSERT(sid < LAST_SID) == true)               { return SATR_ERROR; }
+    if(!C_ASSERT(sid < SRAM) == true)               { return SATR_ERROR; }
 
-    if(sid >= SU_LOG &&sid <= EVENT_LOG) { file = get_filePos(sid, file); }
+    if(sid >= SU_LOG && sid <= EVENT_LOG) { file = get_filePos(sid, file); }
 
     /*cp dir belonging to sid*/
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, file); }
@@ -313,6 +317,7 @@ SAT_returnState mass_storage_downlinkFile(MS_sid sid, uint32_t file, uint8_t *bu
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
+    else { return SATR_ERROR; }
 
     *size = MAX_PKT_EXT_DATA;
 
@@ -344,7 +349,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(buf != NULL && size != NULL) == true)  { return SATR_ERROR; }
     //if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(sid <= LAST_SID) == true)              { return SATR_ERROR; }
+    if(!C_ASSERT(sid <= SRAM) == true)              { return SATR_ERROR; }
 
     if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, get_new_fileId(sid)); }
     else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, get_new_fileId(sid)); }
@@ -359,6 +364,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(sid == SU_SCRIPT_6) { strncpy((char*)path, MS_SU_SCRIPT_6, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
+    else { return SATR_ERROR; }
 
     if(sid <= SU_SCRIPT_7) {
         res = f_stat((char*)path, &fno);
@@ -398,6 +404,7 @@ SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid) {
 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(sid != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
     TC_TM_app_id app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
 
@@ -517,7 +524,7 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     uint16_t script_len = 0;
 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
-    if(!C_ASSERT( sid <= SU_SCRIPT_7) == true) { return SATR_INV_STORE_ID; }
+    if(!C_ASSERT(sid <= SU_SCRIPT_7) == true) { return SATR_INV_STORE_ID; }
 
     if(sid == SU_SCRIPT_1)          { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_2)     { strncpy((char*)path, MS_SU_SCRIPT_2, MS_MAX_PATH); }
@@ -760,12 +767,13 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
     app_id = (TC_TM_app_id)pkt->dest_id; //check if this is ok
 
-    if(!C_ASSERT(sid < LAST_SID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(sid < SRAM) == true) { return SATR_INV_STORE_ID; }
     if(!C_ASSERT(num > 0) == true)        { return SATR_ERROR; }
-    if(!C_ASSERT((sid <= SU_SCRIPT_7 && num == 1) || \
-                 (sid == SU_LOG && num < 10) || \
-                 (sid == WOD_LOG && num < 10) || \
-                 (sid == EXT_WOD_LOG && num < 10) || \
+    if(!C_ASSERT((sid <= SU_SCRIPT_7 && num == 1) ||
+                 (sid == SU_LOG && num < 10) ||
+                 (sid == WOD_LOG && num < 10) ||
+                 (sid == EXT_WOD_LOG && num < 10) ||
+                 (sid == SCHS && num == 1) ||
                  (sid == EVENT_LOG && num < 4)) == true)    { return SATR_ERROR; }
 
     mass_storage_crtPkt(&temp_pkt, app_id, MAX_PKT_EXT_DATA);
