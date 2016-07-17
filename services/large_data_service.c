@@ -104,9 +104,8 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     LD_status.state = LD_STATE_RECEIVING;
     LD_status.started = HAL_GetTick();
 
-    for(uint16_t i = 0; i < size; i++) { 
-        LD_status.buf[i] = pkt->data[i + LD_PKT_DATA_HDR_SIZE]; 
-    }
+    /* Copy the fragment at the reconstruction buffer */
+    memcpy(LD_status.buf, pkt->data + LD_PKT_DATA_HDR_SIZE, size);
 
     LD_status.timeout = HAL_GetTick();
 
@@ -165,16 +164,27 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     if(C_ASSERT(size > LD_PKT_DATA)) {
       return SATR_ERROR;
     }
-    //if(!C_ASSERT((app_id == IAC_APP_ID && sid == FOTOS) || (app_id == GND_APP_ID && sid <= SU_SCRIPT_7 )) == true) { return SATR_ERROR; } 
+
+    /*
+     * Check if this frame has been already received. If this is the case,
+     * re-send immediately an ACK
+     */
+    if(LD_status.ld_num == ld_num) {
+        /*Re-send the ACK */
+        large_data_verifyPkt(&temp_pkt, LD_status.rx_lid,
+			     LD_status.ld_num, app_id);
+        route_pkt(temp_pkt);
+        return SATR_OK;
+    }
+
     size -= LD_PKT_DATA_HDR_SIZE;
+
+    /* Copy the segment to the reconstruction buffer */
+    memcpy(&LD_status.buf[LD_status.rx_size],
+	   &pkt->data[LD_PKT_DATA_HDR_SIZE], size);
 
     LD_status.ld_num = ld_num;
     LD_status.rx_size += size;
-
-    for(uint16_t i = 0; i < size; i++) { 
-        LD_status.buf[(LD_status.ld_num * LD_PKT_DATA) + i] = pkt->data[i + LD_PKT_DATA_HDR_SIZE]; 
-    }
-
     LD_status.timeout = HAL_GetTick();
 
     large_data_verifyPkt(&temp_pkt, LD_status.rx_lid, LD_status.ld_num, app_id);
@@ -246,12 +256,11 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
       return SATR_OK;
     }
 
+    memcpy(&LD_status.buf[LD_status.rx_size],
+	   &pkt->data[LD_PKT_DATA_HDR_SIZE], size);
+
     LD_status.ld_num = ld_num;
     LD_status.rx_size += size;
-
-    for(uint16_t i = 0; i < size; i++) { 
-        LD_status.buf[(LD_status.ld_num * LD_PKT_DATA) + i] = pkt->data[i + LD_PKT_DATA_HDR_SIZE]; 
-    }
 
     large_data_verifyPkt(&temp_pkt, LD_status.rx_lid, LD_status.ld_num, app_id);
     route_pkt(temp_pkt);

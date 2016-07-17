@@ -62,9 +62,21 @@ route_pkt (tc_tm_pkt *pkt)
   SAT_returnState res;
   TC_TM_app_id id;
 
-    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)                         { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                       { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
+  if (C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+    verification_app (pkt);
+    free_pkt (pkt);
+    return SATR_ERROR;
+  }
+  if (C_ASSERT(pkt->type != TC && pkt->type != TM)) {
+    verification_app (pkt);
+    free_pkt (pkt);
+    return SATR_ERROR;
+  }
+  if (C_ASSERT(pkt->app_id >= LAST_APP_ID || pkt->dest_id >= LAST_APP_ID)) {
+    verification_app (pkt);
+    free_pkt (pkt);
+    return SATR_ERROR;
+  }
 
   if (pkt->type == TC) {
     id = pkt->app_id;
@@ -76,13 +88,7 @@ route_pkt (tc_tm_pkt *pkt)
     return SATR_ERROR;
   }
 
-  if( id == SYSTEM_APP_ID &&
-               pkt->ser_type == TC_HOUSEKEEPING_SERVICE &&
-               pkt->ser_subtype == TM_HK_PARAMETERS_REPORT &&
-               pkt->data[0] == WOD_REP) {
-    tx_ecss(pkt);
-  }
-  else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
+  if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
     res = hk_app (pkt);
   }
@@ -124,6 +130,9 @@ route_pkt (tc_tm_pkt *pkt)
   else if (id == DBG_APP_ID) {
     queuePush (pkt, OBC_APP_ID);
   }
+
+  verification_app (pkt);
+  free_pkt (pkt);
   return SATR_OK;
 }
 
