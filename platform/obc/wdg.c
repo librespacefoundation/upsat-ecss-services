@@ -3,6 +3,9 @@
 #include <stdbool.h>
 #include "obc_hal.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 12
+
 static struct _wdg_state wdg;
 
 void wdg_INIT() {

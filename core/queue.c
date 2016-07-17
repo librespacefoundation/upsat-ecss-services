@@ -2,6 +2,9 @@
 
 #include "pkt_pool.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 34
+
 struct _queue {
     tc_tm_pkt *fifo[POOL_PKT_TOTAL_SIZE];
     uint8_t head;

@@ -9,7 +9,7 @@
  * (some restrictions apply)
  */
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 6
 
 #include "scheduling_service.h"
 

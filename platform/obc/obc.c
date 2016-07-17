@@ -9,7 +9,7 @@
 #include "su_mnlp.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 15
 
 extern SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 

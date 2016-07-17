@@ -1,5 +1,8 @@
 #include "sysview.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 32
+
 #if(SYSVIEW == 1)
 
 SEGGER_SYSVIEW_MODULE PKT_POOL_module = {

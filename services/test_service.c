@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 #undef __FILE_ID__
-#define __FILE_ID__ 9
+#define __FILE_ID__ 3
 
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 

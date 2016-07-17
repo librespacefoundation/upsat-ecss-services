@@ -3,8 +3,7 @@
 extern RTC_HandleTypeDef hrtc;
 
 #undef __FILE_ID__
-#define __FILE_ID__ 13
-
+#define __FILE_ID__ 30
 
 SAT_returnState HAL_takeMutex(TC_TM_app_id app_id) {
   return SATR_OK;
