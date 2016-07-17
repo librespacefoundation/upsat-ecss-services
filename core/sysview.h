@@ -61,9 +61,14 @@
 #define traceIMPORT(ID) SEGGER_SYSVIEW_RecordU32(ID_IMPORT + COMMS_module.EventOffset, ID)
 #define traceEXPORT(ID) SEGGER_SYSVIEW_RecordU32(ID_EXPORT + COMMS_module.EventOffset, ID)
 
+#define ID_ASSERTION  0
+
+#define traceASSERTION(FID, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_IMPORT + COMMS_module.EventOffset, FID, LINE)
+
 extern SEGGER_SYSVIEW_MODULE PKT_POOL_module;
 extern SEGGER_SYSVIEW_MODULE MS_module
 extern SEGGER_SYSVIEW_MODULE COMMS_module;
+extern SEGGER_SYSVIEW_MODULE ASSERTION_module;
 
 void sysview_init();
 
@@ -87,6 +92,10 @@ void sysview_init();
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
+
+
+#define traceASSERTION(FID, LINE) ;
+
 
 #endif
 
