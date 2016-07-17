@@ -23,7 +23,7 @@ SAT_returnState event_app(tc_tm_pkt * pkt) {
 
     if(!C_ASSERT(ev_id < LAST_EV_EVENT) == true) { return SATR_ERROR; }
 
-    event_log(pkt->data, EV_DATA_SIZE);
+    //event_log(pkt->data, EV_DATA_SIZE);
 
     return SATR_OK;
 }

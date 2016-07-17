@@ -61,6 +61,8 @@ struct _subs_last_comm {
     uint32_t last_com_eps;
 };
 
+void sys_refresh();
+
 void uart_killer(TC_TM_app_id app_id, struct uart_data *data, uint32_t time);
 
 SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data);
