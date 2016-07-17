@@ -1,7 +1,7 @@
 #include "gps.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 37
 
 SAT_returnState gps_parse_fields(uint8_t *buf, const uint8_t size,  uint8_t (*res)[NMEA_MAX_FIELDS][NMEA_MAX_FIELD_SIZE]) {
 

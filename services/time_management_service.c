@@ -3,7 +3,7 @@
 #include "pkt_pool.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 14
+#define __FILE_ID__ 2
 
 extern void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
 extern void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);

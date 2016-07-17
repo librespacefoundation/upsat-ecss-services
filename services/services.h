@@ -343,7 +343,7 @@ typedef enum {
     LAST_TIME_ID        = 5
 }TIME_MAN_MODE;
 
-#define C_ASSERT(e)    ((e) ? (true) : (tst_debugging((uint8_t *)__FILE__, __FILE_ID__, __LINE__, #e))) 
+#define C_ASSERT(e)    ((e) ? (true) : (tst_debugging(, __FILE_ID__, __LINE__, #e))) 
 
 union _cnv {
     double cnvD;

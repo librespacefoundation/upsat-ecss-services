@@ -13,6 +13,9 @@ extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart6;
 extern TaskHandle_t xTask_UART;
 
+#undef __FILE_ID__
+#define __FILE_ID__ 17
+
 struct _uart_timeout
 {
     uint32_t su;

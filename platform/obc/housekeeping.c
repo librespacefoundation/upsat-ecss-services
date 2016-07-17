@@ -7,7 +7,7 @@
 #include "stm32f4xx_hal.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 16
 
 extern UART_HandleTypeDef huart3;
 

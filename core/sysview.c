@@ -1,5 +1,8 @@
 #include "sysview.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 32
+
 #if(SYSVIEW == 1)
 
 SEGGER_SYSVIEW_MODULE PKT_POOL_module = {
@@ -45,10 +48,21 @@ SEGGER_SYSVIEW_MODULE COMMS_module = {
     // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
 };
 
+SEGGER_SYSVIEW_MODULE ASSERTION_module = {
+    "M=ASSERTION, " \
+    "0 ASSERTION ID=%u,%u,%u",
+    1, // NumEvents
+    0,
+    // EventOffset, Set by SEGGER_SYSVIEW_RegisterModule() NULL,
+    // pfSendModuleDesc, NULL: No additional module description NULL,
+    // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
+};
+
 void sysview_init() {
     SEGGER_SYSVIEW_RegisterModule(&PKT_POOL_module);
     SEGGER_SYSVIEW_RegisterModule(&MS_module);
     SEGGER_SYSVIEW_RegisterModule(&COMMS_module);
+    SEGGER_SYSVIEW_RegisterModule(&ASSERTION_module);
 }
 
 #else

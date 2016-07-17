@@ -8,7 +8,7 @@
 extern comms_rf_stat_t comms_stats;
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 24
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
 

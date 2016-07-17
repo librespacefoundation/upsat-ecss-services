@@ -5,7 +5,7 @@
 #include "uart_hal.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 3
+#define __FILE_ID__ 33
 
 extern uint8_t uart_temp[];
 

@@ -6,7 +6,7 @@
 #include "eps_non_volatile_mem_handling.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 20
 
 extern EPS_State eps_board_state;
 extern EPS_PowerModule power_module_top, power_module_bottom, power_module_left, power_module_right;

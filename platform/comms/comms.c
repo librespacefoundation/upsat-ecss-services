@@ -12,7 +12,7 @@
 #include "stats.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 666
+#define __FILE_ID__ 25
 
 extern SAT_returnState
 verification_app (tc_tm_pkt *pkt);

@@ -22,7 +22,7 @@ extern osMessageQId queueEPS;
 extern TaskHandle_t xTask_UART;
 
 #undef __FILE_ID__
-#define __FILE_ID__ 13
+#define __FILE_ID__ 18
 
 void wake_uart_task() {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;

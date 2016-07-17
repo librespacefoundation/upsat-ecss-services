@@ -6,7 +6,7 @@
 #include "verification_service.h"
 
 #undef __FILE_ID__
-#define __FILE_ID__ 1
+#define __FILE_ID__ 31
 
 #define HOUR 360000
 
@@ -82,4 +82,18 @@ void uart_killer(TC_TM_app_id app_id, struct uart_data *data, uint32_t time) {
             data->init_time = time;
         }
     }
+}
+
+/**
+ * @brief      This function should be called every 2 mins in order to refresh the timeout timer of the EPS.
+ *             In case the subsystem fails to send a correct packet within of 10m, the EPS will reset the subsystem.
+ */
+void sys_refresh() {
+
+    tc_tm_pkt *temp_pkt = 0;
+
+    test_crt_pkt(&temp_pkt, EPS_APP_ID);
+    if(!C_ASSERT(temp_pkt != NULL) == true) { return ; }
+
+    route_pkt(temp_pkt);
 }

@@ -39,7 +39,7 @@
 #define LOGS_LIST_SIZE          10
 
 #undef __FILE_ID__
-#define __FILE_ID__ 8
+#define __FILE_ID__ 7
 
 #define MS_ERR(res);    ms_debugging(res, __LINE__); \
                         return res + SATRF_OK;

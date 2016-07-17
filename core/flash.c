@@ -1,6 +1,9 @@
 #include "flash.h"
 #include "stm32f4xx_hal.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 38
+
 #define SECTOR_3_SIZE	   0x1000
 
 #define TRANSMIT_VAR_ADD   0x0800C000
