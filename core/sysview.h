@@ -1,7 +1,7 @@
 #ifndef __SYSVIEW_H
 #define __SYSVIEW_H
 
-#define SYSVIEW  0 /* define as 1 if you want to use systemview */
+#define SYSVIEW  1 /* define as 1 if you want to use systemview */
 
 #if(SYSVIEW == 1)
 
@@ -63,10 +63,10 @@
 
 #define ID_ASSERTION  0
 
-#define traceASSERTION(FID, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_IMPORT + COMMS_module.EventOffset, FID, LINE)
+#define traceASSERTION(FID, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_ASSERTION + ASSERTION_module.EventOffset, FID, LINE)
 
 extern SEGGER_SYSVIEW_MODULE PKT_POOL_module;
-extern SEGGER_SYSVIEW_MODULE MS_module
+extern SEGGER_SYSVIEW_MODULE MS_module;
 extern SEGGER_SYSVIEW_MODULE COMMS_module;
 extern SEGGER_SYSVIEW_MODULE ASSERTION_module;
 
@@ -92,7 +92,6 @@ void sysview_init();
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
-
 
 #define traceASSERTION(FID, LINE) ;
 

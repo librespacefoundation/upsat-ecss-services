@@ -600,14 +600,14 @@ SAT_returnState mass_storage_FORMAT() {
     FRESULT res;
 
     /*resets pointers*/
-    *obc_data.fs_su_head = 0;
-    *obc_data.fs_su_tail = 0;
-    *obc_data.fs_wod_head = 0;
-    *obc_data.fs_wod_tail = 0;
-    *obc_data.fs_ext_head = 0;
-    *obc_data.fs_ext_tail = 0;
-    *obc_data.fs_ev_head = 0;
-    *obc_data.fs_ev_tail = 0;
+    *obc_data.fs_su_head = 1;
+    *obc_data.fs_su_tail = 1;
+    *obc_data.fs_wod_head = 1;
+    *obc_data.fs_wod_tail = 1;
+    *obc_data.fs_ext_head = 1;
+    *obc_data.fs_ext_tail = 1;
+    *obc_data.fs_ev_head = 1;
+    *obc_data.fs_ev_tail = 1;
 
     for(uint8_t i = 0; i < 5; i++ ) {
 
@@ -816,8 +816,8 @@ SAT_returnState mass_storage_delete_api(MS_sid sid, uint16_t to, MS_mode mode) {
     else if(sid == EVENT_LOG)   { head = obc_data.fs_ev_head;  tail = obc_data.fs_ev_tail; }
 
     if(mode == DELETE_ALL) {
-        *head = 0;
-        *tail = 0;
+        *head = 1;
+        *tail = 1;
     } else {
 
         uint16_t files_num = *head - *tail;
@@ -859,8 +859,8 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
     FILINFO fno_head;
     FILINFO fno_tail;
 
-    uint16_t *head = 0;
-    uint16_t *tail = 0;
+    uint16_t head = 0;
+    uint16_t tail = 0;
 
     uint8_t f_head[MS_MAX_PATH];
     uint8_t f_tail[MS_MAX_PATH];
@@ -884,31 +884,45 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
         else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
         else if(sid == SU_LOG) {
 
-            head = obc_data.fs_su_head;
-            tail = obc_data.fs_su_tail;
-            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_SU_LOG, *head); 
-            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_SU_LOG, *tail);
+            head = *obc_data.fs_su_head;
+            tail = *obc_data.fs_su_tail + 1;
+            if(tail > MS_MAX_FILES) {
+                tail = 1;
+            }
+
+            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_SU_LOG, head); 
+            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_SU_LOG, tail);
 
         } else if(sid == WOD_LOG) {
 
-            head = obc_data.fs_su_head;
-            tail = obc_data.fs_su_tail;
-            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, *head); 
-            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, *tail);
+            head = *obc_data.fs_wod_head;
+            tail = *obc_data.fs_wod_tail + 1;
+            if(tail > MS_MAX_FILES) {
+                tail = 1;
+            }
+            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, head); 
+            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, tail);
 
         } else if(sid == EXT_WOD_LOG) {
 
-            head = obc_data.fs_ext_head;
-            tail = obc_data.fs_ext_tail;
-            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, *head); 
-            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, *tail);
+            head = *obc_data.fs_ext_head;
+            tail = *obc_data.fs_ext_tail + 1;
+            if(tail > MS_MAX_FILES) {
+                tail = 1;
+            }
+
+            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, head); 
+            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, tail);
 
         } else if(sid == EVENT_LOG) {
 
-            head = obc_data.fs_ev_head;
-            tail = obc_data.fs_ev_tail;
-            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, *head); 
-            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, *tail); 
+            head = *obc_data.fs_ev_head;
+            tail = *obc_data.fs_ev_tail + 1;
+            if(tail > MS_MAX_FILES) {
+                tail = 1;
+            }
+            snprintf((char*)f_head, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, head); 
+            snprintf((char*)f_tail, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, tail); 
         }
         else { return SATR_ERROR; }
 
@@ -936,7 +950,7 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
 
         } else if(sid <= EVENT_LOG) {
 
-            uint16_t files_num = *head - *tail;
+            uint16_t files_num = head - tail + 1;
 
             cnv16_8(files_num, &buf[(*size)]);
             *size += sizeof(uint16_t);
@@ -956,7 +970,7 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
                 fno_tail.ftime = 0;
             }
 
-            cnv16_8(*tail, &buf[(*size)]);
+            cnv16_8(tail, &buf[(*size)]);
             *size += sizeof(uint16_t);
 
             cnv32_8(fno_tail.fsize, &buf[(*size)]);
@@ -968,7 +982,7 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
             cnv16_8(fno_tail.ftime, &buf[(*size)]);
             *size += sizeof(uint16_t);
 
-            cnv16_8(*head, &buf[(*size)]);
+            cnv16_8(head, &buf[(*size)]);
             *size += sizeof(uint16_t);
 
             cnv32_8(fno_head.fsize, &buf[(*size)]);
@@ -1007,7 +1021,6 @@ uint16_t get_filePos(MS_sid sid, uint16_t rel_pos) {
 
     abs_pos = *tail + rel_pos;
 
-    if(!C_ASSERT(abs_pos <= *head) == true) { return 0; }
     if(abs_pos > MS_MAX_FILES) { abs_pos -= MS_MAX_FILES; }
 
     return abs_pos;
@@ -1018,10 +1031,10 @@ uint16_t get_new_fileId(MS_sid sid) {
     uint16_t *head = 0;
     uint16_t *tail = 0;
 
-    if(!C_ASSERT(sid == SU_LOG || \
-                 sid == WOD_LOG || \
-                 sid == EXT_WOD_LOG || \
-                 sid == EVENT_LOG || \
+    if(!C_ASSERT(sid == SU_LOG ||
+                 sid == WOD_LOG ||
+                 sid == EXT_WOD_LOG ||
+                 sid == EVENT_LOG ||
                  sid == FOTOS) == true) { return 0; }
 
     if(sid == SU_LOG)           { head = obc_data.fs_su_head;  tail = obc_data.fs_su_tail; }

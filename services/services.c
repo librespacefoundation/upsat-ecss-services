@@ -1,4 +1,5 @@
 #include "services.h"
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 4
@@ -31,7 +32,7 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
 
 uint8_t tst_debugging(uint16_t fi, uint32_t l, char *e) {
 
-  traceASSERTION(FID, LINE);
+  traceASSERTION(fi, l);
 
   return false;
 }
