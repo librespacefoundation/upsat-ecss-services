@@ -59,7 +59,6 @@ static struct _MS_data MS_data = { .enabled = true, \
 void ms_debugging(FRESULT res, uint16_t l) {
 
     MS_data.last_err = res;
-    event_ms_err(res, l);
 
 }
 
@@ -138,7 +137,12 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
                     HAL_sys_delay(1);
                 }
             }
+        } else if(mode == FATFS_RESET) {
+
+            res = mass_storage_FATFS_RESET();
+
         } else {
+
 
             cnv8_16(&pkt->data[2], &to);
 
@@ -591,6 +595,22 @@ SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, const uint16_t dest_id, con
     *pkt = get_pkt(size);
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
     crt_pkt(*pkt, OBC_APP_ID, TM, TC_ACK_NO, TC_MASS_STORAGE_SERVICE, 0, dest_id); //what dest_id ?
+
+    return SATR_OK;
+}
+
+SAT_returnState mass_storage_FATFS_RESET() {
+    FRESULT res;
+
+    MS_data.enabled = false;
+    res = f_mount(0, "", 0);
+
+    HAL_Delay(1);
+
+    res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
+
+    if(res != FR_OK)    { MS_ERR(res); }    
+    MS_data.enabled = true;
 
     return SATR_OK;
 }

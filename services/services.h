@@ -308,7 +308,8 @@ typedef enum {
     NO_MODE     = 5,
     HARD_DELETE = 6,
     DELETE_ALL  = 7,
-    LAST_MODE   = 8
+    FATFS_RESET = 8,
+    LAST_MODE   = 9
 }MS_mode;
 
 typedef enum {  
