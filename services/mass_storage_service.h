@@ -50,6 +50,7 @@ SAT_returnState mass_storage_crtPkt(tc_tm_pkt **pkt, const uint16_t dest_id, con
 
 SAT_returnState mass_storage_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subtype);
 
+SAT_returnState mass_storage_FATFS_RESET();
 
 SAT_returnState mass_storage_FORMAT();
 
