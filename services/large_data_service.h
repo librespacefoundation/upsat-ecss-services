@@ -7,29 +7,35 @@
 #define LD_PKT_DATA             195 /*MAX_PKT_DATA - LD_PKT_DATA_HDR_SIZE*/
 #define LD_PKT_DATA_HDR_SIZE    3
 
-#define LD_TIMEOUT              8000 /*sec*/
+#define LD_TIMEOUT              4000
 
-#define LD_MAX_TRANSFER_TIME    60000 /*60 seconds */
+#define LD_MAX_TRANSFER_TIME    30000
 
+/**
+ * The different states of the Large data stae machine
+ */
 typedef enum {
-    LD_STATE_FREE           = 1,
-    LD_STATE_RECEIVING      = 2,
-    LD_STATE_TRANSMITING    = 3,
-    LD_STATE_REPORT         = 4,
-    LD_STATE_DOWNLINK       = 5,
-    LD_STATE_RECV_OK        = 6,
-    LAST_STATE              = 7
+    LD_STATE_FREE           = 1,//!< LD_STATE_FREE No large data activity
+    LD_STATE_RECEIVING      = 2,//!< LD_STATE_RECEIVING the large data FSM receives data
+    LD_STATE_TRANSMITING    = 3,//!< LD_STATE_TRANSMITING the large data FSM transmits data
+    LD_STATE_REPORT         = 4,//!< LD_STATE_REPORT ???
+    LD_STATE_DOWNLINK       = 5,//!< LD_STATE_DOWNLINK ???
+    LD_STATE_RECV_OK        = 6,//!< LD_STATE_RECV_OK the large data FSM successfully received the last frame
+    LAST_STATE              = 7 //!< LAST_STATE
 }LD_states;
 
+/**
+ * Status of the large data transfer
+ */
 struct _ld_status {
-    LD_states state;        /*service state machine, state variable*/
-    TC_TM_app_id app_id;    /*destination app id*/
-    uint8_t ld_num;         /**/
-    uint32_t timeout;       /**/
-    uint8_t started;        /**/
+    LD_states state;        		/**< Service state machine, state variable*/
+    TC_TM_app_id app_id;    		/**< Destination app id */
+    uint8_t ld_num;         		/**< Sequence number of last fragmented packet stored */
+    uint32_t timeout;       		/**< Time of last large data action */
+    uint32_t started;                   /**< Time that the large data transfer started */
 
-    uint8_t buf[MAX_PKT_DATA];         /**/
-    uint16_t rx_size;         /**/
+    uint8_t buf[MAX_PKT_EXT_DATA]; 	/**< Buffer that holds the sequential fragmented packets */
+    uint16_t rx_size;         		/**< The number of bytes stored already in the buffer */
     uint8_t rx_lid;         /**/
     uint8_t tx_lid;         /**/
     uint8_t tx_pkt;         /**/
