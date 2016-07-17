@@ -25,6 +25,12 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     SAT_returnState res;    
     SAT_returnState res_deframe;
 
+    /*for debug only and then erase*/
+    //tc_tm_pkt *pkt;
+   // route_pkt(pkt);
+   // hk_report_parameters(HEALTH_REP, pkt);
+
+
     res = HAL_uart_rx(app_id, data);
     if( res == SATR_EOT ) {
         
