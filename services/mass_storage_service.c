@@ -1018,10 +1018,10 @@ uint16_t get_new_fileId(MS_sid sid) {
     uint16_t *head = 0;
     uint16_t *tail = 0;
 
-    if(!C_ASSERT(sid == SU_LOG || \
-                 sid == WOD_LOG || \
-                 sid == EXT_WOD_LOG || \
-                 sid == EVENT_LOG || \
+    if(!C_ASSERT(sid == SU_LOG ||
+                 sid == WOD_LOG ||
+                 sid == EXT_WOD_LOG ||
+                 sid == EVENT_LOG ||
                  sid == FOTOS) == true) { return 0; }
 
     if(sid == SU_LOG)           { head = obc_data.fs_su_head;  tail = obc_data.fs_su_tail; }
