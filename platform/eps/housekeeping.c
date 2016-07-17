@@ -4,7 +4,6 @@
 #include "eps_configuration.h"
 #include "eps_power_module.h"
 #include "eps_non_volatile_mem_handling.h"
-#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 20
@@ -20,7 +19,7 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
 uint8_t wod_test[6] = { 1,2,3,4,5,6 };
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
-
+    
 
  	/*EPS housekeeping WOD
 	 * the order of transmission is:
@@ -117,7 +116,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         /*packet length*/
         pkt->len = 7;
-        SYSVIEW_PRINT("EPS %u,%u,%u,%u,%u,%u", pkt->data[1], pkt->data[2], pkt->data[3], pkt->data[4], pkt->data[5],  pkt->data[6]);
 
     } else if(sid == EX_HEALTH_REP) {
 
@@ -183,6 +181,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         /*edo vale fash*/
         pkt->len = size;
+
     }
 
     return SATR_OK;
