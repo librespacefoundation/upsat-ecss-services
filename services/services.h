@@ -229,17 +229,12 @@ typedef enum {
 #define TC_SU_SCHE_OFF                  26 //subservice 25
 
 /*TIME MANAGEMENT SERVICE*/
-#define TM_TIME_SET_TIME_UTC            1 //subservice 1
-#define TM_TIME_SET_TIME_QB50           2 //subservice 2
-#define TM_REPORT_TIME_IN_UTC           3 //subservice 3
-#define TM_REPORT_TIME_IN_QB50          4 //subservice 4
-
-
-/* Definitions for debugging messages levels
- * Set the definitions for which you don't want
- * debugging verbosity to 0 (zero), (the pre-processor will parse them completely out)
- */
-#define nMNLP_DEBUGGING_ACTIVE 1
+#define TM_TIME_SET_IN_UTC              1 //subservice 1
+#define TM_TIME_SET_IN_QB50             2 //subservice 2
+#define TM_REPORT_TIME_IN_UTC           3 //subservice 3, Telecommand to report time in UTC
+#define TM_REPORT_TIME_IN_QB50          4 //subservice 4, Telecommand to report time in QB50
+#define TM_TIME_REPORT_IN_UTC           5 //subservice 5, Telemetry response time in UTC
+#define TM_TIME_REPORT_IN_QB50          6 //subservice 6, Telemetry response time in QB50
 
 typedef enum {
     HEALTH_REP      = 1,
