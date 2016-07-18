@@ -7,10 +7,8 @@
 
 extern void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
 extern void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);
-
-extern void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year);
-extern void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year);
-
+extern void HAL_sys_setDate(uint8_t weekday, uint8_t mon, uint8_t date, uint8_t year);
+extern void HAL_sys_getDate(uint8_t *weekday, uint8_t *mon, uint8_t *date, uint8_t *year);
 extern uint32_t HAL_sys_GetTick();
 
 static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    
@@ -50,81 +48,176 @@ const uint32_t UTC_QB50_H[25] =
 
 SAT_returnState time_management_app(tc_tm_pkt *pkt){
     
-    TIME_MAN_MODE t_set_mode;
-    
+    uint8_t ser_subtype;
     uint32_t time_value;
     struct time_utc temp_time;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 	
-    t_set_mode = (TIME_MAN_MODE) pkt->ser_subtype;
+    ser_subtype = pkt->ser_subtype;
     
-    if(!C_ASSERT(t_set_mode < LAST_TIME_ID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(ser_subtype == TM_TIME_SET_IN_UTC     ||\
+                 ser_subtype == TM_TIME_SET_IN_QB50    ||\
+                 ser_subtype == TM_REPORT_TIME_IN_QB50 ||\
+                 ser_subtype == TM_REPORT_TIME_IN_UTC  ||\
+                 ser_subtype == TM_TIME_REPORT_IN_UTC  ||\
+                 ser_subtype == TM_TIME_REPORT_IN_QB50 ) == true) { return SATR_ERROR; }
     
-    if( t_set_mode == SET_DTIME_QB50){
+    if( ser_subtype == TM_TIME_SET_IN_QB50){
         /*set time from 2000 epoch*/
     }
-    else if( t_set_mode == SET_DTIME_UTC ){
-        /*set time in utc mode*/
-        temp_time.day = pkt->data[0];  temp_time.month = pkt->data[1];
-        temp_time.year = pkt->data[2]; temp_time.hour = pkt->data[3];
-        temp_time.min = pkt->data[4];  temp_time.sec = pkt->data[5];
+    else
+    if( ser_subtype == TM_TIME_SET_IN_UTC){
+        /*set time in utc mode*/        
+        if(!(C_ASSERT(pkt->data[0]>= 1)&&C_ASSERT(pkt->data[0] < 8)) == true)  { return SATR_ERROR; } /*weekday1to7*/
+        if(!(C_ASSERT(pkt->data[1] > 0)&&C_ASSERT(pkt->data[1] < 32)) == true) { return SATR_ERROR; } /*day1to31*/
+        if(!(C_ASSERT(pkt->data[2] > 0)&&C_ASSERT(pkt->data[2] < 13)) == true) { return SATR_ERROR; } /*month1to12*/
+        if(!(C_ASSERT(pkt->data[3]>= 0)&&C_ASSERT(pkt->data[3] < 100)) == true){ return SATR_ERROR; } /*year0to99*/
+        if(!(C_ASSERT(pkt->data[4]>= 0)&&C_ASSERT(pkt->data[4] < 24)) == true) { return SATR_ERROR; } /*hours0to23*/
+        if(!(C_ASSERT(pkt->data[5]>= 0)&&C_ASSERT(pkt->data[5] < 60)) == true) { return SATR_ERROR; } /*minutes0to59*/
+        if(!(C_ASSERT(pkt->data[6]>= 0)&&C_ASSERT(pkt->data[6] < 60)) == true) { return SATR_ERROR; } /*seconds0to59*/
+        temp_time.weekday = pkt->data[0];
+        temp_time.day = pkt->data[1];  temp_time.month = pkt->data[2];
+        temp_time.year = pkt->data[3]; temp_time.hour = pkt->data[4];
+        temp_time.min = pkt->data[5];  temp_time.sec = pkt->data[6];
         set_time_UTC(temp_time);
         pkt->verification_state = SATR_OK;
     }
-    else if( t_set_mode == REPORT_TIME_IN_QB50 ){
-        tc_tm_pkt *time_rep_pkt = 0;
-//        get_time_QB50(&time_value);
+    else
+    if( ser_subtype == TM_REPORT_TIME_IN_QB50){
+        
+        tc_tm_pkt *time_rep_pkt = get_pkt(PKT_NORMAL);
         /*make the packet to send*/
-        time_management_report_in_qb50(&time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
+        time_management_report_time_in_qb50( time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
         
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }
-    else if( t_set_mode == REPORT_TIME_IN_UTC){
-        tc_tm_pkt *time_rep_pkt = 0;
-//        get_time_UTC(&temp_time);        
-        /*make the packet to send*/
-        time_management_report_in_utc(&time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
+    else
+    if( ser_subtype == TM_REPORT_TIME_IN_UTC){
+        
+        tc_tm_pkt *time_rep_pkt = get_pkt(PKT_NORMAL);
+        time_management_report_time_in_utc( time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
         
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
+    }
+    else
+    if( ser_subtype == TM_TIME_REPORT_IN_UTC){
+        /* time report from a time_management_service implementor in UTC format exists here,
+         * user should implement his own code to handle the time report response*/
+        uint8_t stop_here=0;
+    }
+    else
+    if( ser_subtype == TM_TIME_REPORT_IN_QB50){
+        /*time report from a time_management_service implementor in QB50 format exists here,
+         * user should implement his own code to handle the time report response*/
+        uint8_t stop_here=0;
     }
     
     return SATR_OK;
 }
 
-SAT_returnState time_management_report_in_qb50(tc_tm_pkt **pkt, TC_TM_app_id dest_id) {
+/**
+ * Reports time in QB50 epoch format (seconds from 2000)
+ * @param pkt
+ * @param dest_id
+ * @return 
+ */
+SAT_returnState time_management_report_time_in_qb50(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
 
     uint32_t qb_temp_secs = 0;
-    
-    *pkt = get_pkt(PKT_NORMAL);
-    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
-    get_time_QB50(&qb_temp_secs);
-    
-    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_QB50, dest_id);
-    
-    cnv32_8(qb_temp_secs, (*pkt)->data);
-    (*pkt)->len = 4;
+//    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+    get_time_QB50(&qb_temp_secs);    
+    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_TIME_REPORT_IN_QB50, dest_id);
+    cnv32_8(qb_temp_secs, pkt->data);
+    pkt->len = 4;
     return SATR_OK;
 }
 
-SAT_returnState time_management_report_in_utc(tc_tm_pkt **pkt, TC_TM_app_id dest_id) {
+/**
+ * Reports the time in UTC format.
+ * @param pkt
+ * @param dest_id
+ * @return 
+ */
+SAT_returnState time_management_report_time_in_utc(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
 
     struct time_utc temp_time;
-    
-    *pkt = get_pkt(PKT_NORMAL);
-    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+//    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
     get_time_UTC(&temp_time);
-    crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_REPORT_TIME_IN_UTC, dest_id);
+    time_management_crt_pkt_TM(pkt, TM_TIME_REPORT_IN_UTC, dest_id);
+    pkt->data[0] = temp_time.weekday;
+    pkt->data[1] = temp_time.day;
+    pkt->data[2] = temp_time.month;
+    pkt->data[3] = temp_time.year;
+    pkt->data[4] = temp_time.hour;
+    pkt->data[5] = temp_time.min;
+    pkt->data[6] = temp_time.sec;
+    pkt->len = 7;
+
+    return SATR_OK;
+}
+
+/**
+ * Requests time in UTC format from a time_management_service implementor.
+ * @param dest_id is the on-board time_management service implementor to request time from.
+ * @return 
+ */
+SAT_returnState time_management_request_time_in_utc( TC_TM_app_id dest_id){
     
-    (*pkt)->data[0] = temp_time.day;
-    (*pkt)->data[1] = temp_time.month;
-    (*pkt)->data[2] = temp_time.year;
-    (*pkt)->data[3] = temp_time.hour;
-    (*pkt)->data[4] = temp_time.min;
-    (*pkt)->data[5] = temp_time.sec;
-    (*pkt)->len = 6;
+    tc_tm_pkt *time_req_pkt;
+    time_req_pkt = get_pkt(PKT_NORMAL);
+    
+    if(!C_ASSERT( time_req_pkt != NULL) == true) { return SATR_ERROR; }
+    time_management_crt_pkt_TC(time_req_pkt, TM_REPORT_TIME_IN_UTC, dest_id ); 
+    route_pkt(time_req_pkt); 
+    return SATR_OK;
+}
+
+/** 
+ * Forces time update in UTC format to a time_management_service implementor.
+ * @param dest_id is the on-board time_management service implementor to force time update on.
+ * @return 
+ */
+SAT_returnState time_management_force_time_update( TC_TM_app_id dest_id){
+    
+    struct time_utc temp_time;    
+    tc_tm_pkt *time_req_pkt;
+    time_req_pkt = get_pkt(PKT_NORMAL);
+    
+    get_time_UTC(&temp_time);
+    if(!C_ASSERT( time_req_pkt != NULL) == true) { return SATR_ERROR; }
+    
+    time_management_crt_pkt_TM(time_req_pkt, TM_TIME_SET_IN_UTC, dest_id );
+    (time_req_pkt)->data[0] = temp_time.day;
+    (time_req_pkt)->data[1] = temp_time.month;
+    (time_req_pkt)->data[2] = temp_time.year;
+    (time_req_pkt)->data[3] = temp_time.hour;
+    (time_req_pkt)->data[4] = temp_time.min;
+    (time_req_pkt)->data[5] = temp_time.sec;
+    (time_req_pkt)->len = 6;
+    
+    route_pkt(time_req_pkt);
+    return SATR_OK;
+}
+
+SAT_returnState time_management_crt_pkt_TC(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id){
+
+    if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
+    crt_pkt(pkt, dest_app_id, TC, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, sid, SYSTEM_APP_ID);
+    pkt->len = 0;
+
+    return SATR_OK;
+}
+
+SAT_returnState time_management_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id){
+
+    if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
+    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, sid, dest_app_id);
+    pkt->len = 0;
 
     return SATR_OK;
 }
@@ -140,52 +233,60 @@ SAT_returnState cnv_utc_to_secs( struct time_utc *moment, uint32_t *daysecs ){ /
     if(!C_ASSERT( moment->hour >= 0  && moment->hour <= 24 ) == true) { return SATR_ERROR; }
     if(!C_ASSERT( moment->min  >= 0  && moment->min  <= 60 ) == true) { return SATR_ERROR; }
     if(!C_ASSERT( moment->sec  >= 0  && moment->sec  <= 60 ) == true) { return SATR_ERROR; }
-    *daysecs = ( moment->hour * 3600 ) +
-               ( moment->min  * 60   ) +
-               ( moment->sec);
+     *daysecs = ( moment->hour * 3600 ) +
+                ( moment->min  * 60   ) +
+                ( moment->sec);
     
     return SATR_OK;
 }
 
-void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb) {
+void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb){
     
-    *qb = (UTC_QB50_YM[utc.year][utc.month] + 
+    *qb = (UTC_QB50_YM[utc.year][utc.month] +  
           UTC_QB50_D[utc.day]               + 
           UTC_QB50_H[utc.hour]              + 
-          (utc.min*60) + utc.sec) - UTC_QB50_D[1];  
+          (utc.min*60) + utc.sec) - UTC_QB50_D[1];
 }
 
-void set_time_QB50(uint32_t qb) {
-  
+void set_time_QB50(uint32_t qb){
+  /*no general meaning(?)*/
 }
 
-void set_time_UTC(struct time_utc utc) {
+void set_time_UTC(struct time_utc utc){
     
-    HAL_sys_setDate(utc.month, utc.day, utc.year);
+    /*call setTime BEFORE setDate (HAL bug(?))*/
     HAL_sys_setTime(utc.hour, utc.min, utc.sec);
+    HAL_sys_setDate(utc.weekday, utc.month, utc.day, utc.year);
 }
 
-void get_time_QB50(uint32_t *qb) {
+/**
+ * Fills the destination uint32_t pointer with
+ * QB50 epoch (seconds from 2000)
+ * @param qb
+ */
+void get_time_QB50(uint32_t *qb){
 
     struct time_utc utc;
     HAL_sys_getTime(&utc.hour, &utc.min, &utc.sec);
-    HAL_sys_getDate(&utc.month, &utc.day, &utc.year);
+    HAL_sys_getDate(&utc.weekday, &utc.month, &utc.day, &utc.year);
     cnv_UTC_QB50(utc, qb);
-
 }
 
-void get_time_UTC(struct time_utc *utc) {
+/**
+ * Returns time in QB50 epoch (seconds from 2000)
+ * @return 
+ */
+uint32_t return_time_QB50(){
+    struct time_utc utc;
+    uint32_t qb_secs;
+    HAL_sys_getTime(&utc.hour, &utc.min, &utc.sec);
+    HAL_sys_getDate(&utc.weekday, &utc.month, &utc.day, &utc.year);
+    cnv_UTC_QB50(utc, &qb_secs);
+    return qb_secs;
+}
+
+void get_time_UTC(struct time_utc *utc){
 
     HAL_sys_getTime(&utc->hour, &utc->min, &utc->sec);
-    HAL_sys_getDate(&utc->month, &utc->day, &utc->year);
-
-}
-
-uint32_t get_time_ELAPSED() {
-    return HAL_sys_GetTick();
-}
-
-/*works when the tick ovf*/
-uint32_t time_cmp_elapsed(uint32_t t1, uint32_t t2) {
-    return t2 - t1;
+    HAL_sys_getDate(&utc->weekday, &utc->month, &utc->day, &utc->year);
 }
