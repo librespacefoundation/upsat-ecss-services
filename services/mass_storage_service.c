@@ -60,6 +60,8 @@ void ms_debugging(FRESULT res, uint16_t l) {
 
     MS_data.last_err = res;
 
+    trace_MS_STORE_ERROR(res, l);
+
 }
 
 /**
@@ -75,13 +77,13 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT(pkt->ser_type == TC_MASS_STORAGE_SERVICE) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->ser_subtype == TC_MS_DISABLE || \
-                 pkt->ser_subtype == TC_MS_ENABLE || \
-                 pkt->ser_subtype == TC_MS_DELETE || \
-                 pkt->ser_subtype == TC_MS_FORMAT || \
-                 pkt->ser_subtype == TC_MS_REPORT || \
-                 pkt->ser_subtype == TC_MS_DOWNLINK || \
-                 pkt->ser_subtype == TC_MS_LIST || \
+    if(!C_ASSERT(pkt->ser_subtype == TC_MS_DISABLE ||
+                 pkt->ser_subtype == TC_MS_ENABLE ||
+                 pkt->ser_subtype == TC_MS_DELETE ||
+                 pkt->ser_subtype == TC_MS_FORMAT ||
+                 pkt->ser_subtype == TC_MS_REPORT ||
+                 pkt->ser_subtype == TC_MS_DOWNLINK ||
+                 pkt->ser_subtype == TC_MS_LIST ||
                  pkt->ser_subtype == TC_MS_UPLINK) == true) { return SATR_ERROR; }
 
     MS_sid sid = (MS_sid)pkt->data[0];
@@ -269,7 +271,6 @@ SAT_returnState mass_storage_hard_delete(MS_sid sid) {
         fn = (uint8_t*)fno.fname;
 
         uint32_t ret = strtol((char*)fn, NULL, 10);
-        
 
         sprintf(temp_path,"%s/%s", path, (char*)fn);
 
@@ -355,11 +356,18 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     //if(!C_ASSERT(*size > 0 && *size < _MAX_SS) == true) { return SATR_ERROR; }
     if(!C_ASSERT(sid <= SRAM) == true)              { return SATR_ERROR; }
 
-    if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, get_new_fileId(sid)); }
-    else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, get_new_fileId(sid)); }
-    else if(sid == EXT_WOD_LOG) { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, get_new_fileId(sid)); }
-    else if(sid == EVENT_LOG)   { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, get_new_fileId(sid)); }
-    else if(sid == FOTOS)       { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_FOTOS, get_new_fileId(sid)); }
+    if(sid == SU_LOG ||
+       sid == WOD_LOG ||
+       sid == EXT_WOD_LOG ||
+       sid == FOTOS) {
+        file = get_new_fileId(sid);
+    }
+
+    if(sid == SU_LOG)           { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SU_LOG, file); }
+    else if(sid == WOD_LOG)     { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_WOD_LOG, file); }
+    else if(sid == EXT_WOD_LOG) { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EXT_WOD_LOG, file); }
+    else if(sid == EVENT_LOG)   { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_EVENT_LOG, file); }
+    else if(sid == FOTOS)       { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_FOTOS, file); }
     else if(sid == SU_SCRIPT_1) { strncpy((char*)path, MS_SU_SCRIPT_1, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_2) { strncpy((char*)path, MS_SU_SCRIPT_2, MS_MAX_PATH); }
     else if(sid == SU_SCRIPT_3) { strncpy((char*)path, MS_SU_SCRIPT_3, MS_MAX_PATH); }
@@ -369,6 +377,8 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(sid == SU_SCRIPT_7) { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
     else { return SATR_ERROR; }
+
+    trace_MS_STORE_WRITE(file);
 
     if(sid <= SU_SCRIPT_7) {
         res = f_stat((char*)path, &fno);
