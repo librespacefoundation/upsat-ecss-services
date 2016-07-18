@@ -22,28 +22,22 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     tc_tm_pkt *pkt;
     uint16_t size = 0;
 
-    SAT_returnState res;    
+    SAT_returnState res;
     SAT_returnState res_deframe;
-
-    /*for debug only and then erase*/
-    //tc_tm_pkt *pkt;
-   // route_pkt(pkt);
-   // hk_report_parameters(HEALTH_REP, pkt);
-
 
     res = HAL_uart_rx(app_id, data);
     if( res == SATR_EOT ) {
-        
+
         size = data->uart_size;
         res_deframe = HLDLC_deframe(data->uart_unpkt_buf, data->deframed_buf, &size);
         if(res_deframe == SATR_EOT) {
-            
+
             data->last_com_time = HAL_sys_GetTick();/*update the last communication time, to be used for timeout discovery*/
 
             pkt = get_pkt(size);
 
-            if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }            
-            if((res = unpack_pkt(data->deframed_buf, pkt, size)) == SATR_OK) { route_pkt(pkt); } 
+            if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+            if((res = unpack_pkt(data->deframed_buf, pkt, size)) == SATR_OK) { route_pkt(pkt); }
             else { pkt->verification_state = res; }
             verification_app(pkt);
             free_pkt(pkt);

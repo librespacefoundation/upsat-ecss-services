@@ -19,7 +19,7 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
 uint8_t wod_test[6] = { 1,2,3,4,5,6 };
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
-    
+
 
  	/*EPS housekeeping WOD
 	 * the order of transmission is:
@@ -118,25 +118,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->len = 7;
 
 
-
-
-
-
-////////////////////////////////////////////////
-
-
-//    	cnv16_8( eps_board_state.battery_voltage, &pkt->data[1]);
-//    	cnv16_8( eps_board_state.battery_current_plus, &pkt->data[3]);
-//    	cnv16_8( eps_board_state.battery_current_minus, &pkt->data[5]);
-//    	cnv16_8( eps_board_state.v3_3_current_avg, &pkt->data[7]);
-//    	cnv16_8( eps_board_state.v5_current_avg, &pkt->data[9]);
-//    	pkt->data[11]  = (uint8_t)( eps_board_state.cpu_temperature);
-//    	pkt->data[12]  = (uint8_t)( eps_board_state.battery_temp);
-
-
-
-
-
     } else if(sid == EX_HEALTH_REP) {
 
         uint16_t size = 1;
@@ -201,7 +182,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         /*edo vale fash*/
         pkt->len = size;
-
     }
 
     return SATR_OK;

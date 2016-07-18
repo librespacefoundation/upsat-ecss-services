@@ -49,7 +49,7 @@
 //needs to redifine
 #define MAX_PKT_LEN         210 /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + MAX_PKT_DATA + ECSS_CRC_SIZE*/
 
-#define MAX_PKT_DATA        198 
+#define MAX_PKT_DATA        198
 #define TC_MAX_PKT_SIZE     210
 #define TC_MIN_PKT_SIZE     11 //12  /*ECSS_HEADER_SIZE + ECSS_DATA_HEADER_SIZE + ECSS_CRC_SIZE*/
 
@@ -62,7 +62,7 @@
 #define MAX_PKT_SIZE  2063
 #endif
 
-typedef enum {  
+typedef enum {
     OBC_APP_ID      = _OBC_APP_ID_,
     EPS_APP_ID      = _EPS_APP_ID_,
     ADCS_APP_ID     = _ADCS_APP_ID_,
@@ -73,7 +73,7 @@ typedef enum {
     LAST_APP_ID     = _LAST_APP_ID_
 }TC_TM_app_id;
 
-typedef enum {  
+typedef enum {
     SATR_PKT_ILLEGAL_APPID     = 0,
     SATR_PKT_INV_LEN           = 1,
     SATR_PKT_INC_CRC           = 2,
@@ -91,14 +91,14 @@ typedef enum {
     SATR_INV_STORE_ID          = 14,
     SATR_INV_DATA_LEN          = 15,
     /* Scheduling Service Error State Codes
-    * from 
+    * from
     */
     SATR_SCHEDULE_FULL         = 17, /* Schedule array is full */
     SATR_SSCH_ID_INVALID       = 18, /* Subschedule ID invalid */
     SATR_NMR_OF_TC_INVALID     = 19, /* Number of telecommands invalid */
     SATR_INTRL_ID_INVALID      = 20, /* Interlock ID invalid */
     SATR_ASS_INTRL_ID_INVALID  = 21, /* Assess Interlock ID invalid */
-    SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/        
+    SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/
     SATR_RLS_TIMET_ID_INVALID  = 23, /* Relese time type ID invalid */
     SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalid */
     SATR_TIME_INVALID          = 25, /* Release time of TC is invalid */
@@ -126,7 +126,7 @@ typedef enum {
     SATRF_NOT_ENOUGH_CORE      = 46, /* (17) LFN working buffer could not be allocated */
     SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
     SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
-    
+
     SATRF_DIR_ERROR            = 49,
 
     SATR_SD_DISABLED           = 50,
@@ -140,7 +140,7 @@ typedef enum {
 #define TC_HOUSEKEEPING_SERVICE         3
 #define TC_EVENT_SERVICE                5
 #define TC_FUNCTION_MANAGEMENT_SERVICE  8
-#define TC_TIME_MANAGEMENT_SERVICE      9 
+#define TC_TIME_MANAGEMENT_SERVICE      9
 #define TC_SCHEDULING_SERVICE           11
 #define TC_LARGE_DATA_SERVICE           13
 #define TC_MASS_STORAGE_SERVICE         15
@@ -281,7 +281,7 @@ typedef enum {
 }FM_dev_id;
 
 /*Mass storage ids*/
-typedef enum {  
+typedef enum {
     SU_SCRIPT_1     = 1,
     SU_SCRIPT_2     = 2,
     SU_SCRIPT_3     = 3,
@@ -299,7 +299,7 @@ typedef enum {
     LAST_SID        = 15
 }MS_sid;
 
-typedef enum {  
+typedef enum {
     ALL         = 0,
     TO          = 1,
     BETWEEN     = 2,
@@ -312,7 +312,7 @@ typedef enum {
     LAST_MODE   = 9
 }MS_mode;
 
-typedef enum {  
+typedef enum {
     SU_POWERED_OFF = 1,
     SU_POWERED_ON  = 2,
     SU_IDLE        = 3,
@@ -320,7 +320,7 @@ typedef enum {
     LAST_SU_STATE  = 5
 }SU_state;
 
-typedef enum {  
+typedef enum {
     EV_inc_pkt           = 1,
     EV_pkt_ack_er        = 2,
     EV_sys_boot          = 3,
@@ -344,7 +344,7 @@ typedef enum {
     LAST_TIME_ID        = 5
 }TIME_MAN_MODE;
 
-#define C_ASSERT(e)    ((e) ? (true) : (tst_debugging(__FILE_ID__, __LINE__, #e))) 
+#define C_ASSERT(e)    ((e) ? (true) : (tst_debugging(__FILE_ID__, __LINE__, #e)))
 
 union _cnv {
     double cnvD;
@@ -353,8 +353,6 @@ union _cnv {
     uint16_t cnv16[4];
     uint8_t cnv8[8];
 };
-
-
 
 extern void HAL_uart_tx(TC_TM_app_id app_id, uint8_t *buf, uint16_t size);
 extern SAT_returnState event_log(uint8_t *buf, const uint16_t size);
@@ -385,11 +383,11 @@ typedef struct {
     uint8_t *data; /* pkt data */
 
     /*this is not part of the header. it is used from the software and the verification service,
-     *when the packet wants ack. 
+     *when the packet wants ack.
      *the type is SAT_returnState and it either stores R_OK or has the error code (failure reason).
-     *it is initiazed as R_ERROR and the service should be responsible to make it R_OK or put the coresponding error.     
+     *it is initiazed as R_ERROR and the service should be responsible to make it R_OK or put the coresponding error.
      */
-    SAT_returnState verification_state; 
+    SAT_returnState verification_state;
 /*  uint8_t padding;  x bits, padding for word alligment */
 
 //  uint16_t crc; /* CRC or checksum, mission specific*/
