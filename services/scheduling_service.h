@@ -20,7 +20,7 @@
 /* Declares the maximum available space for 
  * on-memory loaded schedule commands
  */
-#define SC_MAX_STORED_SCHEDULES 15
+#define SC_MAX_STORED_SCHEDULES 17
 
 typedef enum {
     /* The 'release_time' member
@@ -103,7 +103,7 @@ typedef struct {
     uint8_t assmnt_type;
     
         /* Determines the release type for the telecommand.
-         * 
+         * See: SC_event_time_type
          */
     SC_event_time_type sch_evt;
     
@@ -117,21 +117,21 @@ typedef struct {
          * Timeout execution is only set if telecommand sets interlocks, so for our
          * current implementation will be always 0 (zero)
          */
-    uint32_t timeout;
+    uint16_t timeout;
     
         /* The actual telecommand packet to be scheduled and executed
          * 
          */
     tc_tm_pkt tc_pck;
         
-        /* Declares a schedule valid or invalid.
-         * If a schedule is noted as !valid, it can be replaced 
-         * by a new one.
+        /* Declares a schedule position as pos_avail or !pos_avail.
+         * If a schedule position is noted as !pos_avail, it can be replaced 
+         * by a new SC_pkt packet.
          * When a schedule goes for execution, 
-         * automatically becomes invalid.
-         * Valid=true, 1, Invalid=false ,0
+         * automatically its position becomes !pos_avail.
+         * pos_avail=true, 1, !pos_avail=false ,0
          */
-    uint8_t valid;
+    uint8_t pos_avail;
     
 }SC_pkt;
 
@@ -142,11 +142,11 @@ typedef struct {
     /* Memory array for inner TC data payload
      * One to one mapping with the sc_mem_array
      */
-    uint8_t innerd_tc_data[SC_MAX_STORED_SCHEDULES][MAX_PKT_DATA];
+    uint8_t innerd_tc_data[SC_MAX_STORED_SCHEDULES][MAX_PKT_LEN];
     
 }Schedule_pkt_pool;
 
-Schedule_pkt_pool schedule_mem_pool;
+extern Schedule_pkt_pool schedule_mem_pool;
 
 typedef struct {
     /*Number of loaded schedules*/
@@ -183,7 +183,7 @@ void cross_schedules();
 /* Service initialization.
  * 
  */
-SAT_returnState scheduling_init_service();
+SAT_returnState scheduling_service_init();
 
 /* To serve as unique entry point to the Service.
  * To be called from route_packet. 
@@ -218,8 +218,7 @@ SAT_returnState operations_scheduling_reset_schedule_api();
 /* Inserts a given Schedule_pck on the schedule array
  * Service Subtype 4
  */
-SAT_returnState scheduling_insert_api( /*SC_pkt* sch_mem_pool,*/
-                                      SC_pkt* theSchpck );
+SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck );
 
 /* Removes a given Schedule_pck from the schedule array
  * Service Subtype 5.
@@ -255,6 +254,8 @@ SAT_returnState parse_sch_packet( SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt );
  * @return 
  */
 SAT_returnState time_shift_all_tcs(uint8_t *time_v);
+
+SAT_returnState scheduling_service_save_schedules();
 
 #endif /* SCHEDULING_SERVICE_H */
 

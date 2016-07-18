@@ -45,6 +45,15 @@ void cnv8_32(uint8_t *from, uint32_t *to) {
 
 }
 
+void cnv8_16LE(uint8_t *from, uint16_t *to) {
+
+    union _cnv cnv;
+
+    cnv.cnv8[1] = from[1];
+    cnv.cnv8[0] = from[0];
+    *to = cnv.cnv16[0];
+}
+
 void cnv8_16(uint8_t *from, uint16_t *to) {
 
     union _cnv cnv;
