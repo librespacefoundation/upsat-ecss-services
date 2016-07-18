@@ -299,7 +299,7 @@ SAT_returnState HAL_su_uart_rx(){
     UART_HandleTypeDef *huart;
     huart = &huart2;
     if(huart->RxState == HAL_UART_STATE_READY) {
-      HAL_UART_Receive_IT(huart, &su_inc_buffer[21], 174);//&22,174
+      HAL_UART_Receive_IT(huart, MNLP_data.su_inc_resp, 174);
       return SATR_EOT;
     }
     return SATR_OK;
