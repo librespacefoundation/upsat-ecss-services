@@ -276,7 +276,8 @@ typedef enum {
 }FM_dev_id;
 
 /*Mass storage ids*/
-typedef enum {
+typedef enum {  
+    SU_NOSCRIPT     = 0, /*used when no script has ever been chosen to run, saved on SRAM*/
     SU_SCRIPT_1     = 1,
     SU_SCRIPT_2     = 2,
     SU_SCRIPT_3     = 3,
