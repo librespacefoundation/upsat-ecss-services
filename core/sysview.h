@@ -13,38 +13,31 @@
 #define traceGET_PKT(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + PKT_POOL_module.EventOffset, ID)
 #define traceFREE_PKT(ID) SEGGER_SYSVIEW_RecordU32(ID_FREEPKT + PKT_POOL_module.EventOffset, ID)
 
-// #define trace_mass_storage_delete_su_scr(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_hard_delete(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_downlinkFile(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_storeFile(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_list(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_su_load_api(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_FORMAT(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_mass_storage_delete_api(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_get_fs_stat(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-// #define trace_get_new_fileId(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + MS_module.EventOffset, ID)
-
 #define ID_DOWN_START  0
 #define ID_DOWN_STOP   1
 
 #define ID_STORE_START 2
-#define ID_STORE_STOP  3
+#define ID_STORE_WRITE 3
+#define ID_STORE_STOP  4
 
-#define ID_REP_START   4
-#define ID_REP_STOP    5
+#define ID_REP_START   5
+#define ID_REP_STOP    6
 
-#define ID_LIST_START  6
-#define ID_LIST_STOP   7
+#define ID_LIST_START  7
+#define ID_LIST_STOP   8
 
-#define ID_DEL_START  8
-#define ID_DEL_STOP   9
+#define ID_DEL_START  9
+#define ID_DEL_STOP   10
 
-#define ID_FORM_START  10
-#define ID_FORM_STOP   11
+#define ID_FORM_START  11
+#define ID_FORM_STOP   12
+
+#define ID_MS_ERROR  14
 
 #define trace_MS_DOWN_START() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_START + MS_module.EventOffset)
 #define trace_MS_DOWN_STOP() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_STOP + MS_module.EventOffset)
 #define trace_MS_STORE_START() SEGGER_SYSVIEW_RecordVoid(ID_STORE_START + MS_module.EventOffset)
+#define trace_MS_STORE_WRITE(FILE) SEGGER_SYSVIEW_RecordU32(ID_STORE_WRITE + MS_module.EventOffset, FILE)
 #define trace_MS_STORE_STOP() SEGGER_SYSVIEW_RecordVoid(ID_STORE_STOP + MS_module.EventOffset)
 #define trace_MS_REP_START() SEGGER_SYSVIEW_RecordVoid(ID_REP_START + MS_module.EventOffset)
 #define trace_MS_REP_STOP() SEGGER_SYSVIEW_RecordVoid(ID_REP_STOP + MS_module.EventOffset)
@@ -54,6 +47,7 @@
 #define trace_MS_DEL_STOP() SEGGER_SYSVIEW_RecordVoid(ID_DEL_STOP + MS_module.EventOffset)
 #define trace_MS_FORM_START() SEGGER_SYSVIEW_RecordVoid(ID_FORM_START + MS_module.EventOffset)
 #define trace_MS_FORM_STOP() SEGGER_SYSVIEW_RecordVoid(ID_FORM_STOP + MS_module.EventOffset)
+#define trace_MS_STORE_ERROR(RES, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_MS_ERROR + ASSERTION_module.EventOffset, RES, LINE)
 
 #define ID_IMPORT  0
 #define ID_EXPORT  1
@@ -80,6 +74,7 @@ void sysview_init();
 #define trace_MS_DOWN_START()  ;
 #define trace_MS_DOWN_STOP()   ;
 #define trace_MS_STORE_START() ;
+#define trace_MS_STORE_WRITE(FILE) ;
 #define trace_MS_STORE_STOP()  ;
 #define trace_MS_REP_START()   ;
 #define trace_MS_REP_STOP()    ;
@@ -89,6 +84,7 @@ void sysview_init();
 #define trace_MS_DEL_STOP()    ;
 #define trace_MS_FORM_START()  ;
 #define trace_MS_FORM_STOP()   ;
+#define trace_MS_STORE_ERROR(RES, LINE)  ;
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
