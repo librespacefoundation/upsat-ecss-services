@@ -8,8 +8,6 @@
 extern RTC_HandleTypeDef hrtc;
 extern IWDG_HandleTypeDef hiwdg;
 
-extern uint8_t su_inc_buffer[197];
-
 extern struct _obc_data obc_data;
 
 extern struct _wdg_state wdg;
@@ -134,8 +132,7 @@ void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec) {
   sTime.DayLightSaving = RTC_DAYLIGHTSAVING_NONE;
   sTime.StoreOperation = RTC_STOREOPERATION_RESET;
   HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-
-
+  
 }
 
 void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
@@ -149,11 +146,11 @@ void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
    *sec = sTime.Seconds;  
 }
 
-void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
+void HAL_sys_setDate(uint8_t weekday, uint8_t mon, uint8_t date, uint8_t year) {
 
   RTC_DateTypeDef sDate;
-
-  //sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+//  sDate.WeekDay = RTC_WEEKDAY_SUNDAY;
+  sDate.WeekDay = weekday;
   sDate.Month = mon;
   sDate.Date = date;
   sDate.Year = year;
@@ -162,7 +159,7 @@ void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
 
 }
 
-void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
+void HAL_sys_getDate(uint8_t *weekday, uint8_t *mon, uint8_t *date, uint8_t *year) {
 
   RTC_DateTypeDef sDate;
 
@@ -171,6 +168,7 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
   *mon = sDate.Month;
   *date = sDate.Date;
   *year = sDate.Year;
+  *weekday = sDate.WeekDay;
 
 }
 
