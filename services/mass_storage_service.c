@@ -551,9 +551,20 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
 
     if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); }
 
-    res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
-    f_close(&fp);
-
+    for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
+        res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ); //!= FR_OK) { MS_ERR(res);}
+        if(res != FR_OK) { 
+            HAL_sys_delay(1);
+            continue;
+        }        
+        res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
+        f_close(&fp);
+        if(res == FR_OK) {
+            break;
+        }
+        HAL_sys_delay(1);
+    }
+    
     if(res != FR_OK)    { MS_ERR(res); }
     else if(size == 0)  { return SATR_ERROR; } 
 
@@ -574,6 +585,55 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
 
     if(!C_ASSERT(((sum2 << 8) | sum1) == 0) == true)  { return SATR_CRC_ERROR; }
 
+    return SATR_OK;
+}
+
+SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, uint8_t *buf) {
+
+    FIL fp;
+    FRESULT res;
+    uint8_t path[MS_MAX_PATH];
+    uint16_t size = 0;
+
+    if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
+    if(!C_ASSERT( sid == SCHS) == true) { return SATR_INV_STORE_ID; }
+    if(!C_ASSERT( sch_number < 14 ) == true) { return SATR_INV_STORE_ID; }
+    
+    snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, sch_number);
+    
+    for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
+        res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ); //!= FR_OK) { MS_ERR(res);}
+        if(res != FR_OK) { 
+            HAL_sys_delay(1);
+            continue;
+        }        
+        res = f_read(&fp, buf, MS_MAX_SU_FILE_SIZE, (void *)&size);
+        f_close(&fp);
+        if(res == FR_OK) {
+            break;
+        }
+        HAL_sys_delay(1);
+    }
+    
+//    for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
+//        res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
+//        if(res != FR_OK) { 
+//            HAL_sys_delay(1);
+//            continue;
+//        } 
+//
+//        res = f_write(&fp, buf, *size, (void *)&byteswritten);
+//        f_close(&fp);
+//        if(res == FR_OK) {
+//            break;
+//        }
+//        HAL_sys_delay(1);
+//    }
+    
+    
+    if(res != FR_OK)    { MS_ERR(res); }
+    else if(size == 0)  { return SATR_ERROR; } 
+    
     return SATR_OK;
 }
 
