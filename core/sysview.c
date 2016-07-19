@@ -60,11 +60,25 @@ SEGGER_SYSVIEW_MODULE ASSERTION_module = {
     // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
 };
 
+SEGGER_SYSVIEW_MODULE SU_module = {
+    "M=SUMNLP, " \
+    "0 SU Script marked as active=%u, " \
+    "1 SU Script none eligible to run, " \
+    "2 SU Script no new selected=%u, " \
+    "3 SU Script ended, TimeTableEOT ", // sModule
+    4, // NumEvents
+    0,
+    // EventOffset, Set by SEGGER_SYSVIEW_RegisterModule() NULL,
+    // pfSendModuleDesc, NULL: No additional module description NULL,
+    // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
+};
+
 void sysview_init() {
     SEGGER_SYSVIEW_RegisterModule(&PKT_POOL_module);
     SEGGER_SYSVIEW_RegisterModule(&MS_module);
     SEGGER_SYSVIEW_RegisterModule(&COMMS_module);
     SEGGER_SYSVIEW_RegisterModule(&ASSERTION_module);
+    SEGGER_SYSVIEW_RegisterModule(&SU_module);
 }
 
 #else

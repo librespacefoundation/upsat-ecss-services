@@ -19,9 +19,6 @@ uint32_t qb_50_time;
 uint32_t obc_day_moment_secs = 0;
 uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
 uint32_t moment_diff = 0;        /**/
-uint32_t tts_lost = 0;
-uint32_t tts_exec_normal = 0;
-uint32_t tts_exec_on_time_span = 0;
 
 //uint32_t first_tt_exec_moment = 0;
 //uint32_t last_tt_exec_moment = 0;
@@ -129,9 +126,13 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             break;
         case 24: /*Manage su nmlp service scheduler*/
             if( spacket->data[0]){ /*enable nmlp service scheduler*/
-                *MNLP_data.su_service_sheduler_active = (uint8_t) true; }
+                *MNLP_data.su_service_sheduler_active = (uint8_t) true;
+                 spacket->verification_state = SATR_OK;
+            }
             else{ /*disable nmlp service scheduler*/
-                *MNLP_data.su_service_sheduler_active = (uint8_t) false; }
+                *MNLP_data.su_service_sheduler_active = (uint8_t) false;
+                spacket->verification_state = SATR_OK;
+            }
             break;
     }//switch ends here
     
@@ -238,9 +239,14 @@ SAT_returnState su_incoming_rx(){
 
 void su_INIT(){
     
-    su_power_ctrl(P_OFF);
+    su_power_ctrl(P_OFF); /*the su may remain powered on, in case that OBC reset occurs and a OBC_SU_OFF command is not executed*/
     MNLP_data.su_state = SU_POWERED_OFF;
     MNLP_data.su_timed_out = (uint8_t) false;
+    MNLP_data.current_tt = 0;
+    MNLP_data.current_sip = 0x0;
+    MNLP_data.tt_exec_on_span_count = 0;
+    MNLP_data.tt_lost_count = 0;
+    MNLP_data.tt_norm_exec_count = 0;
     *MNLP_data.su_init_func_run_time = return_time_QB50();
     
     mnlp_sim_active = false;
@@ -330,13 +336,8 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
         if(MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_str == true &&
             MNLP_data.su_scripts[(uint8_t)(i) - 1].valid_logi == true){
             uint32_t qb_f_time_now = 0;
-//            uint32_t time_diff_uint32;
             uint32_t time_diff = 4000000000; /*used as a flag*/
             get_time_QB50(&qb_f_time_now);
-//            if( qb_f_time_now > MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time){
-//                /**/
-//                time_diff = qb_f_time_now - MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time;
-//            }else
             if( qb_f_time_now <= MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time){
                 /**/
                 time_diff = MNLP_data.su_scripts[(uint8_t) i - 1].scr_header.start_time - qb_f_time_now;
@@ -362,6 +363,7 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
 //                break;
 //                *sleep_val_secs = time_diff; //TODO substract something
                 *sleep_val_secs = 5;
+                trace_SCR_MARKED_ACTIVE(i);
                 return su_new_scr_selected;
             }
         }
@@ -374,7 +376,8 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
         if( least_act_time ==  4000000000 ){ /*if least_act_time untouched, sleep for 50 seconds*/
             *sleep_val_secs = 50; }
         else{ *sleep_val_secs = (least_act_time-30); } /*no chance to go < 0, because its always >=61 seconds*/
-
+        
+        trace_SCR_NON_ELIG();
         return su_no_scr_eligible;
     }
     /* in case that no newer script is eligible to be activated,
@@ -387,6 +390,8 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
      */
     if(!C_ASSERT(MNLP_data.active_script != (uint8_t) 0) ){ 
        *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
+    
+    trace_SCR_NO_NEW_TO_BACT(*MNLP_data.su_nmlp_last_active_script);
     return su_no_new_scr_selected;
 }
 
@@ -395,26 +400,22 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
  */
 su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
     
-//    struct time_utc tt_utc;
     /*uint32_t */ qb_50_time = 0;
     get_time_QB50(&qb_50_time);
     /*uint32_t*/ obc_day_moment_secs = 0;
     /*uint32_t*/ tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
     /*uint32_t*/ moment_diff = 0;        /**/
-//    /*uint32_t*/ first_tt_exec_moment = 0;
-//    /*uint32_t*/ last_tt_exec_moment = 0;
     /*su_mnlp_returnState*/ state = su_sche_last;
     
     if(!C_ASSERT(MNLP_data.active_script != (MS_sid) 0) ) { *sleep_val_secs = 55; return su_sche_script_ended; }
     if(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_str == true &&
        MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].valid_logi == true){
-        //TODO: add a check here for the following.
-        /*this script has not been executed on this day &&*/
 
         /* the first byte after the 12-byte sized script header,
          * points to the first time table, on the active_script script.
          */
         current_tt_pointer = SU_TT_OFFSET;
+        MNLP_data.current_tt = 0; /*set TimeTable index to zero*/
         /*finds the next tt that needs to be executed, it iterates all the tt to find the correct one*/
         for(uint16_t b = current_tt_pointer; b < SU_MAX_FILE_SIZE; b++){ /*due to 'no while' policy*/
             tt_call_state =
@@ -422,59 +423,24 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                  MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
                 &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
                 &current_tt_pointer);
-            
             if( tt_call_state == SATR_EOT){
                 /*reached the last time table, go for another script, or this script, but on the NEXT day*/
-                
-//                sleep_val_secs = 0;
-//                state = su_script_selector(sleep_val_secs);
-//                if( state == su_new_scr_selected){ /*new script activated*/
-//                    return su_new_scr_selected;
-//                }
-//                else
-//                if( state == su_no_new_scr_selected){
-//                    /*go for this script but on next day*/
-//                    /*take last time table's execution time, EOT Time exists here*/
-//                    tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
-//                    tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
-//                    tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
-//                    cnv_utc_to_secs(&tt_utc, &last_tt_exec_moment);
-//                    /*also take first time table's execution time, and calculate difference*/
-//                    current_tt_pointer = SU_TT_OFFSET;
-//                    MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours = 0;
-//                    MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min = 0;
-//                    MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec = 0;
-//                    MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index = 0;
-//                    polulate_next_time_table( /*rolls up to first time table, because current_tt_pointer = SU_TT_OFFSET*/
-//                        MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
-//                       &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header,
-//                       &current_tt_pointer);
-//                    tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
-//                    tt_utc.min = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.min;
-//                    tt_utc.sec = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.sec;
-//                    cnv_utc_to_secs(&tt_utc, &first_tt_exec_moment);
-//                    *sleep_val_secs =  ( DAYSECS - last_tt_exec_moment )
-//                                      +( DAYSECS - first_tt_exec_moment ) + DAYSECS;
-//                    //TODO:substract something from here to sleep a little lower;
-////                    return su_sche_go_to_sleep;
-//                    return su_sche_script_ended;
-//                }   
-//                else{
-//                    /*something went very wrong!*/
-//                    return su_no_scr_eligible;
-//                }
                 *sleep_val_secs = 5;
                  /*reset the script index*/
                 MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index = SU_SCR_TT_SNONE;
-                return su_sche_script_ended;
+                MNLP_data.current_tt = 0; /*set TimeTable index to zero*/
+		trace_SCR_ENDED();                
+		return su_sche_script_ended;
             }
             else
             if(tt_call_state == SATR_ERROR){
                 /*non valid time table, go for next time table*/
+                MNLP_data.current_tt++;
                 continue;
             }
             else
             { /*we have a time table to handle*/
+                MNLP_data.current_tt++;
                 /*check this day's moment time against time_table's start time, and wait for it to come.*/
                 for(uint32_t i = 1; i < 86400; i++){ /*due to 'no while' policy*/
                     tt_utc.hour= MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.hours;
@@ -489,76 +455,35 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                     if(obc_day_moment_secs > tt_day_moment_secs){ /*we have passed over the time table's start time*/
                         moment_diff = obc_day_moment_secs - tt_day_moment_secs;
                         if(moment_diff > 0 && moment_diff <= 6){
-                            /*f us 4 seconds, and execute a little late*/
-//                            HAL_sys_delay(5000); //no need to delay you are already after the time table start time                    
-                            tts_exec_on_time_span++;
+                            /*f us 6 seconds, and execute a little late*/
+                            MNLP_data.tt_exec_on_span_count++;
                             serve_tt();
                             break;
                         }
                         else
                         if(moment_diff > 6){
                             /*for some reason we have lost this time-table, go to next one*/                  
-                            tts_lost++;
+                            MNLP_data.tt_lost_count++;
                             break;
                         }
                     }
                     else
                     if(obc_day_moment_secs < tt_day_moment_secs){
                         uint32_t to_set = 0;
-                        /*time table is in the future, delay until that moment*/
+                        /*time table is in the future, delay until that moment/2*/
                         moment_diff = tt_day_moment_secs - obc_day_moment_secs;
                         to_set = moment_diff / 2;                        
-                        if( to_set == 0){                            
+                        if( to_set == 0){ /*some times half a second earlier*/                            
+                            MNLP_data.tt_norm_exec_count++;
                             serve_tt();
-                            tts_exec_normal++;
                             break;
                         }
                         else{                                    
-//                            HAL_sys_delay(to_set*1000);
                             ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS((to_set)*1000));
                         }
-                                               
-//                        get_time_QB50(&qb_50_time);                        
-//                        SC_pkt temp_sck_pkt;
-//                        uint8_t temp_data[1];
-//                        temp_sck_pkt.tc_pck.data = temp_data;
-//                        temp_sck_pkt.app_id = OBC_APP_ID;
-//                        temp_sck_pkt.assmnt_type = 1;
-//                        temp_sck_pkt.enabled = 1;
-//                        temp_sck_pkt.intrlck_set_id = 0;
-//                        temp_sck_pkt.intrlck_ass_id = 0;
-//                        temp_sck_pkt.num_of_sch_tc = 1;
-//                        temp_sck_pkt.release_time = qb_50_time + moment_diff;
-//                        temp_sck_pkt.sch_evt = QB50EPC;
-//                        temp_sck_pkt.seq_count = 66;
-//                        temp_sck_pkt.sub_schedule_id = 1;
-//                        temp_sck_pkt.timeout = 0;
-//                        temp_sck_pkt.pos_avail = true;
-//                        temp_sck_pkt.tc_pck.app_id = OBC_APP_ID;
-//                        temp_sck_pkt.tc_pck.type = 1;
-//                        temp_sck_pkt.tc_pck.seq_flags = 3;
-//                        temp_sck_pkt.tc_pck.seq_count = 233;
-//                        temp_sck_pkt.tc_pck.len = 1;
-//                        temp_sck_pkt.tc_pck.ack = 0;
-//                        temp_sck_pkt.tc_pck.ser_type = 18;
-//                        temp_sck_pkt.tc_pck.ser_subtype = 22; //24
-//                        temp_sck_pkt.tc_pck.dest_id = OBC_APP_ID;
-//                        temp_sck_pkt.tc_pck.verification_state = SATR_PKT_INIT;
-//                        temp_sck_pkt.tc_pck.data[0] = 1;
-//                        
-//                        //TODO check the return value of scheduling insertion
-//                        scheduling_insert_api(15,temp_sck_pkt);
-//                        
-//                        /*Block here until moment_diff comes, or be waked up from scheduling service*/
-//                        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS((moment_diff)*1000));
-////                        *sleep_val = obc_day_moment_secs + (moment_diff*1000);
-////                        return su_sche_sleep;
-////                        tts_exec_normal++;
-////                        serve_tt();
-//                        break;
                     }
                     else{ /*execute at once*/
-                        tts_exec_normal++;
+                        MNLP_data.tt_norm_exec_count++;
                         serve_tt();
                         break;
                     }
@@ -579,33 +504,40 @@ void serve_tt(){
     ss_call_state =
             su_goto_script_seq(&current_ss_pointer,
             &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index);
-    if(ss_call_state == SATR_OK) {
-        for(uint16_t p = 0; p < SU_MAX_FILE_SIZE; p++){ /*start executing commands in a script sequence*/ /*due to 'no while' policy*/
+    if( ss_call_state == SATR_OK){
+        for( uint16_t p = 0; p < SU_MAX_FILE_SIZE; p++){ /*start executing commands in a script sequence*/ /*due to 'no while' policy*/
             scom_call_state =
                 su_next_cmd(MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].file_load_buf,
                 &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header,
                 &current_ss_pointer);
-            if(scom_call_state == SATR_EOT){
+            if( scom_call_state == SATR_EOT){
                 /*no more commands on script sequences to be executed*/
+                MNLP_data.current_sip = 0x55;
                 /*reset seq_header->cmd_if field to something else other than 0xFE*/
                 MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id = 0x0;               
                 break;
             }else
-            if(scom_call_state == SATR_ERROR){
+            if( scom_call_state == SATR_ERROR){
+                MNLP_data.current_sip = 0x66;
                 /*an unknown command has been encountered in the script sequences, so go for the next command*/
                 uint8_t stop_here = 0;
                 continue;
             }else{
                 /*handle script sequence command*/
                 if( MNLP_data.su_timed_out == (uint8_t) true){
+                    
                     break;
                 }
-                else{
+                else{ //TODO: add an extra check here, for valid seq_header state
+                    MNLP_data.current_sip = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index;
                     su_cmd_handler( &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header);
                 }
             }
         }
-    }else if (ss_call_state == SATR_EOT) {
+    }
+    else
+    if (ss_call_state == SATR_EOT){
+        
     }
 }
 
@@ -676,11 +608,8 @@ SAT_returnState su_goto_time_table( uint16_t *tt_pointer, uint8_t *tt_to_go ){
 SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
 
     HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
-//    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec));
-  //TODO add assertions
-//    HAL_sys_delay(3000);
     
-    if( mnlp_sim_active){ //route cmd to su nmlp simulator        
+    if( mnlp_sim_active){    //route cmd to su nmlp simulator        
         if( cmd->cmd_id == 0xF1){
             HAL_su_uart_tx( cmd->command, cmd->len+2);
             HAL_sys_delay(1000);            
@@ -690,12 +619,10 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
             uint8_t su_out[105];
             su_out[0]= 0x05;
             su_out[1]= 0x63; //len
-            su_out[2]= 2; //seq_coun
-            //HAL_UART_Transmit( &huart2, su_out, 102 , 10); //ver ok
+            su_out[2]= 2;    //seq_coun
             HAL_su_uart_tx( su_out, 102);  
         }
         else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
-
     }
     else{ //route to real su mnlp unit
     if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID){
@@ -867,7 +794,7 @@ void handle_su_timeout(){
     /*generate error with 0xF0 code*/
     generate_obc_su_error(su_log_buff, SU_TIMEOUT_ERR_ID);
     mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
-    HAL_sys_delay(SU_ERR_TIM_SLEEP_TIME); //TODO check this
+    HAL_sys_delay(SU_ERR_TIM_SLEEP_TIME); //TODO: check this
     
 //    su_power_ctrl(P_ON); /*su will be powered on again from next time table*/
 //    MNLP_data.su_state = SU_POWERED_ON;

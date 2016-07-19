@@ -3,7 +3,7 @@
 #include "obc.h"
 #include "time_management_service.h"
 #include "wdg.h"
-
+#include "su_mnlp.h"
 #include "stm32f4xx_hal.h"
 
 #undef __FILE_ID__
@@ -125,7 +125,7 @@ void hk_SCH() {
     HAL_sys_delay(26000);  
 
     //hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
-    hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
+    hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     wake_uart_task();
     // clear_ext_wod();
@@ -258,23 +258,33 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         get_time_UTC(&temp_time);
 
-        cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
-
-        pkt->data[5] = temp_time.day;
-        pkt->data[6] = temp_time.month;
-        pkt->data[7] = temp_time.year;
+        uint16_t size = 1;
+ 
+        cnv32_8( HAL_sys_GetTick(), &pkt->data[size]);
+        size += 4;
         
-        pkt->data[8] = temp_time.hour;
-        pkt->data[9] = temp_time.min;
-        pkt->data[10] = temp_time.sec;
+        //pkt->data[5] = temp_time.day;
+        //pkt->data[6] = temp_time.month;
+        //pkt->data[7] = temp_time.year;
+        
+        //pkt->data[8] = temp_time.hour;
+        //pkt->data[9] = temp_time.min;
+        //pkt->data[10] = temp_time.sec;
 
-        cnv32_8(task_times.uart_time, &pkt->data[11]);
-        cnv32_8(task_times.idle_time, &pkt->data[15]);
-        cnv32_8(task_times.hk_time, &pkt->data[19]);
-        cnv32_8(task_times.su_time, &pkt->data[23]);
-        cnv32_8(task_times.sch_time, &pkt->data[27]);
+        //cnv32_8(task_times.uart_time, &pkt->data[11]);
+        //cnv32_8(task_times.idle_time, &pkt->data[15]);
+        //cnv32_8(task_times.hk_time, &pkt->data[19]);
+        //cnv32_8(task_times.su_time, &pkt->data[23]);
+        //cnv32_8(task_times.sch_time, &pkt->data[27]);
 
-        pkt->len = 28;
+        pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
+        size += 1;
+        
+        pkt->data[size] = *MNLP_data.su_service_sheduler_active;
+        size += 1;
+        
+        pkt->len = size;
+
     } else if(sid == WOD_REP) {
 
         uint32_t time_temp;
@@ -316,7 +326,12 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         cnv32_8(obc_data.vbat, &pkt->data[size]);
         size += 2;
-
+        
+        pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
+        size += 1;
+        
+        pkt->data[size] = *MNLP_data.su_service_sheduler_active;
+        size += 1;
         //pkt->data[size] = (uint8_t)HAL_UART_GetState(&huart3);
         //size++;
         // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
