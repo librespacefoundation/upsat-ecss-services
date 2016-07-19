@@ -88,8 +88,16 @@ route_pkt (tc_tm_pkt *pkt)
     return SATR_ERROR;
   }
 
-  if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
-    //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
+  if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE
+      && pkt->ser_subtype == TM_HK_PARAMETERS_REPORT
+      && pkt->data[0] == WOD_REP) {
+    /*
+     * A new WOD arrived from the OBC. Store it and extract the information.
+     * The transmission of each WOD is handled by the COMMS dispatcher function
+     */
+    /*TODO */
+  }
+  else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     res = hk_app (pkt);
   }
   else if (id == SYSTEM_APP_ID
