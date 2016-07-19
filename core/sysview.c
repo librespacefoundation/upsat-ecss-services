@@ -21,7 +21,7 @@ SEGGER_SYSVIEW_MODULE MS_module = {
     "0 Downlink started, " \
     "1 Downlink stoped, " \
     "2 STORE started, " \
-    "3 STORE write ID=%u, " \
+    "3 STORE write ID=%u %u , " \
     "4 STORE stoped, " \
     "5 REP started, " \
     "6 REP stoped, " \
