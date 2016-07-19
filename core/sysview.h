@@ -1,7 +1,7 @@
 #ifndef __SYSVIEW_H
 #define __SYSVIEW_H
 
-#define SYSVIEW  1 /* define as 1 if you want to use systemview */
+#define SYSVIEW  0 /* define as 1 if you want to use systemview */
 
 #if(SYSVIEW == 1)
 
@@ -100,6 +100,11 @@ void sysview_init();
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
+
+#define trace_SCR_MARKED_ACTIVE(ID)  ;
+#define trace_SCR_NON_ELIG()         ;
+#define trace_SCR_NO_NEW_TO_BACT(ID) ;
+#define trace_SCR_ENDED()            ;
 
 #define traceASSERTION(FID, LINE) ;
 

@@ -199,7 +199,7 @@ struct _MNLP_data{
     uint8_t *su_next_time_table;         /*points to the time table that needs to be executed when the scheduler will run*/
     uint8_t *su_next_script_seq;         /*point to the script sequence that needs to be executed when the scheduler will run*/
     uint8_t *su_nmlp_script_scheduler_active;   /*True if mNLP scheduler script is active/running, false otherwise*/    
-    uint8_t *su_service_sheduler_active; /*True if mNLP scheduler script is active/running, false otherwise*/
+    uint8_t *su_service_sheduler_active; /*True if mNLP service is active/running, false otherwise*/
     
     uint8_t su_timed_out;               /*True when the su is in timed out state*/
     MS_sid active_script;               /*the current (runtime) active script*/

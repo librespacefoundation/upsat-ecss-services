@@ -319,7 +319,7 @@ SAT_returnState su_load_specific_script(MS_sid sid){
             /*populate only script headers that are structural OK*/    
             su_populate_header(&(MNLP_data.su_scripts[(uint8_t) sid - 1].scr_header), 
                                MNLP_data.su_scripts[(uint8_t) sid - 1].file_load_buf);
-    return res;
+        return res;
         }
 }
 
@@ -838,13 +838,14 @@ SAT_returnState generate_obc_su_error(uint8_t *buffer, uint8_t rsp_error_code){
 
 SAT_returnState handle_script_upload(MS_sid sid){
 
-    //TODO: disable the spck on scheduling service
     if(MNLP_data.active_script == sid ){
-        /*if the active script is being updated, requires special handling*/        
+        /*if the active script is being updated, requires special handling*/
         if( MNLP_data.su_state == SU_POWERED_ON){
             su_power_ctrl(P_OFF);
+            MNLP_data.su_timed_out = (uint8_t) true; /*to break any pending execution*/
             MNLP_data.su_state = SU_POWERED_OFF;
         }
     }
+    
     return su_load_specific_script(sid);
 }
