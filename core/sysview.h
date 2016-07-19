@@ -32,7 +32,7 @@
 #define ID_FORM_START  11
 #define ID_FORM_STOP   12
 
-#define ID_MS_ERROR  14
+#define ID_MS_ERROR  13
 
 #define trace_MS_DOWN_START() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_START + MS_module.EventOffset)
 #define trace_MS_DOWN_STOP() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_STOP + MS_module.EventOffset)
