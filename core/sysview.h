@@ -37,7 +37,7 @@
 #define trace_MS_DOWN_START() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_START + MS_module.EventOffset)
 #define trace_MS_DOWN_STOP() SEGGER_SYSVIEW_RecordVoid(ID_DOWN_STOP + MS_module.EventOffset)
 #define trace_MS_STORE_START() SEGGER_SYSVIEW_RecordVoid(ID_STORE_START + MS_module.EventOffset)
-#define trace_MS_STORE_WRITE(FILE) SEGGER_SYSVIEW_RecordU32(ID_STORE_WRITE + MS_module.EventOffset, FILE)
+#define trace_MS_STORE_WRITE(SID, FILE) SEGGER_SYSVIEW_RecordU32x2(ID_STORE_WRITE + MS_module.EventOffset, SID, FILE)
 #define trace_MS_STORE_STOP() SEGGER_SYSVIEW_RecordVoid(ID_STORE_STOP + MS_module.EventOffset)
 #define trace_MS_REP_START() SEGGER_SYSVIEW_RecordVoid(ID_REP_START + MS_module.EventOffset)
 #define trace_MS_REP_STOP() SEGGER_SYSVIEW_RecordVoid(ID_REP_STOP + MS_module.EventOffset)
@@ -74,7 +74,7 @@ void sysview_init();
 #define trace_MS_DOWN_START()  ;
 #define trace_MS_DOWN_STOP()   ;
 #define trace_MS_STORE_START() ;
-#define trace_MS_STORE_WRITE(FILE) ;
+#define trace_MS_STORE_WRITE(SID, FILE) ;
 #define trace_MS_STORE_STOP()  ;
 #define trace_MS_REP_START()   ;
 #define trace_MS_REP_STOP()    ;

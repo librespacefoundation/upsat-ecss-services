@@ -378,7 +378,7 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
     else if(sid == SCHS)        { snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, file); }
     else { return SATR_ERROR; }
 
-    trace_MS_STORE_WRITE(file);
+    trace_MS_STORE_WRITE(sid, file);
 
     if(sid <= SU_SCRIPT_7) {
         res = f_stat((char*)path, &fno);
@@ -387,8 +387,9 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
 
     for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
         res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
-        if(res != FR_OK) { 
-            HAL_sys_delay(1);
+        if(res != FR_OK) {
+            trace_MS_STORE_ERROR(res, 391);
+            mass_storage_FATFS_RESET();
             continue;
         } 
 
