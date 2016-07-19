@@ -33,6 +33,9 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
 uint8_t tst_debugging(uint16_t fi, uint32_t l, char *e) {
 
   traceASSERTION(fi, l);
-  SEGGER_SYSVIEW_Print("A %u,%u",fi, l);
+  uint8_t temp[20];
+  sprintf(temp,"A %u %u", fi, l);
+  SEGGER_SYSVIEW_Print(temp);
+
   return false;
 }
