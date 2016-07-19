@@ -59,10 +59,22 @@
 
 #define traceASSERTION(FID, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_ASSERTION + ASSERTION_module.EventOffset, FID, LINE)
 
+#define ID_SCR_ACTIVE       0
+#define ID_SCR_NON_ELIG     1
+#define ID_SCR_NO_NEW_SCR   2
+#define ID_SCR_SCR_ENDED    3
+
+#define trace_SCR_MARKED_ACTIVE(ID) SEGGER_SYSVIEW_RecordU32(ID_SCR_ACTIVE + SU_module.EventOffset, ID)
+#define trace_SCR_NON_ELIG()        SEGGER_SYSVIEW_RecordVoid(ID_SCR_NON_ELIG + SU_module.EventOffset)
+#define trace_SCR_NO_NEW_TO_BACT(ID) SEGGER_SYSVIEW_RecordU32(ID_SCR_NO_NEW_SCR + SU_module.EventOffset, ID)
+#define trace_SCR_ENDED() SEGGER_SYSVIEW_RecordVoid(ID_SCR_SCR_ENDED + SU_module.EventOffset)
+
+
 extern SEGGER_SYSVIEW_MODULE PKT_POOL_module;
 extern SEGGER_SYSVIEW_MODULE MS_module;
 extern SEGGER_SYSVIEW_MODULE COMMS_module;
 extern SEGGER_SYSVIEW_MODULE ASSERTION_module;
+extern SEGGER_SYSVIEW_MODULE SU_module;
 
 void sysview_init();
 
@@ -88,6 +100,11 @@ void sysview_init();
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
+
+#define trace_SCR_MARKED_ACTIVE(ID)  ;
+#define trace_SCR_NON_ELIG()         ;
+#define trace_SCR_NO_NEW_TO_BACT(ID) ;
+#define trace_SCR_ENDED()            ;
 
 #define traceASSERTION(FID, LINE) ;
 

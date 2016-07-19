@@ -7,6 +7,7 @@
 #include "scheduling_service.h"
 #include "upsat.h"
 #include "uart_hal.h"
+#include "sysview.h"
 
 #define SU_SCRIPTS_POPU 7
 
@@ -198,12 +199,17 @@ struct _MNLP_data{
     uint8_t *su_next_time_table;         /*points to the time table that needs to be executed when the scheduler will run*/
     uint8_t *su_next_script_seq;         /*point to the script sequence that needs to be executed when the scheduler will run*/
     uint8_t *su_nmlp_script_scheduler_active;   /*True if mNLP scheduler script is active/running, false otherwise*/    
-    uint8_t *su_service_sheduler_active; /*True if mNLP scheduler script is active/running, false otherwise*/
+    uint8_t *su_service_sheduler_active; /*True if mNLP service is active/running, false otherwise*/
     
-    uint8_t su_timed_out;
-    MS_sid active_script;                /*the current (runtime) active script*/
-    SU_state su_state;                   /*the state of the science unit*/
-    uint32_t last_su_response_time;      /*the qb50 epoch time of last su response reception*/
+    uint8_t su_timed_out;               /*True when the su is in timed out state*/
+    MS_sid active_script;               /*the current (runtime) active script*/
+    uint8_t current_tt;                 /*current activated script's time table*/
+    uint8_t current_sip;                /*current time table's script index*/
+    uint32_t tt_lost_count;             /*number of time tables that we have lost execution time*/
+    uint32_t tt_norm_exec_count;        /*number of time tables that were normally executed on time*/
+    uint32_t tt_exec_on_span_count;     /*number of time tables that were executed on time span of <n> seconds*/
+    SU_state su_state;                  /*the state of the science unit*/
+    uint32_t last_su_response_time;     /*the qb50 epoch time of last su response reception*/
     
     science_unit_script_inst su_scripts[SU_SCRIPTS_POPU]; /*holds references to science unit scripts, loaded from permanent storage*/    
     uint8_t su_inc_resp[180];            /*174 response data + 6 bytes to detect nmlp response offsets*/

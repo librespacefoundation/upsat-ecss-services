@@ -550,10 +550,8 @@ SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf) {
     else if(sid == SU_SCRIPT_7)     { strncpy((char*)path, MS_SU_SCRIPT_7, MS_MAX_PATH); }
     else { return SATR_ERROR; }
 
-    if((res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ)) != FR_OK) { MS_ERR(res); }
-
     for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-        res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ); //!= FR_OK) { MS_ERR(res);}
+        res = f_open(&fp, (char*)path, FA_OPEN_EXISTING | FA_READ);
         if(res != FR_OK) { 
             HAL_sys_delay(1);
             continue;
