@@ -735,7 +735,7 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 SAT_returnState su_power_ctrl(FM_fun_id fid) {
     
     tc_tm_pkt *temp_pkt = 0;
-    function_management_pctrl_crt_pkt_api(&temp_pkt, EPS_APP_ID, fid, SU_DEV_ID);
+    function_management_pctrl_ack_crt_pkt_api(&temp_pkt, EPS_APP_ID, fid, SU_DEV_ID);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
     route_pkt(temp_pkt);
     return SATR_OK;

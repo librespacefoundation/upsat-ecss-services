@@ -74,7 +74,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     if(pkt->type == TC)         { id = pkt->app_id; } 
     else if(pkt->type == TM)    { id = pkt->dest_id; }
 
-    if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
+    if(id == SYSTEM_APP_ID && pkt->ser_type == TC_VERIFICATION_SERVICE) {
+        res = verification_app(pkt);
+    } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_EVENT_SERVICE) {
         //C_ASSERT(pkt->ser_subtype == 21 || pkt->ser_subtype == 23) { free_pkt(pkt); return SATR_ERROR; }
         res = event_app(pkt);
     } else if(id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
