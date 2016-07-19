@@ -1,7 +1,7 @@
 #ifndef __SYSVIEW_H
 #define __SYSVIEW_H
 
-#define SYSVIEW  0 /* define as 1 if you want to use systemview */
+#define SYSVIEW  1 /* define as 1 if you want to use systemview */
 
 #if(SYSVIEW == 1)
 
