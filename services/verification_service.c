@@ -20,6 +20,9 @@ SAT_returnState verification_app(tc_tm_pkt *pkt) {
         if(!C_ASSERT(pkt->ser_subtype == TM_VR_ACCEPTANCE_SUCCESS ||
                      pkt->ser_subtype == TM_VR_ACCEPTANCE_FAILURE) == true) { return SATR_ERROR; }
 
+            uint8_t temp[20];
+            sprintf(temp,"V %d", pkt->app_id);
+            SEGGER_SYSVIEW_Print(temp);
     }
     else {
 
