@@ -87,6 +87,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
         case 13: /*su reset mnlp state*/
             *MNLP_data.su_nmlp_last_active_script = (uint8_t) SU_NOSCRIPT;
             *MNLP_data.su_nmlp_script_scheduler_active = (uint8_t) false;
+            spacket->verification_state = SATR_OK;
 //            su_power_ctrl(P_OFF);
             //TODO: add other actios to do, eg: close the mnlp power?
             break;
@@ -116,6 +117,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             break;
         case 22: /*su scheduler task notify*/
                 xTaskNotifyGive(su_schHandle);
+                spacket->verification_state = SATR_OK;
             break;      
         case 23: /*MNLP status report*/
             //TODO: implement it!
@@ -574,7 +576,7 @@ SAT_returnState su_goto_script_seq(uint16_t *script_sequence_pointer, uint8_t *s
 SAT_returnState polulate_next_time_table( uint8_t *file_buffer, science_unit_script_time_table *time_table, uint16_t *tt_pointer) {
 
     if(!C_ASSERT(file_buffer != NULL && time_table != NULL && tt_pointer != NULL) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(time_table->script_index != SU_SCR_TT_EOT) == true) { return SATR_EOT; }
+    if(time_table->script_index == SU_SCR_TT_EOT) { return SATR_EOT; }
     
     time_table->sec = file_buffer[(*tt_pointer)++];
     time_table->min = file_buffer[(*tt_pointer)++];
@@ -691,7 +693,7 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 //     }
     
     if(!C_ASSERT(file_buffer != NULL && script_sequence != NULL && ss_pointer != NULL) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(script_sequence->cmd_id != SU_OBC_EOT_CMD_ID) == true) { return SATR_EOT; }
+    if(script_sequence->cmd_id == SU_OBC_EOT_CMD_ID) { return SATR_EOT; }
 
     script_sequence->dt_sec = file_buffer[(*ss_pointer)++];
     script_sequence->dt_min = file_buffer[(*ss_pointer)++];
