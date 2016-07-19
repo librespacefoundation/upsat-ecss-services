@@ -16,9 +16,9 @@ SAT_returnState verification_app(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
-    if(pkt-ser_type == TC_VERIFICATION_SERVICE) {
-        if(!C_ASSERT(pkt-ser_subtype == TM_VR_ACCEPTANCE_SUCCESS ||
-                     pkt-ser_subtype == TM_VR_ACCEPTANCE_FAILURE) == true) { return SATR_ERROR; }
+    if(pkt->ser_type == TC_VERIFICATION_SERVICE) {
+        if(!C_ASSERT(pkt->ser_subtype == TM_VR_ACCEPTANCE_SUCCESS ||
+                     pkt->ser_subtype == TM_VR_ACCEPTANCE_FAILURE) == true) { return SATR_ERROR; }
 
     }
     else {
