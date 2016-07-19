@@ -61,6 +61,7 @@ void ms_debugging(FRESULT res, uint16_t l) {
     MS_data.last_err = res;
 
     trace_MS_STORE_ERROR(res, l);
+    SEGGER_SYSVIEW_Print("M %u,%u",res, l);
 
 }
 
