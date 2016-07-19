@@ -16,21 +16,28 @@ SAT_returnState verification_app(tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
-    if(!C_ASSERT(pkt->ack == TC_ACK_ACC || pkt->ack == TC_ACK_NO) == true) { return SATR_ERROR; } 
-    if(pkt->type == TM) { return SATR_OK; }
-    if(pkt->app_id != SYSTEM_APP_ID) { return SATR_OK; } 
-    
-    if(pkt->ack == TC_ACK_NO) { return SATR_OK; } 
-    else if(pkt->ack == TC_ACK_ACC) {
+    if(pkt->ser_type == TC_VERIFICATION_SERVICE) {
+        if(!C_ASSERT(pkt->ser_subtype == TM_VR_ACCEPTANCE_SUCCESS ||
+                     pkt->ser_subtype == TM_VR_ACCEPTANCE_FAILURE) == true) { return SATR_ERROR; }
 
-        tc_tm_pkt *temp_pkt = 0;
-
-        verification_crt_pkt(pkt, &temp_pkt, pkt->verification_state);
-        if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
-
-        route_pkt(temp_pkt);
     }
+    else {
 
+        if(!C_ASSERT(pkt->ack == TC_ACK_ACC || pkt->ack == TC_ACK_NO) == true) { return SATR_ERROR; }
+        if(pkt->type == TM) { return SATR_OK; }
+        if(pkt->app_id != SYSTEM_APP_ID) { return SATR_OK; }
+        
+        if(pkt->ack == TC_ACK_NO) { return SATR_OK; }
+        else if(pkt->ack == TC_ACK_ACC) {
+
+            tc_tm_pkt *temp_pkt = 0;
+
+            verification_crt_pkt(pkt, &temp_pkt, pkt->verification_state);
+            if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
+
+            route_pkt(temp_pkt);
+        }
+    }
     return SATR_OK;
 }
 

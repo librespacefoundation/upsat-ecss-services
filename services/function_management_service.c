@@ -54,3 +54,17 @@ SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app
 
     return SATR_OK;
 }
+
+SAT_returnState function_management_pctrl_ack_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did) {
+
+    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+    crt_pkt(*pkt, dest_id , TC, TC_ACK_ACC, TC_FUNCTION_MANAGEMENT_SERVICE, TC_FM_PERFORM_FUNCTION, SYSTEM_APP_ID);
+
+    (*pkt)->data[0] = fun_id;
+    (*pkt)->data[1] = did;
+
+    (*pkt)->len = 2;
+
+    return SATR_OK;
+}
