@@ -682,7 +682,7 @@ SAT_returnState mass_storage_FATFS_RESET() {
 
     if(res != FR_OK)    { MS_ERR(res); }    
     MS_data.enabled = true;
-
+    SEGGER_SYSVIEW_Print("R");
     return SATR_OK;
 }
 
