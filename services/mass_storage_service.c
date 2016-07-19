@@ -398,6 +398,9 @@ SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, 
         res = f_write(&fp, buf, *size, (void *)&byteswritten);
         f_close(&fp);
         if(res == FR_OK) {
+            uint8_t sys_view_temp[20];
+            sprintf(sys_view_temp,"W %u %u", sid, file);
+            SEGGER_SYSVIEW_Print(sys_view_temp);
             break;
         }
         HAL_sys_delay(1);

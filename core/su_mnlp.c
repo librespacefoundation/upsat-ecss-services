@@ -566,8 +566,6 @@ void serve_tt(){
                 }
                 else{ //TODO: add an extra check here, for valid seq_header state
                     MNLP_data.current_sip = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index;
-                    sprintf(sys_view_temp,"GO TO EXEC CMD %u", MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id, 0);
-                    SEGGER_SYSVIEW_Print(sys_view_temp);
                     su_cmd_handler( &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header);
                 }
             }
@@ -663,21 +661,23 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd) {
         else{ HAL_su_uart_tx( cmd->command, cmd->len+2); }
     }
     else{ //route to real su mnlp unit
-    if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID){
-        su_power_ctrl(P_ON);
-        MNLP_data.su_state = SU_POWERED_ON;
-        MNLP_data.last_su_response_time = return_time_QB50();
-        
-    }else
-    if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID){
-        su_power_ctrl(P_OFF);
-        MNLP_data.su_state = SU_POWERED_OFF;
-        
-    }else 
-    if(cmd->cmd_id == SU_OBC_EOT_CMD_ID){
-        return SATR_EOT;
-    }else{ 
-        HAL_su_uart_tx(cmd->command, cmd->len + 2); }
+        sprintf(sys_view_temp,"GO TO EXEC CMD %u", MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id, 0);
+        SEGGER_SYSVIEW_Print(sys_view_temp);
+        if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID){
+            su_power_ctrl(P_ON);
+            MNLP_data.su_state = SU_POWERED_ON;
+            MNLP_data.last_su_response_time = return_time_QB50();
+
+        }else
+        if(cmd->cmd_id == SU_OBC_SU_OFF_CMD_ID){
+            su_power_ctrl(P_OFF);
+            MNLP_data.su_state = SU_POWERED_OFF;
+
+        }else 
+        if(cmd->cmd_id == SU_OBC_EOT_CMD_ID){
+            return SATR_EOT;
+        }else{ 
+            HAL_su_uart_tx(cmd->command, cmd->len + 2); }
     }
     return SATR_OK;
 }
