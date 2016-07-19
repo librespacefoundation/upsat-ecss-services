@@ -21,7 +21,7 @@ SEGGER_SYSVIEW_MODULE MS_module = {
     "0 Downlink started, " \
     "1 Downlink stoped, " \
     "2 STORE started, " \
-    "3 STORE write ID=%u %u , " \
+    "3 STORE write ID=%u %u, " \
     "4 STORE stoped, " \
     "5 REP started, " \
     "6 REP stoped, " \
@@ -31,7 +31,7 @@ SEGGER_SYSVIEW_MODULE MS_module = {
     "10 DEL stoped, " \
     "11 FORM started, " \
     "12 FORM stoped, " \
-    "13 MS ERROR ID=%u %u", // sModule
+    "13 ERROR ID=%u %u", // sModule
     14, // NumEvents
     0,
     // EventOffset, Set by SEGGER_SYSVIEW_RegisterModule() NULL,
