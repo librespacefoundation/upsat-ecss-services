@@ -89,7 +89,7 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
         tc_tm_pkt *time_rep_pkt = get_pkt(PKT_NORMAL);
         /*make the packet to send*/
         time_management_report_time_in_qb50( time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
-        
+        pkt->verification_state = SATR_OK;
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }
@@ -98,7 +98,7 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
         
         tc_tm_pkt *time_rep_pkt = get_pkt(PKT_NORMAL);
         time_management_report_time_in_utc( time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
-        
+        pkt->verification_state = SATR_OK;
         if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }
