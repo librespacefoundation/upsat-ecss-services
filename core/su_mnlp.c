@@ -774,6 +774,7 @@ SAT_returnState su_power_ctrl(FM_fun_id fid) {
     function_management_pctrl_ack_crt_pkt_api(&temp_pkt, EPS_APP_ID, fid, SU_DEV_ID);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
     route_pkt(temp_pkt);
+    wake_uart_task();
     return SATR_OK;
 }
 
