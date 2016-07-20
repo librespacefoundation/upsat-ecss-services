@@ -10,6 +10,7 @@
 #include "pkt_pool.h"
 #include "queue.h"
 #include "stats.h"
+#include "wod_handling.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 25
@@ -95,7 +96,7 @@ route_pkt (tc_tm_pkt *pkt)
      * A new WOD arrived from the OBC. Store it and extract the information.
      * The transmission of each WOD is handled by the COMMS dispatcher function
      */
-    /*TODO */
+    store_wod_obc(pkt->data + 1, pkt->len - 1);
   }
   else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     res = hk_app (pkt);
