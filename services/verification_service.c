@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include "service_utilities.h"
 #include "pkt_pool.h"
+#include "sysview.h"
 
 #define ECSS_VR_DATA_LEN_SUCCESS 4
 #define ECSS_VR_DATA_LEN_FAILURE 5
@@ -20,9 +21,7 @@ SAT_returnState verification_app(tc_tm_pkt *pkt) {
         if(!C_ASSERT(pkt->ser_subtype == TM_VR_ACCEPTANCE_SUCCESS ||
                      pkt->ser_subtype == TM_VR_ACCEPTANCE_FAILURE) == true) { return SATR_ERROR; }
 
-            uint8_t temp[20];
-            sprintf(temp,"V %d", pkt->app_id);
-            SEGGER_SYSVIEW_Print(temp);
+            SYSVIEW_PRINT("V %d", pkt->app_id);
     }
     else {
 

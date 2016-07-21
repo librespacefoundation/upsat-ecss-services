@@ -60,10 +60,8 @@ void ms_debugging(FRESULT res, uint16_t l) {
 
     MS_data.last_err = res;
 
-    uint8_t temp[20];
-    sprintf(temp,"M %u %u", res, l);
     trace_MS_STORE_ERROR(res, l);
-    SEGGER_SYSVIEW_Print(temp);
+    SYSVIEW_PRINT("M %u %u", res, l);
 }
 
 /**

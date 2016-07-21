@@ -69,6 +69,13 @@
 #define trace_SCR_NO_NEW_TO_BACT(ID) SEGGER_SYSVIEW_RecordU32(ID_SCR_NO_NEW_SCR + SU_module.EventOffset, ID)
 #define trace_SCR_ENDED() SEGGER_SYSVIEW_RecordVoid(ID_SCR_SCR_ENDED + SU_module.EventOffset)
 
+#define SYSVIEW_PRINT(fmt, ...) \
+        do { \
+        	uint8_t sysview_uart_temp[20]; \
+        	sprintf(sysview_uart_temp, fmt, __VA_ARGS__); \
+        	SEGGER_SYSVIEW_Print(sysview_uart_temp); \
+        } while (0)
+
 
 extern SEGGER_SYSVIEW_MODULE PKT_POOL_module;
 extern SEGGER_SYSVIEW_MODULE MS_module;
@@ -108,6 +115,7 @@ void sysview_init();
 
 #define traceASSERTION(FID, LINE) ;
 
+#define SYSVIEW_PRINT(fmt, ...) ;
 
 #endif
 
