@@ -197,10 +197,8 @@ SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
 
     ret = send_payload(send_buf, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
     if(ret < 1){
-      comms_rf_stats_frame_transmitted(&comms_stats, 0, ret);
       return SATR_ERROR;
     }
-    comms_rf_stats_frame_transmitted(&comms_stats, 1, 0);
     return SATR_OK;
 }
 
