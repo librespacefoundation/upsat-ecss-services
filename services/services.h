@@ -62,6 +62,9 @@
 #define MAX_PKT_SIZE  2063
 #endif
 
+#define MS_SU_LOG_SIZE  196
+#define MS_WOD_LOG_SIZE  228
+
 typedef enum {
     OBC_APP_ID      = _OBC_APP_ID_,
     EPS_APP_ID      = _EPS_APP_ID_,
@@ -131,8 +134,9 @@ typedef enum {
 
     SATR_SD_DISABLED           = 50,
     SATR_QUEUE_FULL            = 51,
+    SATR_WRONG_DOWNLINK_OFFSET = 52,
     /*LAST*/
-    SATR_LAST                  = 52
+    SATR_LAST                  = 53
 }SAT_returnState;
 
 /*services types*/
