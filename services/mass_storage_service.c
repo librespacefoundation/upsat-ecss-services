@@ -848,6 +848,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
     uint16_t size;
     SAT_returnState res;
+    FRESULT fres;
     TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
 
@@ -868,14 +869,31 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
     mass_storage_crtPkt(&temp_pkt, app_id, MAX_PKT_EXT_DATA);
 
     temp_pkt->data[0] = sid;
-    cnv16_8(file, &temp_pkt->data[1]);
-    size = 3;
+
+    size = 1;
 
     for(uint8_t i = 0; i < num; i++) {
-        res = mass_storage_downlinkFile(sid, file, &temp_pkt->data[size], &size);
+        uint16_t fsize = 0;
+        uint16_t tfile = file + i;
 
-        size += 3;
-        if(res != SATR_OK)                              { free_pkt(temp_pkt); return res; }
+        fres = mass_storage_downlinkFile(sid, tfile, &temp_pkt->data[size + 2], &fsize);
+
+        if(res == FR_NO_FILE)   { continue; }
+        else if(res != SATR_OK) { free_pkt(temp_pkt); return res; }
+
+        if(!C_ASSERT((sid <= SU_SCRIPT_7 && fsize < MAX_PKT_EXT_DATA) ||
+                 (sid == SU_LOG && fsize == MS_SU_LOG_SIZE) ||
+                 (sid == WOD_LOG && fsize < MS_WOD_LOG_SIZE) ||
+                 (sid == EXT_WOD_LOG && fsize < MAX_PKT_EXT_DATA) ||
+                 (sid == SCHS && fsize < MAX_PKT_EXT_DATA) ||
+                 (sid == FOTOS && num < MAX_PKT_EXT_DATA)) == true) {
+
+            free_pkt(temp_pkt);
+            return SATR_WRONG_DOWNLINK_OFFSET;
+        }
+
+        cnv16_8(tfile, &temp_pkt->data[size]);
+        size += fize + 2;
         if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
 
     }
