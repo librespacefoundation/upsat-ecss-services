@@ -43,8 +43,7 @@ const uint8_t services_verification_ADCS_TC[MAX_SERVICES][MAX_SUBTYPES] = {
 struct _adcs_data adcs_data;
 static struct _sys_data sys_data;
 
-SAT_returnState
-route_pkt (tc_tm_pkt *pkt)
+SAT_returnState route_pkt (tc_tm_pkt *pkt)
 {
 
   SAT_returnState res;
@@ -134,12 +133,12 @@ void HAL_adcs_SPIN(int32_t RPM) {
 	update_spin_torquer(&adcs_actuator);
 }
 
-void HAL_adcs_MAGNETO(int32_t current_x, int32_t current_y) {
-	if (abs(current_x) > MAX_CURR_MAGNETO_TORQUER
+void HAL_adcs_MAGNETO(int32_t current_z, int32_t current_y) {
+	if (abs(current_z) > MAX_CURR_MAGNETO_TORQUER
 			|| abs(current_y) > MAX_CURR_MAGNETO_TORQUER) {
 		return;
 	}
-	adcs_actuator.magneto_torquer.current_x = current_x;
+	adcs_actuator.magneto_torquer.current_z = current_z;
 	adcs_actuator.magneto_torquer.current_y = current_y;
 	update_magneto_torquer(&adcs_actuator);
 }
