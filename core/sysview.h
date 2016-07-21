@@ -72,7 +72,7 @@
 #define SYSVIEW_PRINT(fmt, ...) \
         do { \
             uint8_t sysview_uart_temp[40]; \
-            snprintf(sysview_uart_temp, 40, fmt, __VA_ARGS__); \
+            snprintf(sysview_uart_temp, 40, fmt,##__VA_ARGS__); \
             SEGGER_SYSVIEW_Print(sysview_uart_temp); \
         } while (0)
 
