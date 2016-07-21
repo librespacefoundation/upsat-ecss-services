@@ -13,7 +13,6 @@ extern void HAL_su_uart_tx(uint8_t *buf, uint16_t size);
 extern void HAL_sys_delay(uint32_t sec);
 extern osThreadId su_schHandle;
 
-static uint8_t sys_view_temp[40];
 struct time_utc tt_utc;
 uint32_t qb_50_time;
 
@@ -549,8 +548,7 @@ void serve_tt(){
                 }
                 else{ //TODO: add an extra check here, for valid seq_header state
                     MNLP_data.current_sip = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index;
-                    sprintf(sys_view_temp,"GO TO EXEC CMD %u", MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id, 0);
-                    SEGGER_SYSVIEW_Print(sys_view_temp);
+                    SYSVIEW_PRINT("GO TO EXEC CMD %u", MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id, 0);
                     su_cmd_handler( &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header);
                 }
             }
