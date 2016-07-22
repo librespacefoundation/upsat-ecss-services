@@ -37,7 +37,7 @@ typedef struct {
     float vy_wgs;
     float vz_wgs;
     float time;
-    float gps_time;
+    double gps_time;
     uint16_t gps_week;
     uint8_t num_sat;
 } _gps_state;

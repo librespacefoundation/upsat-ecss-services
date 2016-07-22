@@ -76,7 +76,7 @@ SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS][NMEA_MAX_F
      */
 
     else if(strncmp("$PSLSP", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
-        gps_state->gps_time = strtof(&res[NMEA_GPS_TIME][0], &res[NMEA_GPS_TIME][NMEA_MAX_FIELD_SIZE]);
+        gps_state->gps_time = strtod(&res[NMEA_GPS_TIME][0], &res[NMEA_GPS_TIME][NMEA_MAX_FIELD_SIZE]);
         gps_state->gps_week = strtol(&res[NMEA_GPS_WEEK][0], &res[NMEA_GPS_WEEK][NMEA_MAX_FIELD_SIZE], 10);
         gps_state->x_wgs = strtof(&res[NMEA_LSP_X_WGS][0], &res[NMEA_LSP_X_WGS][NMEA_MAX_FIELD_SIZE]);
         gps_state->y_wgs = strtof(&res[NMEA_LSP_Y_WGS][0], &res[NMEA_LSP_Y_WGS][NMEA_MAX_FIELD_SIZE]);
