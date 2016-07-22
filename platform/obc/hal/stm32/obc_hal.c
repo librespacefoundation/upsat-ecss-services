@@ -78,6 +78,19 @@ tc_tm_pkt * queuePeak(TC_TM_app_id app_id) {
     return pkt;
 }
 
+void queue_IDLE(TC_TM_app_id app_id) {
+
+    tc_tm_pkt *pkt;
+
+    pkt = queuePeak(app_id);
+    if(!C_ASSERT(pkt != NULL) == true) { return; }
+
+    if(is_free_pkt(pkt) == true) {
+        queuePop(app_id);
+    }
+
+}
+
 void HAL_sys_delay(uint32_t msec) {
 	osDelay(msec);
 }
