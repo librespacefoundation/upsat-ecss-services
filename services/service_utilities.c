@@ -102,7 +102,7 @@ void cnvD_8(const double from, uint8_t *to) {
     to[7] = cnv.cnv8[7];
 }
 
-void cnvD_F(uint8_t *from, double *to) {
+void cnv8_D(uint8_t *from, double *to) {
 
     union _cnv cnv;
 

@@ -1,5 +1,6 @@
 #include "power_ctrl.h"
-
+#include "sgp4.h"
+#include "adcs_control.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 27
@@ -49,15 +50,15 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
         for (uint8_t i = 1; i < TLE_SIZE + 1; i++) {
             tle_string[i] = state[i];
         }
+        orbit_t gnd_tle;
+        gnd_tle = read_tle(tle_string);
+        update_tle(&upsat_tle, gnd_tle);
     }
     else if (did == ADCS_CTRL_GAIN && fid == SET_VAL) {
-        uint16_t g1 = 0;
-        uint16_t g2 = 0;
-        uint16_t g3 = 0;
 
-        cnv8_16(state, &g1);
-        cnv8_16(state, &g2);
-        cnv8_16(state, &g3);
+        cnv8_16(state, control.gain[0]);
+        cnv8_16(state, control.gain[1]);
+        cnv8_16(state, control.gain[2]);
     }
     else if(did == SYS_DBG && fid == SET_VAL)    {
 

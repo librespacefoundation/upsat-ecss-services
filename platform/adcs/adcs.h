@@ -12,19 +12,19 @@
 extern uint8_t dbg_msg;
 
 struct _adcs_data {
-	uint16_t adcs_seq_cnt;
-	uint8_t rsrc;
-	uint32_t *boot_counter;
-	uint32_t *log;
-	uint32_t *log_cnt;
-	uint32_t *log_state;
+    uint16_t adcs_seq_cnt;
+    uint8_t rsrc;
+    uint32_t *boot_counter;
+    uint32_t *log;
+    uint32_t *log_cnt;
+    uint32_t *log_state;
 
-	struct uart_data obc_uart;
+    struct uart_data obc_uart;
 };
 
 struct _sys_data {
-	uint8_t rsrc;
-	uint32_t *boot_counter;
+    uint8_t rsrc;
+    uint32_t *boot_counter;
 };
 
 extern struct _adcs_data adcs_data;
@@ -40,7 +40,7 @@ extern SAT_returnState hk_app(tc_tm_pkt *pkt);
 extern SAT_returnState function_management_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_app(tc_tm_pkt *pkt);
 extern SAT_returnState mass_storage_storeLogs(MS_sid sid, uint8_t *buf,
-		uint16_t *size);
+        uint16_t *size);
 extern SAT_returnState large_data_app(tc_tm_pkt *pkt);
 extern SAT_returnState test_app(tc_tm_pkt *pkt);
 

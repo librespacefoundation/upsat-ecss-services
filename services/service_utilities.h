@@ -27,6 +27,10 @@ void cnvF_8(const float from, uint8_t *to);
 
 void cnv8_F(uint8_t *from, float *to);
 
+void cnvD_8(const double from, uint8_t *to);
+
+void cnv8_D(uint8_t *from, double *to);
+
 uint16_t htons(uint16_t x);
 uint16_t ntohs(uint16_t x);
 uint32_t htonl(uint32_t x);
