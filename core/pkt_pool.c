@@ -55,7 +55,7 @@ SAT_returnState free_pkt(tc_tm_pkt *pkt) {
         if(&pkt_pool.pkt[i] == pkt) {
             traceFREE_PKT(i);
             pkt_pool.free[i] = true;
-            pkt_pool.time_delta[i]= HAL_sys_GetTick() - pkt_pool.time[i];
+            //pkt_pool.time_delta[i]= HAL_sys_GetTick() - pkt_pool.time[i];
             return SATR_OK;
         }
     }
@@ -64,12 +64,33 @@ SAT_returnState free_pkt(tc_tm_pkt *pkt) {
         if(&pkt_pool.pkt_ext[i] == pkt) {
             traceFREE_PKT(i + POOL_PKT_SIZE);
             pkt_pool.free_ext[i] = true;
-            pkt_pool.time_delta_ext[i]= HAL_sys_GetTick() - pkt_pool.time_ext[i];
+            //pkt_pool.time_delta_ext[i]= HAL_sys_GetTick() - pkt_pool.time_ext[i];
             return SATR_OK;
         }
     }
 
     return SATR_ERROR;
+}
+
+uint8_t is_free_pkt(tc_tm_pkt *pkt) {
+
+   for(uint8_t i = 0; i <= POOL_PKT_SIZE; i++) {
+        if(&pkt_pool.pkt[i] == pkt) {
+            if(pkt_pool.free[i] == true) {
+                return true;
+            }
+            return false;
+        }
+    }
+
+    for(uint8_t i = 0; i < POOL_PKT_EXT_SIZE; i++) {
+        if(&pkt_pool.pkt_ext[i] == pkt) {
+            if(pkt_pool.free_ext[i] == true) {
+                return true;
+            }
+            return false;
+        }
+    }
 }
 
 SAT_returnState pkt_pool_INIT() {
@@ -87,9 +108,7 @@ SAT_returnState pkt_pool_INIT() {
     return SATR_OK;
 }
 
-void pkt_pool_IDLE() {
-
-    uint32_t tmp_time = HAL_sys_GetTick();
+void pkt_pool_IDLE(uint32_t tmp_time) {
 
     for(uint8_t i = 0; i < POOL_PKT_SIZE; i++) {
         if(pkt_pool.free[i] == false && pkt_pool.time[i] - tmp_time > PKT_TIMEOUT) {
