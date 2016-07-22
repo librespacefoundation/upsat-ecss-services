@@ -116,7 +116,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         /*packet length*/
         pkt->len = 7;
-
+        SYSVIEW_PRINT("EPS %u,%u,%u,%u,%u,%u", pkt->data[1], pkt->data[2], pkt->data[3], pkt->data[4], pkt->data[5],  pkt->data[6]);
 
     } else if(sid == EX_HEALTH_REP) {
 

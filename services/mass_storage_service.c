@@ -61,7 +61,7 @@ void ms_debugging(FRESULT res, uint16_t l) {
     MS_data.last_err = res;
 
     trace_MS_STORE_ERROR(res, l);
-
+    SYSVIEW_PRINT("M %u %u", res, l);
 }
 
 /**
@@ -883,7 +883,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
 
         if(!C_ASSERT((sid <= SU_SCRIPT_7 && fsize < MAX_PKT_EXT_DATA) ||
                  (sid == SU_LOG && fsize == MS_SU_LOG_SIZE) ||
-                 (sid == WOD_LOG && fsize < MS_WOD_LOG_SIZE) ||
+                 (sid == WOD_LOG && fsize == MS_WOD_LOG_SIZE) ||
                  (sid == EXT_WOD_LOG && fsize < MAX_PKT_EXT_DATA) ||
                  (sid == SCHS && fsize < MAX_PKT_EXT_DATA) ||
                  (sid == FOTOS && num < MAX_PKT_EXT_DATA)) == true) {
@@ -893,7 +893,7 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
         }
 
         cnv16_8(tfile, &temp_pkt->data[size]);
-        size += fize + 2;
+        size += fsize + 2;
         if(!C_ASSERT(size <= MAX_PKT_EXT_DATA) == true) { free_pkt(temp_pkt); return SATR_ERROR; }
 
     }

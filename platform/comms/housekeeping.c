@@ -35,6 +35,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->data[1] = wod_convert_temperature(temp);
 
         pkt->len = 2;
+
+        SYSVIEW_PRINT("COMMS %u", pkt->data[1]);
+
     } else if(sid == EX_HEALTH_REP) {
 
         //cnv.cnv32 = time.now();
