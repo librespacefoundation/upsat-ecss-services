@@ -87,6 +87,7 @@ void queue_IDLE(TC_TM_app_id app_id) {
 
     if(is_free_pkt(pkt) == true) {
         queuePop(app_id);
+        traceGC_QUEUE_PKT();
     }
 
 }
