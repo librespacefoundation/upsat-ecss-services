@@ -4,6 +4,7 @@
 #include "flash.h"
 #include "stats.h"
 #include "wod_handling.h"
+#include "sysview.h"
 
 extern comms_rf_stat_t comms_stats;
 

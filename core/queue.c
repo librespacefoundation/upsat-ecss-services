@@ -1,6 +1,7 @@
 #include "queue.h"
 
 #include "pkt_pool.h"
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 34
