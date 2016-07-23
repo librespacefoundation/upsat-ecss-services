@@ -8,7 +8,7 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 31
 
-#define HOUR 360000
+#define SYS_HOUR 360000
 
 extern SAT_returnState hal_kill_uart(TC_TM_app_id app_id);
 
@@ -76,7 +76,7 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
 void uart_killer(TC_TM_app_id app_id, struct uart_data *data, uint32_t time) {
 
-    if(time - data->init_time > 160000) {
+    if(time - data->init_time > SYS_HOUR) {
 
         SAT_returnState res = hal_kill_uart(app_id);
         if(res == SATR_OK) {

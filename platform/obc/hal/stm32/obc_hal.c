@@ -4,6 +4,7 @@
 #include <cmsis_os.h>
 #include "task.h"
 #include "obc.h"
+#include "sysview.h"
 
 extern RTC_HandleTypeDef hrtc;
 extern IWDG_HandleTypeDef hiwdg;
