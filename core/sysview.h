@@ -9,9 +9,14 @@
 
 #define ID_GETPKT  0
 #define ID_FREEPKT 1
+#define ID_QUEUE   2
+#define ID_POOL    3
 
 #define traceGET_PKT(ID) SEGGER_SYSVIEW_RecordU32(ID_GETPKT + PKT_POOL_module.EventOffset, ID)
 #define traceFREE_PKT(ID) SEGGER_SYSVIEW_RecordU32(ID_FREEPKT + PKT_POOL_module.EventOffset, ID)
+
+#define traceGC_QUEUE_PKT() SEGGER_SYSVIEW_RecordVoid(ID_QUEUE + PKT_POOL_module.EventOffset)
+#define traceGC_POOL_PKT(ID) SEGGER_SYSVIEW_RecordU32(ID_POOL + PKT_POOL_module.EventOffset, ID)
 
 #define ID_DOWN_START  0
 #define ID_DOWN_STOP   1
@@ -89,6 +94,10 @@ void sysview_init();
 
 #define traceGET_PKT(ID)   ;
 #define traceFREE_PKT(ID)  ;
+
+#define traceGC_QUEUE_PKT() ;
+#define traceGC_POOL_PKT(ID) ;
+
 
 #define trace_MS_DOWN_START()  ;
 #define trace_MS_DOWN_STOP()   ;

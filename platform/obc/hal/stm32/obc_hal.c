@@ -4,6 +4,7 @@
 #include <cmsis_os.h>
 #include "task.h"
 #include "obc.h"
+#include "sysview.h"
 
 extern RTC_HandleTypeDef hrtc;
 extern IWDG_HandleTypeDef hiwdg;
@@ -76,6 +77,20 @@ tc_tm_pkt * queuePeak(TC_TM_app_id app_id) {
     if(xQueuePeek(*xQueue, &(pkt), (TickType_t) 0) == pdFALSE) { return (tc_tm_pkt *)NULL; }
 
     return pkt;
+}
+
+void queue_IDLE(TC_TM_app_id app_id) {
+
+    tc_tm_pkt *pkt;
+
+    pkt = queuePeak(app_id);
+    if(!C_ASSERT(pkt != NULL) == true) { return; }
+
+    if(is_free_pkt(pkt) == true) {
+        queuePop(app_id);
+        traceGC_QUEUE_PKT();
+    }
+
 }
 
 void HAL_sys_delay(uint32_t msec) {

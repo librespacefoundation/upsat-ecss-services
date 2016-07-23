@@ -1,6 +1,7 @@
 #include "queue.h"
 
 #include "pkt_pool.h"
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 34
@@ -50,4 +51,19 @@ tc_tm_pkt * queuePeak(TC_TM_app_id app_id) {
     if(queue.head == queue.tail) { return 0; }
 
     return queue.fifo[queue.head];
+}
+
+void queue_IDLE(TC_TM_app_id app_id) {
+
+    tc_tm_pkt *pkt;
+
+    pkt = queuePeak(app_id);
+    if(!C_ASSERT(pkt != NULL) == true) { return; }
+
+    if(is_free_pkt(pkt) == true) {
+        queuePop(app_id);
+        traceGC_QUEUE_PKT();
+
+    }
+
 }

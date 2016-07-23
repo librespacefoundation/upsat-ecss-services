@@ -4,6 +4,7 @@
 #include "eps_configuration.h"
 #include "eps_power_module.h"
 #include "eps_non_volatile_mem_handling.h"
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 20
