@@ -4,13 +4,20 @@
 #include "service_utilities.h"
 #include "hldlc.h"
 #include "verification_service.h"
+#include "test_service.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 31
 
 #define SYS_HOUR 360000
 
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+
+extern uint32_t HAL_sys_GetTick();
+
 extern SAT_returnState hal_kill_uart(TC_TM_app_id app_id);
+
+extern SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id);
 
 extern SAT_returnState HAL_uart_rx(TC_TM_app_id app_id, struct uart_data *data);
 
