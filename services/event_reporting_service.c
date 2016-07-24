@@ -13,7 +13,6 @@
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_sys_GetTick();
 
-static uint8_t strNo[] = "No";
 
 SAT_returnState event_app(tc_tm_pkt * pkt) {
 
@@ -89,7 +88,7 @@ SAT_returnState event_crt_pkt(tc_tm_pkt **pkt, const EV_event event) {
     *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
 
-    crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, SYSTEM_APP_ID);
+    crt_pkt(*pkt, OBC_APP_ID, TC, TC_ACK_NO, TC_EVENT_SERVICE, TM_EV_NORMAL_REPORT, (TC_TM_app_id)SYSTEM_APP_ID);
 
     uint32_t time_temp = HAL_sys_GetTick();
     (*pkt)->data[0] = (TC_TM_app_id)SYSTEM_APP_ID;
