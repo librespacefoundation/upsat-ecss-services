@@ -5,7 +5,7 @@
 
 #if(SYSVIEW == 1)
 
-#include "segger_sysview.h"
+#include "SEGGER_SYSVIEW.h"
 
 #define ID_GETPKT  0
 #define ID_FREEPKT 1
