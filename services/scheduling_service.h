@@ -20,7 +20,7 @@
 /* Declares the maximum available space for 
  * on-memory loaded schedule commands
  */
-#define SC_MAX_STORED_SCHEDULES 17
+#define SC_MAX_STORED_SCHEDULES 15
 
 typedef enum {
     /* The 'release_time' member
@@ -124,14 +124,14 @@ typedef struct {
          */
     tc_tm_pkt tc_pck;
         
-        /* Declares a schedule position as pos_avail or !pos_avail.
-         * If a schedule position is noted as !pos_avail, it can be replaced 
+        /* Declares a schedule position as pos_taken or !pos_taken.
+         * If a schedule position is noted as !pos_taken, it can be replaced 
          * by a new SC_pkt packet.
          * When a schedule goes for execution, 
-         * automatically its position becomes !pos_avail.
-         * pos_avail=true, 1, !pos_avail=false ,0
+         * automatically its position becomes !pos_taken.
+         * pos_taken=true, 1, !pos_taken=false ,0
          */
-    uint8_t pos_avail;
+    uint8_t pos_taken;
     
 }SC_pkt;
 
