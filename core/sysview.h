@@ -1,7 +1,7 @@
 #ifndef __SYSVIEW_H
 #define __SYSVIEW_H
 
-#define SYSVIEW  0 /* define as 1 if you want to use systemview */
+#define SYSVIEW  1 /* define as 1 if you want to use systemview */
 
 #if(SYSVIEW == 1)
 
@@ -77,8 +77,8 @@
 #define SYSVIEW_PRINT(fmt, ...) \
         do { \
             uint8_t sysview_uart_temp[40]; \
-            snprintf(sysview_uart_temp, 40, fmt,##__VA_ARGS__); \
-            SEGGER_SYSVIEW_Print(sysview_uart_temp); \
+            snprintf((char*)sysview_uart_temp, 40, fmt,##__VA_ARGS__); \
+            SEGGER_SYSVIEW_Print((const char*)sysview_uart_temp); \
         } while (0)
 
 

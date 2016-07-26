@@ -13,7 +13,7 @@
 
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-SAT_returnState verification_app(tc_tm_pkt *pkt) {
+SAT_returnState verification_app(const tc_tm_pkt *pkt) {
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
 
@@ -43,7 +43,7 @@ SAT_returnState verification_app(tc_tm_pkt *pkt) {
     return SATR_OK;
 }
 
-SAT_returnState verification_crt_pkt(tc_tm_pkt *pkt, tc_tm_pkt **out, SAT_returnState res) {
+SAT_returnState verification_crt_pkt(const tc_tm_pkt *pkt, tc_tm_pkt **out, SAT_returnState res) {
 
     uint8_t subtype;
 
@@ -69,7 +69,7 @@ SAT_returnState verification_crt_pkt(tc_tm_pkt *pkt, tc_tm_pkt **out, SAT_return
         (*out)->len = ECSS_VR_DATA_LEN_FAILURE;
     }
 
-    crt_pkt(*out, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_VERIFICATION_SERVICE, subtype, pkt->dest_id);
+    crt_pkt(*out, (TC_TM_app_id)SYSTEM_APP_ID, TM, TC_ACK_NO, TC_VERIFICATION_SERVICE, subtype, pkt->dest_id);
 
     return SATR_OK;
 }

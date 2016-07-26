@@ -206,10 +206,6 @@ uint32_t * HAL_obc_BKPSRAM_BASE() {
   return (uint32_t *)BKPSRAM_BASE;
 }
 
-void HAL_obc_IWDG_Start() {
-  HAL_IWDG_Start(&hiwdg);
-}
-
 void HAL_obc_IWDG_Refresh() {
   HAL_IWDG_Refresh(&hiwdg);
 }

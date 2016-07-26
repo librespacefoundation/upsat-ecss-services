@@ -3,8 +3,11 @@
 #include "obc.h"
 #include "time_management_service.h"
 #include "wdg.h"
+#include "mass_storage_service.h"
 #include "su_mnlp.h"
 #include "stm32f4xx_hal.h"
+#include "obc_hal.h"
+#include "uart_hal.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 16

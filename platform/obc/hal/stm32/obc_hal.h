@@ -12,6 +12,8 @@ uint8_t queueSize(TC_TM_app_id app_id);
 
 tc_tm_pkt * queuePeak(TC_TM_app_id app_id);
 
+void wake_uart_task();
+
 void HAL_obc_SD_ON();
 
 void HAL_obc_SD_OFF();
@@ -34,6 +36,6 @@ uint32_t * HAL_obc_BKPSRAM_BASE();
 
 uint32_t HAL_sys_GetTick();
 
-void wdg_reset();
+void HAL_obc_IWDG_Refresh();
 
 #endif
