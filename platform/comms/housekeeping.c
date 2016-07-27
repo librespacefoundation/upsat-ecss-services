@@ -19,7 +19,7 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         //data[100] = 0xBE;
         //data[101] = 0xEF;
         
-        send_payload(&data[1], (size_t)MAX_PKT_DATA, COMMS_DEFAULT_TIMEOUT_MS);
+        send_payload(&data[1], (size_t)MAX_PKT_DATA, 0, COMMS_DEFAULT_TIMEOUT_MS);
    }
 
    return SATR_ERROR;
