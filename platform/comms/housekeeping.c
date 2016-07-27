@@ -26,28 +26,51 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
 }
 
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
-    float temp;
+
     pkt->data[0] = (HK_struct_id)sid;
     if(sid == HEALTH_REP) {
-        temp = comms_rf_stats_get_temperature(&comms_stats);
-        if(isnanf(temp)){
-          return SATR_ERROR;
-        }
-        pkt->data[1] = wod_convert_temperature(temp);
+        float temp = comms_rf_stats_get_temperature(&comms_stats);
 
+        if(isnanf(temp)){
+            pkt->data[1] = 0;
+        } else {
+            pkt->data[1] = wod_convert_temperature(temp);
+        }
         pkt->len = 2;
 
         SYSVIEW_PRINT("COMMS %u", pkt->data[1]);
 
-    } else if(sid == EX_HEALTH_REP) {
+    } else if(sid == EX_HEALTH_REP ||
+              sid == COMMS_EXT_WOD_REP) {
 
+        uint16_t size = 1;
         //cnv.cnv32 = time.now();
-        cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
-        cnv32_8(flash_read_trasmit(), &pkt->data[5]);
+        cnv32_8(HAL_sys_GetTick(), &pkt->data[size]);
+        size += 4;
+        cnv32_8(flash_read_trasmit(), &pkt->data[size]);
+        size += 4;
 
-        pkt->len = 9;
+        cnv32_8(comms_stats.rx_failed_cnt, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.rx_crc_failed_cnt, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.tx_failed_cnt, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.tx_frames_cnt, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.rx_frames_cnt, &pkt->data[size]);
+        size += 4;
 
-    } 
+        cnv32_8(comms_stats.last_tx_error_code, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.last_rx_error_code, &pkt->data[size]);
+        size += 4;
+        cnv32_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[size]);
+        size += 4;
+
+        pkt->len = size;
+
+    }
 
     return SATR_OK;
 }

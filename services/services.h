@@ -241,14 +241,15 @@ typedef enum {
 #define TM_TIME_REPORT_IN_QB50          6 //subservice 6, Telemetry response time in QB50
 
 typedef enum {
-    HEALTH_REP      = 1,
-    EX_HEALTH_REP   = 2,
-    EVENTS_REP      = 3,
-    WOD_REP         = 4,
-    EXT_WOD_REP     = 5,
-    SU_SCI_HDR_REP  = 6,
-    ADCS_TLE_REP    = 7,
-    LAST_STRUCT_ID  = 8
+    HEALTH_REP        = 1,
+    EX_HEALTH_REP     = 2,
+    EVENTS_REP        = 3,
+    WOD_REP           = 4,
+    EXT_WOD_REP       = 5,
+    SU_SCI_HDR_REP    = 6,
+    ADCS_TLE_REP      = 7,
+    COMMS_EXT_WOD_REP = 8,
+    LAST_STRUCT_ID    = 9
 }HK_struct_id;
 
 typedef enum {
@@ -275,8 +276,9 @@ typedef enum {
     ADCS_SPIN       = 13,
     ADCS_TLE        = 14,
     ADCS_CTRL_GAIN  = 15,
-    SYS_DBG         = 16,
-    LAST_DEV_ID     = 17
+    ADCS_SET_POINT  = 16,
+    SYS_DBG         = 17,
+    LAST_DEV_ID     = 18
 }FM_dev_id;
 
 /*Mass storage ids*/
