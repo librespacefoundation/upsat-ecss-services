@@ -24,7 +24,7 @@ function_management_app (tc_tm_pkt *pkt);
 extern SAT_returnState
 test_app (tc_tm_pkt *pkt);
 extern int32_t
-send_payload (const uint8_t *in, size_t len, size_t timeout_ms);
+send_payload (const uint8_t *in, size_t len, uint8_t is_wod, size_t timeout_ms);
 extern uint8_t dbg_msg;
 extern UART_HandleTypeDef huart5;
 
@@ -195,7 +195,7 @@ SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
       return ret;
     }
 
-    ret = send_payload(send_buf, (size_t)size, COMMS_DEFAULT_TIMEOUT_MS);
+    ret = send_payload(send_buf, (size_t)size, 0,COMMS_DEFAULT_TIMEOUT_MS);
     if(ret < 1){
       return SATR_ERROR;
     }
