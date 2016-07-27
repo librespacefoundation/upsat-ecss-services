@@ -5,7 +5,7 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 27
 
-/*Must use real pins*/
+
 SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) {
 
     if(!C_ASSERT(did == ADCS_SD_DEV_ID ||
@@ -14,6 +14,7 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
                  did == ADCS_MAGNETO ||
                  did == ADCS_SPIN ||
                  did == ADCS_TLE ||
+                 did == ADCS_SET_POINT ||
                  did == SYS_DBG) == true) { return SATR_ERROR; }
     if(!C_ASSERT(fid == P_OFF ||
                  fid == P_ON ||
@@ -55,6 +56,12 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
         update_tle(&upsat_tle, gnd_tle);
     }
     else if (did == ADCS_CTRL_GAIN && fid == SET_VAL) {
+
+        cnv8_16(state, control.gain[0]);
+        cnv8_16(state, control.gain[1]);
+        cnv8_16(state, control.gain[2]);
+    }
+    else if (did == ADCS_SET_POINT && fid == SET_VAL) {
 
         cnv8_16(state, control.gain[0]);
         cnv8_16(state, control.gain[1]);

@@ -178,6 +178,14 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
   return ret;
 }
 
+void update_ext_wod() {
+
+    tc_tm_pkt *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+
+    hk_crt_pkt_TC(pkt, GND_APP_ID, COMMS_EXT_WOD_REP);
+    route_pkt(pkt);
+}
 
 SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
     int32_t ret = 0;
