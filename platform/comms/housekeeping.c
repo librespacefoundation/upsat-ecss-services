@@ -43,7 +43,8 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         //cnv.cnv32 = time.now();
         cnv32_8(HAL_sys_GetTick(), &pkt->data[1]);
-        cnv32_8(flash_read_trasmit(), &pkt->data[5]);
+        /* FIXME! This has totally wrong offset */
+        //cnv32_8(flash_read_trasmit(), &pkt->data[5]);
 
         pkt->len = 9;
 

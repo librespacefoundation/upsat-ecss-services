@@ -2,6 +2,7 @@
 #define __FLASH_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 /**
  * @brief      { Include this init in main in order flash write to work}
@@ -10,8 +11,8 @@
  */
 uint32_t flash_INIT();
 
-uint32_t flash_read_trasmit();
+uint32_t flash_read_trasmit(size_t offset);
 
-void flash_write_trasmit(uint32_t data);
+void flash_write_trasmit(uint32_t data, size_t offset);
 
 #endif

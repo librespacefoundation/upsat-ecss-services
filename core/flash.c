@@ -21,14 +21,14 @@ uint32_t flash_INIT() {
     return occupy_sector[0];
 }
 
-uint32_t flash_read_trasmit() {
+uint32_t flash_read_trasmit(size_t offset) {
 
-    uint32_t *val = (uint32_t*)TRANSMIT_VAR_ADD;
+    uint32_t *val = (uint32_t*)(TRANSMIT_VAR_ADD + offset);
 
     return *val;
 }
 
-void flash_write_trasmit(uint32_t data) {
+void flash_write_trasmit(uint32_t data, size_t offset) {
 
     HAL_FLASH_Unlock();
 
@@ -37,7 +37,7 @@ void flash_write_trasmit(uint32_t data) {
 
     FLASH_Erase_Sector(FLASH_SECTOR_3, VOLTAGE_RANGE_3);
 
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, TRANSMIT_VAR_ADD, data);
+    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, TRANSMIT_VAR_ADD + offset, data);
 
     HAL_FLASH_Lock();
 }
