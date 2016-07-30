@@ -6,6 +6,12 @@
 #include "eps_non_volatile_mem_handling.h"
 #include "sysview.h"
 
+#include "eps_soft_error_handling.h"
+
+
+
+
+
 #undef __FILE_ID__
 #define __FILE_ID__ 20
 
@@ -99,7 +105,8 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
 
 //        pkt->data[5]  = (uint8_t)(cpu_temperature_buffer+15);
-        pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15)>>2 );
+        pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15)<<2 );
+
 
 
      	/* battery temperature
@@ -113,7 +120,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         if(battery_temperature_buffer<-15){battery_temperature_buffer=-15;}//clamp to -15
 
         //pkt->data[6]  = (uint8_t)( battery_temperature_buffer +15);
-        pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15)>>2 );
+        pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15)<<2 );
 
         /*packet length*/
         pkt->len = 7;
@@ -180,9 +187,32 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     	pkt->data[size] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
         size += 1;
 
+    	/* subsytem power state */
+    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(SU) );
+        size += 1;
 
-        /*edo vale fash*/
+    	/* subsytem power state */
+    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(OBC) );
+        size += 1;
+
+    	/* subsytem power state */
+    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(ADCS) );
+        size += 1;
+
+    	/* subsytem power state */
+    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(COMM) );
+        size += 1;
+
+    	/* subsytem power state */
+    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(TEMP_SENSOR) );
+        size += 1;
+
+    	/* soft error status*/
+    	pkt->data[size] = (uint8_t)(error_status);
+        size += 1;
+
         pkt->len = size;
+
     }
 
     return SATR_OK;

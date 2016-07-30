@@ -112,29 +112,6 @@ SAT_returnState check_timeouts() {
 		obc_update = t_now;
 	}
 
-	/*if ADCS reset flag is set:*/
-	if(adcs_reset_flag==SUBSYSTEM_RESET_SET){
-
-		/*clear reset flag*/
-		adcs_reset_flag=SUBSYSTEM_RESET_CLEAR;
-		/*power on subsystem*/
-		EPS_set_rail_switch(ADCS, EPS_SWITCH_RAIL_ON, &eps_board_state);
-		/*update reset time*/
-		adcs_update = t_now;
-	}
-
-	/*if COMMS reset flag is set:*/
-	if(comms_reset_flag==SUBSYSTEM_RESET_SET){
-
-		/*clear reset flag*/
-		comms_reset_flag=SUBSYSTEM_RESET_CLEAR;
-		/*power on subsystem*/
-		EPS_set_rail_switch(COMM, EPS_SWITCH_RAIL_ON, &eps_board_state);
-		/*update reset time*/
-		comms_update = t_now;
-	}
-
-
 
 	/*check time elapsed for all subsystems*/
 
@@ -149,30 +126,6 @@ SAT_returnState check_timeouts() {
 			obc_reset_flag=SUBSYSTEM_RESET_SET;
 			/*power down subsystem*/
 			EPS_set_rail_switch(OBC, EPS_SWITCH_RAIL_OFF, &eps_board_state);
-		}
-	}
-	/*if ADCS time passed >10min since last time update (as performed in route packet)
-	 * ad if ADCS subsystem is powered on - initiate reset and set subsystem reset flag*/
-	if( t_now - adcs_update > SUBSYSTEM_TIMEOUT_PERIOD ) {
-
-		/*reset subsystem*/
-		/*if adcs subsystem is powered on - set reset flag and power off - in order to avoid to power up a subsystem that should be turned down!*/
-		if(EPS_get_rail_switch_status(ADCS)==EPS_SWITCH_RAIL_ON){
-			adcs_reset_flag=SUBSYSTEM_RESET_SET;
-			/*power down subsystem*/
-			EPS_set_rail_switch(ADCS, EPS_SWITCH_RAIL_OFF, &eps_board_state);
-		}
-	}
-	/*if COMMS time passed >10min since last time update (as performed in route packet)
-	 * ad if COMM subsystem is powered on - initiate reset and set subsystem reset flag*/
-	if( t_now - comms_update > SUBSYSTEM_TIMEOUT_PERIOD ) {
-
-		/*reset subsystem*/
-		/*if comms subsystem is powered on - set reset flag and power off - in order to avoid to power up a subsystem that should be turned down!*/
-		if(EPS_get_rail_switch_status(COMM)==EPS_SWITCH_RAIL_ON){
-			comms_reset_flag=SUBSYSTEM_RESET_SET;
-			/*power down subsystem*/
-			EPS_set_rail_switch(COMM, EPS_SWITCH_RAIL_OFF, &eps_board_state);
 		}
 	}
 
