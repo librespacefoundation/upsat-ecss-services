@@ -275,8 +275,10 @@ typedef enum {
     ADCS_SPIN       = 13,
     ADCS_TLE        = 14,
     ADCS_CTRL_GAIN  = 15,
-    SYS_DBG         = 16,
-    LAST_DEV_ID     = 17
+    EPS_WRITE_FLS   = 16,
+    EPS_HEATERS     = 17,
+    SYS_DBG         = 18,
+    LAST_DEV_ID     = 19
 }FM_dev_id;
 
 /*Mass storage ids*/
