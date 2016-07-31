@@ -14,6 +14,7 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
                  did == ADCS_MAGNETO ||
                  did == ADCS_SPIN ||
                  did == ADCS_TLE ||
+                 did == ADCS_SET_POINT ||
                  did == SYS_DBG) == true) { return SATR_ERROR; }
     if(!C_ASSERT(fid == P_OFF ||
                  fid == P_ON ||
@@ -56,9 +57,17 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
     }
     else if (did == ADCS_CTRL_GAIN && fid == SET_VAL) {
 
-        cnv8_16(state, control.gain[0]);
-        cnv8_16(state, control.gain[1]);
-        cnv8_16(state, control.gain[2]);
+        cnv8_16(state, &control.gain[0]);
+        cnv8_16(state, &control.gain[1]);
+        cnv8_16(state, &control.gain[2]);
+    }
+    else if (did == ADCS_SET_POINT && fid == SET_VAL) {
+
+        uint16_t sp[3];
+
+        cnv8_16(state, &sp[0]);
+        cnv8_16(state, &sp[1]);
+        cnv8_16(state, &sp[2]);
     }
     else if(did == SYS_DBG && fid == SET_VAL)    {
 
