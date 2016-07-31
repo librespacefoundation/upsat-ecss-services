@@ -68,7 +68,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
         /* FIXME: Get the actual reboot code */
-        b = 0x0;
+        b = comms_stats.rst_src;
         pkt->data[i] = b;
         i += sizeof(uint8_t);
         pkt->len = i;
