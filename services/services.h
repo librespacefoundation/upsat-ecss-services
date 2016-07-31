@@ -248,7 +248,8 @@ typedef enum {
     EXT_WOD_REP     = 5,
     SU_SCI_HDR_REP  = 6,
     ADCS_TLE_REP    = 7,
-    LAST_STRUCT_ID  = 8
+    EPS_FLS_REP     = 8,
+    LAST_STRUCT_ID  = 9
 }HK_struct_id;
 
 typedef enum {
@@ -275,8 +276,9 @@ typedef enum {
     ADCS_SPIN       = 13,
     ADCS_TLE        = 14,
     ADCS_CTRL_GAIN  = 15,
-    SYS_DBG         = 16,
-    LAST_DEV_ID     = 17
+    ADCS_SET_POINT  = 16,
+    SYS_DBG         = 17,
+    LAST_DEV_ID     = 18
 }FM_dev_id;
 
 /*Mass storage ids*/
