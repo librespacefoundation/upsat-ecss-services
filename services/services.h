@@ -277,8 +277,9 @@ typedef enum {
     ADCS_TLE        = 14,
     ADCS_CTRL_GAIN  = 15,
     ADCS_SET_POINT  = 16,
-    SYS_DBG         = 17,
-    LAST_DEV_ID     = 18
+    COMMS_WOD_PAT   = 17,
+    SYS_DBG         = 18,
+    LAST_DEV_ID     = 19
 }FM_dev_id;
 
 /*Mass storage ids*/
