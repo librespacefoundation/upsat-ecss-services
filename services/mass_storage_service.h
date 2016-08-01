@@ -69,7 +69,6 @@ SAT_returnState mass_storage_list(MS_sid sid, uint8_t *buf, uint16_t *size, uint
 SAT_returnState mass_storage_list_api(tc_tm_pkt *pkt, MS_sid sid);
 
 struct _MS_data {
-    FATFS Fs;
     uint8_t enabled;
     SAT_returnState last_err;
 };

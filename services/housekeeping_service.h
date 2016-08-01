@@ -5,14 +5,14 @@
 
 //finalize sizes
 
-#define COMMS_EXT_WOD_SIZE   0
-#define COMMS_EXT_WOD_OFFSET 0
-#define ADCS_EXT_WOD_SIZE    0
-#define ADCS_EXT_WOD_OFFSET  0
-#define EPS_EXT_WOD_SIZE     0
-#define EPS_EXT_WOD_OFFSET   0
+#define COMMS_EXT_WOD_SIZE   1
+#define COMMS_EXT_WOD_OFFSET 1
+#define ADCS_EXT_WOD_SIZE    1
+#define ADCS_EXT_WOD_OFFSET  1
+#define EPS_EXT_WOD_SIZE     1
+#define EPS_EXT_WOD_OFFSET   1
 
-#define SUB_SYS_EXT_WOD_SIZE 0
+#define SUB_SYS_EXT_WOD_SIZE 1
 
 SAT_returnState hk_app(tc_tm_pkt *pkt);
 

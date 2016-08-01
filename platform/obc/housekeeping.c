@@ -1,5 +1,7 @@
 #include "housekeeping.h"
 
+#include "housekeeping_service.h"
+
 #include "obc.h"
 #include "time_management_service.h"
 #include "wdg.h"
@@ -248,9 +250,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         //Boot Counter eps
         size += 2;
 
-        pkt->data[i] = assertion_last_file;
+        pkt->data[size] = assertion_last_file;
         size += 1;
-        cnv16_8(assertion_last_line,&pkt->data[i]);
+        cnv16_8(assertion_last_line,&pkt->data[size]);
         size += 2;
 
         cnv16_8(obc_data.vbat, &pkt->data[size]);
@@ -268,10 +270,10 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 2;
 
         //add su,sch data
-        pkt->data[i] = MS_data.last_err;
+        pkt->data[size] = MS_data.last_err;
         size += 1;
 
-        pkt->data[i] = MS_data.enabled;
+        pkt->data[size] = MS_data.enabled;
         size += 1;
 
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
@@ -323,9 +325,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         //Boot Counter eps
         size += 2;
 
-        pkt->data[i] = assertion_last_file;
+        pkt->data[size] = assertion_last_file;
         size += 1;
-        cnv16_8(assertion_last_line,&pkt->data[i]);
+        cnv16_8(assertion_last_line,&pkt->data[size]);
         size += 2;
 
         cnv16_8(obc_data.vbat, &pkt->data[size]);
@@ -342,10 +344,10 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8((uint16_t)task_times.sch_time, &pkt->data[size]);
         size += 2;
 
-        pkt->data[i] = MS_data.last_err;
+        pkt->data[size] = MS_data.last_err;
         size += 1;
 
-        pkt->data[i] = MS_data.enabled;
+        pkt->data[size] = MS_data.enabled;
         size += 1;
 
         //add su,sch data
@@ -355,7 +357,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->data[size] = *MNLP_data.su_service_sheduler_active;
         size += 1;
  
-        memcpy( ext_wod_buffer, &data[size], SUB_SYS_EXT_WOD_SIZE);
+        memcpy( &pkt->data[size], ext_wod_buffer, SUB_SYS_EXT_WOD_SIZE);
 
         pkt->len = size;
     }
