@@ -122,7 +122,7 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         sat_status.temp_comms = data[1];
     } else if(app_id == ADCS_APP_ID && sid == EX_HEALTH_REP) {
         
-        if(!C_ASSERT(len != ADCS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
+        if(!C_ASSERT(len != ADCS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
         
         for(uint8_t i = 0; i < SCI_REP_SIZE; i++) {
             su_sci_header[i + SCI_ARR_OFFSET] = data[i + ADCS_EXT_SCI_OFFSET]; 
@@ -131,14 +131,14 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
     
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
       
-        if(!C_ASSERT(len != EPS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
+        if(!C_ASSERT(len != EPS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
 
         cnv8_32(&data[1], &sat_ext_status.eps_sys_time);
         memcpy(&ext_wod_buffer[EPS_EXT_WOD_OFFSET], &data[1], EPS_EXT_WOD_SIZE);
     
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
     
-        if(!C_ASSERT(len != COMMS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
+        if(!C_ASSERT(len != COMMS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
 
         cnv8_32(&data[1], &sat_ext_status.comms_sys_time);
         memcpy(&ext_wod_buffer[COMMS_EXT_WOD_OFFSET], &data[1], COMMS_EXT_WOD_SIZE);

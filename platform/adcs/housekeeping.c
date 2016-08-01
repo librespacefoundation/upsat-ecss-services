@@ -26,13 +26,17 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         uint16_t size = 1;
         uint32_t sys_epoch = 0;
+        uint8_t rsrc = 0;
+
         /* System specific */
         cnv32_8(HAL_sys_GetTick(), &pkt->data[size]);
         size += 4;
         get_time_QB50(&sys_epoch);
         cnv32_8(sys_epoch, &pkt->data[size]);
         size += 4;
-        pkt->data[size] = adcs_data.rsrc;
+
+        get_reset_source(&rsrc);
+        pkt->data[size] = rsrc;
         size += 1;
         cnv32_8(adcs_boot_cnt, &pkt->data[size]);
         size += 4;
