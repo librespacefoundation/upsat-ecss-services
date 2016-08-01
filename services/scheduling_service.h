@@ -24,31 +24,42 @@
 
 typedef enum {
     /* The 'release_time' member
-     * specified on the Scheduling_pck is absolute to OBC time.*/
+     * specified on the Scheduling_pck is absolute to OBC time.
+     */
     ABSOLUTE        = 0, 
     
     /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the schedule's
-     * activation time.*/
+     * activation time.
+     */
     SCHEDULE        = 1, 
     
     /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the sub-schedule's
-     * activation time.*/
+     * activation time.
+     */
     SUBSCHEDULE     = 2, 
     
     /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the notification time
      * of success of failure of interlocked schedule.
-     *  time.*/
+     * time.
+     */
     INTERLOCK       = 3,
     
     /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the seconds passed from
      * QB50 epoch (01/01/2000 00:00:00 UTC).
-     *  time.*/        
+     * time.
+     */        
     QB50EPC         = 4,
-    LAST_EVENTTIME  = 5
+    
+    /* The 'release_time' member
+     * specified on the Scheduling_pck is absolute to OBC time, but when is fired
+     * for execution its automatically re-sets itself for execution.
+     */
+    REPETITIVE      = 5,
+    LAST_EVENTTIME  = 6
             
 }SC_event_time_type;
  
