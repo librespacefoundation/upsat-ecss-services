@@ -53,8 +53,8 @@ struct _MS_data {
 extern struct _MNLP_data MNLP_data;
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-static struct _MS_data MS_data = { .enabled = true, \
-                                   .last_err = FR_OK } ;
+struct _MS_data MS_data = { .enabled = true, \
+                            .last_err = FR_OK } ;
 
 void ms_debugging(FRESULT res, uint16_t l) {
 

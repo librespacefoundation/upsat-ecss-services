@@ -3,6 +3,16 @@
 
 #include "services.h"
 
+//finalize sizes
+
+#define COMMS_EXT_WOD_SIZE   0
+#define COMMS_EXT_WOD_OFFSET 0
+#define ADCS_EXT_WOD_SIZE    0
+#define ADCS_EXT_WOD_OFFSET  0
+#define EPS_EXT_WOD_SIZE     0
+#define EPS_EXT_WOD_OFFSET   0
+
+#define SUB_SYS_EXT_WOD_SIZE 0
 
 SAT_returnState hk_app(tc_tm_pkt *pkt);
 

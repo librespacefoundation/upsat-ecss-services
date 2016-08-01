@@ -23,6 +23,8 @@ extern void get_time_QB50(uint32_t *qb);
 extern SAT_returnState wod_log();
 extern SAT_returnState wod_log_load(uint8_t *buf);
 
+static uint8_t ext_wod_buffer[SUB_SYS_EXT_WOD_SIZE];
+
 struct _sat_ext_status {
     uint32_t comms_sys_epoch;
 
@@ -171,8 +173,10 @@ void clear_ext_wod() {
     sat_ext_status.comms_tx_state = 0;
 }
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
     
+    if(!C_ASSERT(data != NULL) == true) { return SATR_ERROR; }
+
     if(app_id == EPS_APP_ID && sid == HEALTH_REP) {
         sat_status.batt_volt = data[1];
         sat_status.batt_curr = data[2];
@@ -184,66 +188,25 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
     } else if(app_id == COMMS_APP_ID && sid == HEALTH_REP) {
         sat_status.temp_comms = data[1];
     } else if(app_id == ADCS_APP_ID && sid == EX_HEALTH_REP) {
-
-        cnv8_32(&data[1], &sat_ext_status.adcs_sys_time);
-        //cnv8_F(&data[1], &sat_ext_status.adcs_gyro[0]);
-        //cnv8_F(&data[5], &sat_ext_status.adcs_gyro[0]);
-        //cnv8_F(&data[9], &sat_ext_status.adcs_gyro[1]);
-        //cnv8_F(&data[13], &sat_ext_status.adcs_gyro[2]);
-        //cnv8_F(&data[17], &sat_ext_status.adcs_rm_mag[0]);
-        //cnv8_F(&data[21], &sat_ext_status.adcs_rm_mag[1]);
-        //cnv8_F(&data[25], &sat_ext_status.adcs_rm_mag[2]);
-        //cnv8_F(&data[29], &sat_ext_status.adcs_vsun[0]);
-        //cnv8_F(&data[33], &sat_ext_status.adcs_vsun[1]);
-        //cnv8_F(&data[37], &sat_ext_status.adcs_vsun[2]);
-        //cnv8_F(&data[41], &sat_ext_status.adcs_vsun[3]);
-        //cnv8_F(&data[45], &sat_ext_status.adcs_vsun[4]);
-        //cnv8_F(&data[49], &sat_ext_status.adcs_long_sun);
-        //cnv8_F(&data[53], &sat_ext_status.adcs_lat_sun);
-        //cnv8_32(&data[57], &sat_ext_status.adcs_m_RPM);
-
+        
+        if(!C_ASSERT(len != ADCS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
+        //Apo take from here the sciende header
+        memcpy(&ext_wod_buffer[ADCS_EXT_WOD_OFFSET], &data[1], ADCS_EXT_WOD_SIZE);
+    
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
+      
+        if(!C_ASSERT(len != EPS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
 
         cnv8_32(&data[1], &sat_ext_status.eps_sys_time);
-        // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
-
-        // /* heater status*/
-        // EPS_switch_control_status heaters_status = EPS_get_control_switch_status(BATTERY_HEATERS);
-        // pkt->data[6] = (uint8_t)heaters_status;
-
-
-        // /*power module top*/
-        // cnv16_8( power_module_top.voltage, &pkt->data[7]);
-        // cnv16_8( power_module_top.current, &pkt->data[9]);
-        // pkt->data[11] = (uint8_t)power_module_top.pwm_duty_cycle;
-
-        // /*power module bottom*/
-        // cnv16_8( power_module_bottom.voltage, &pkt->data[12]);
-        // cnv16_8( power_module_bottom.current, &pkt->data[14]);
-        // pkt->data[16] = (uint8_t)power_module_bottom.pwm_duty_cycle;
-
-        // /*power module left*/
-        // cnv16_8( power_module_left.voltage, &pkt->data[17]);
-        // cnv16_8( power_module_left.current, &pkt->data[19]);
-        // pkt->data[21] = (uint8_t)power_module_left.pwm_duty_cycle;
-
-        // /*power module right*/
-        // cnv16_8( power_module_right.voltage, &pkt->data[22]);
-        // cnv16_8( power_module_right.current, &pkt->data[24]);
-        // pkt->data[26] = (uint8_t)power_module_right.pwm_duty_cycle;
-
-        // /* deployment status*/
-        // EPS_deployment_status deployment_status = EPS_check_deployment_status();
-        // pkt->data[27] = (uint8_t)deployment_status;
-
-        // /* battery voltage safety */
-        // pkt->data[28] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
-
-        // /* battery voltage safety */
-        // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
+        memcpy(&ext_wod_buffer[EPS_EXT_WOD_OFFSET], &data[1], EPS_EXT_WOD_SIZE);
+    
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
+    
+        if(!C_ASSERT(len != COMMS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
+
         cnv8_32(&data[1], &sat_ext_status.comms_sys_time);
-        //cnv8_32(&data[5], &sat_ext_status.comms_tx_state);
+        memcpy(&ext_wod_buffer[COMMS_EXT_WOD_OFFSET], &data[1], COMMS_EXT_WOD_SIZE);
+    
     } else {
         return SATR_ERROR; // this should change to inv pkt
     }
@@ -257,28 +220,59 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     
     if(sid == EX_HEALTH_REP) {
 
-        struct time_utc temp_time;
-
-        get_time_UTC(&temp_time);
-
         uint16_t size = 1;
- 
+
+        uint32_t sys_epoch = 0;
+        uint8_t rsrc = 0;
+        uint32_t boot_counter = 0;
+
+        get_time_QB50(&sys_epoch);
+
+        get_reset_source(&rsrc);
+        get_boot_counter(&boot_counter);
+
         cnv32_8( HAL_sys_GetTick(), &pkt->data[size]);
         size += 4;
-        
-        //pkt->data[5] = temp_time.day;
-        //pkt->data[6] = temp_time.month;
-        //pkt->data[7] = temp_time.year;
-        
-        //pkt->data[8] = temp_time.hour;
-        //pkt->data[9] = temp_time.min;
-        //pkt->data[10] = temp_time.sec;
 
-        //cnv32_8(task_times.uart_time, &pkt->data[11]);
-        //cnv32_8(task_times.idle_time, &pkt->data[15]);
-        //cnv32_8(task_times.hk_time, &pkt->data[19]);
-        //cnv32_8(task_times.su_time, &pkt->data[23]);
-        //cnv32_8(task_times.sch_time, &pkt->data[27]);
+        cnv32_8( sys_epoch, &pkt->data[size]);
+        size += 4;
+
+        pkt->data[size] = rsrc;
+        size += 1;
+
+        cnv32_8( boot_counter, &pkt->data[size]);
+        size += 4;
+
+        //Boot Counter comms
+        size += 2;
+        //Boot Counter eps
+        size += 2;
+
+        pkt->data[i] = assertion_last_file;
+        size += 1;
+        cnv16_8(assertion_last_line,&pkt->data[i]);
+        size += 2;
+
+        cnv16_8(obc_data.vbat, &pkt->data[size]);
+        size += 2;
+
+        cnv32_8(task_times.uart_time, &pkt->data[size]);
+        size += 4;
+        cnv16_8((uint16_t)task_times.idle_time, &pkt->data[size]);
+        size += 2;
+        cnv16_8((uint16_t)task_times.hk_time, &pkt->data[size]);
+        size += 2;
+        cnv16_8((uint16_t)task_times.su_time, &pkt->data[size]);
+        size += 2;
+        cnv16_8((uint16_t)task_times.sch_time, &pkt->data[size]);
+        size += 2;
+
+        //add su,sch data
+        pkt->data[i] = MS_data.last_err;
+        size += 1;
+
+        pkt->data[i] = MS_data.enabled;
+        size += 1;
 
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
         size += 1;
@@ -302,111 +296,67 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     } else if(sid == EXT_WOD_REP) {
 
         uint16_t size = 1;
-        get_time_QB50(&sat_ext_status.comms_sys_epoch);
-        sat_ext_status.obc_sys_time = HAL_sys_GetTick();
 
-        cnv32_8(sat_ext_status.comms_sys_epoch, &pkt->data[size]);
+        uint32_t sys_epoch = 0;
+        uint8_t rsrc = 0;
+        uint32_t boot_counter = 0;
+
+        get_time_QB50(&sys_epoch);
+
+        get_reset_source(&rsrc);
+        get_boot_counter(&boot_counter);
+
+        cnv32_8( HAL_sys_GetTick(), &pkt->data[size]);
         size += 4;
-        cnv32_8(sat_ext_status.obc_sys_time, &pkt->data[size]);
+
+        cnv32_8( sys_epoch, &pkt->data[size]);
         size += 4;
-        cnv32_8(sat_ext_status.comms_sys_time, &pkt->data[size]);
+
+        pkt->data[size] = rsrc;
+        size += 1;
+
+        cnv32_8( boot_counter, &pkt->data[size]);
         size += 4;
-        cnv32_8(sat_ext_status.eps_sys_time, &pkt->data[size]);
-        size += 4;
-        cnv32_8(sat_ext_status.adcs_sys_time, &pkt->data[size]);
-        size += 4;
+
+        //Boot Counter comms
+        size += 2;
+        //Boot Counter eps
+        size += 2;
+
+        pkt->data[i] = assertion_last_file;
+        size += 1;
+        cnv16_8(assertion_last_line,&pkt->data[i]);
+        size += 2;
+
+        cnv16_8(obc_data.vbat, &pkt->data[size]);
+        size += 2;
 
         cnv32_8(task_times.uart_time, &pkt->data[size]);
         size += 4;
-        cnv32_8(task_times.idle_time, &pkt->data[size]);
-        size += 4;
-        cnv32_8(task_times.hk_time, &pkt->data[size]);
-        size += 4;
-        cnv32_8(task_times.su_time, &pkt->data[size]);
-        size += 4;
-        cnv32_8(task_times.sch_time, &pkt->data[size]);
-        size += 4;
-
-        cnv32_8(obc_data.vbat, &pkt->data[size]);
+        cnv16_8((uint16_t)task_times.idle_time, &pkt->data[size]);
         size += 2;
-        
+        cnv16_8((uint16_t)task_times.hk_time, &pkt->data[size]);
+        size += 2;
+        cnv16_8((uint16_t)task_times.su_time, &pkt->data[size]);
+        size += 2;
+        cnv16_8((uint16_t)task_times.sch_time, &pkt->data[size]);
+        size += 2;
+
+        pkt->data[i] = MS_data.last_err;
+        size += 1;
+
+        pkt->data[i] = MS_data.enabled;
+        size += 1;
+
+        //add su,sch data
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
         size += 1;
-        
+
         pkt->data[size] = *MNLP_data.su_service_sheduler_active;
         size += 1;
-        //pkt->data[size] = (uint8_t)HAL_UART_GetState(&huart3);
-        //size++;
-        // pkt->data[5] = (uint8_t)(eps_board_state.batterypack_health_status);
+ 
+        memcpy( ext_wod_buffer, &data[size], SUB_SYS_EXT_WOD_SIZE);
 
-        // /* heater status*/
-        // EPS_switch_control_status heaters_status = EPS_get_control_switch_status(BATTERY_HEATERS);
-        // pkt->data[6] = (uint8_t)heaters_status;
-
-
-        // /*power module top*/
-        // cnv16_8( power_module_top.voltage, &pkt->data[7]);
-        // cnv16_8( power_module_top.current, &pkt->data[9]);
-        // pkt->data[11] = (uint8_t)power_module_top.pwm_duty_cycle;
-
-        // /*power module bottom*/
-        // cnv16_8( power_module_bottom.voltage, &pkt->data[12]);
-        // cnv16_8( power_module_bottom.current, &pkt->data[14]);
-        // pkt->data[16] = (uint8_t)power_module_bottom.pwm_duty_cycle;
-
-        // /*power module left*/
-        // cnv16_8( power_module_left.voltage, &pkt->data[17]);
-        // cnv16_8( power_module_left.current, &pkt->data[19]);
-        // pkt->data[21] = (uint8_t)power_module_left.pwm_duty_cycle;
-
-        // /*power module right*/
-        // cnv16_8( power_module_right.voltage, &pkt->data[22]);
-        // cnv16_8( power_module_right.current, &pkt->data[24]);
-        // pkt->data[26] = (uint8_t)power_module_right.pwm_duty_cycle;
-
-        // /* deployment status*/
-        // EPS_deployment_status deployment_status = EPS_check_deployment_status();
-        // pkt->data[27] = (uint8_t)deployment_status;
-
-        // /* battery voltage safety */
-        // pkt->data[28] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
-
-        // /* battery voltage safety */
-        // pkt->data[29] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
-
-        // cnvF_8(sat_ext_status.adcs_gyro[0], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_gyro[1], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_gyro[2], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_rm_mag[0], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_rm_mag[1], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_rm_mag[2], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_vsun[0], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_vsun[1], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_vsun[2], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_vsun[3], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_vsun[4], &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_long_sun, &pkt->data[size]);
-        // size += 4;
-        // cnvF_8(sat_ext_status.adcs_lat_sun, &pkt->data[size]);
-        // size += 4;
-        // cnv32_8(sat_ext_status.adcs_m_RPM, &pkt->data[size]);
-        // size += 4;
-
-        // cnv32_8(sat_ext_status.comms_tx_state, &pkt->data[size]);
-        // size += 4;
-        
-        //mass_storage_storeFile(EXT_WOD_LOG, 0, &pkt->data[1], &size);
         pkt->len = size;
     }
 

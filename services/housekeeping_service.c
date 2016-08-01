@@ -31,7 +31,7 @@ SAT_returnState hk_app(tc_tm_pkt *pkt) {
 
     } else if(pkt->ser_subtype == TM_HK_PARAMETERS_REPORT) {
 
-        const SAT_returnState res = hk_parameters_report(pkt->app_id, (HK_struct_id)pkt->data[0],  pkt->data);
+        const SAT_returnState res = hk_parameters_report(pkt->app_id, (HK_struct_id)pkt->data[0],  pkt->data, pkt->len);
 
         if(res == SATR_OK) {
             pkt->verification_state = SATR_OK;
