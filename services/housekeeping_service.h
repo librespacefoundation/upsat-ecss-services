@@ -6,11 +6,14 @@
 //finalize sizes
 
 #define COMMS_EXT_WOD_SIZE    29
-#define COMMS_EXT_WOD_OFFSET  48
+//#define COMMS_EXT_WOD_OFFSET  48
+#define COMMS_EXT_WOD_OFFSET  0
 #define ADCS_EXT_WOD_SIZE     87
-#define ADCS_EXT_WOD_OFFSET   77
+//#define ADCS_EXT_WOD_OFFSET   77
+#define ADCS_EXT_WOD_OFFSET   30
 #define EPS_EXT_WOD_SIZE      34
-#define EPS_EXT_WOD_OFFSET   164
+//#define EPS_EXT_WOD_OFFSET   164
+#define EPS_EXT_WOD_OFFSET   116
 
 #define SUB_SYS_EXT_WOD_SIZE 150
 
