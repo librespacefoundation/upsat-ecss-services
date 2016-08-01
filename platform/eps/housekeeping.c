@@ -19,7 +19,7 @@ extern EPS_State eps_board_state;
 extern EPS_PowerModule power_module_top, power_module_bottom, power_module_left, power_module_right;
 
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
    return SATR_ERROR;
 }
 
@@ -133,6 +133,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
         size += 4;
 
+        //Please add the correct variable
+        pkt->data[size] = rsrc;
+        size += 1;
+        pkt->data[i] = assertion_last_file;
+        size += 1;
+        cnv16_8(assertion_last_line,&pkt->data[i]);
+        size += 2;
         /*batterypack health status*/
         pkt->data[size] = (uint8_t)(eps_board_state.batterypack_health_status);
         size += 1;

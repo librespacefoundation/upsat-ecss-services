@@ -43,18 +43,13 @@
 
 #define MS_ERR(res);    ms_debugging(res, __LINE__); \
                         return res + SATRF_OK;
-
-struct _MS_data {
-    FATFS Fs;
-    uint8_t enabled;
-    SAT_returnState last_err;
-};
-
 extern struct _MNLP_data MNLP_data;
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
-static struct _MS_data MS_data = { .enabled = true, \
-                                   .last_err = FR_OK } ;
+FATFS Fs;
+
+struct _MS_data MS_data = { .enabled = true, \
+                            .last_err = FR_OK } ;
 
 void ms_debugging(FRESULT res, uint16_t l) {
 
@@ -641,7 +636,7 @@ SAT_returnState mass_storage_init() {
     FRESULT res = 0;
 
     MS_data.enabled = false;
-    if((res = f_mount(&MS_data.Fs, MS_SD_PATH, 0)) != FR_OK) { MS_ERR(res); }
+    if((res = f_mount(&Fs, MS_SD_PATH, 0)) != FR_OK) { MS_ERR(res); }
 
     MS_data.enabled = true;
 
@@ -676,7 +671,7 @@ SAT_returnState mass_storage_FATFS_RESET() {
 
     HAL_Delay(1);
 
-    res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
+    res = f_mount(&Fs, MS_SD_PATH, 0);
 
     if(res != FR_OK)    { MS_ERR(res); }    
     MS_data.enabled = true;
@@ -717,7 +712,7 @@ SAT_returnState mass_storage_FORMAT() {
         HAL_Delay(300);
 
         /* Register work area (do not care about error) */
-        res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
+        res = f_mount(&Fs, MS_SD_PATH, 0);
 
         fr = xPortGetFreeHeapSize();
 
@@ -740,7 +735,7 @@ SAT_returnState mass_storage_FORMAT() {
 
     if(res != FR_OK)                                     { MS_ERR(res); }
 
-    res = f_mount(&MS_data.Fs, MS_SD_PATH, 0);
+    res = f_mount(&Fs, MS_SD_PATH, 0);
 
     HAL_Delay(100);
 

@@ -11,7 +11,7 @@ extern comms_rf_stat_t comms_stats;
 #undef __FILE_ID__
 #define __FILE_ID__ 24
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
 
    if(sid == WOD_REP) {
         //data[98] = 0xFE;
@@ -45,6 +45,16 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 	i = 1;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
         i += sizeof(uint32_t);
+        /* FIXME: Get the actual reboot code */
+        b = comms_stats.rst_src;
+        pkt->data[i] = b;
+        i += sizeof(uint8_t);
+        b = assertion_last_file;
+        pkt->data[i] = b;
+        i += sizeof(uint8_t);
+        cnv16_8(assertion_last_line,
+        &pkt->data[i]);
+        i += sizeof(uint16_t);
         cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
 		&pkt->data[i]);
         i += sizeof(uint32_t);
@@ -67,10 +77,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(int16_t);
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
-        /* FIXME: Get the actual reboot code */
-        b = comms_stats.rst_src;
-        pkt->data[i] = b;
-        i += sizeof(uint8_t);
         pkt->len = i;
     } 
 

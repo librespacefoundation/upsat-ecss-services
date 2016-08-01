@@ -30,10 +30,16 @@ const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2] = {
 /*19*/{ {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0} }
 };
 
+uint8_t assertion_last_file = 0;
+uint16_t assertion_last_line = 0;
+
 uint8_t tst_debugging(uint16_t fi, uint32_t l, char *e) {
 
   traceASSERTION(fi, l);
   SYSVIEW_PRINT("A %u %u", fi, l);
+
+  assertion_last_file = fi;
+  assertion_last_line = l;
 
   return false;
 }

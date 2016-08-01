@@ -397,6 +397,8 @@ typedef struct {
 
 /*Lookup table that returns if a service with its subtype with TC or TM is supported and valid*/
 extern const uint8_t services_verification_TC_TM[MAX_SERVICES][MAX_SUBTYPES][2];
+extern uint8_t assertion_last_file;
+extern uint16_t assertion_last_line;
 
 uint8_t tst_debugging(uint16_t fi, uint32_t l, char *e);
 
