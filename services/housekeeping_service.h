@@ -14,6 +14,10 @@
 
 #define SUB_SYS_EXT_WOD_SIZE 1
 
+#define SCI_REP_SIZE		18
+#define SCI_ARR_OFFSET		 4
+#define ADCS_EXT_SCI_OFFSET	18
+
 SAT_returnState hk_app(tc_tm_pkt *pkt);
 
 SAT_returnState hk_crt_pkt_TC(tc_tm_pkt *pkt, const TC_TM_app_id app_id, const HK_struct_id sid);

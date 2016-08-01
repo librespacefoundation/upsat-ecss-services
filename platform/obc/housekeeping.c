@@ -28,51 +28,8 @@ extern SAT_returnState wod_log_load(uint8_t *buf);
 static uint8_t ext_wod_buffer[SUB_SYS_EXT_WOD_SIZE];
 
 struct _sat_ext_status {
-    uint32_t comms_sys_epoch;
-
     uint32_t comms_sys_time;
-    uint32_t adcs_sys_time;
     uint32_t eps_sys_time;
-    uint32_t obc_sys_time;
-
-    float adcs_gyro[3];
-    float adcs_rm_mag[3];
-    float adcs_vsun[5];
-    float adcs_long_sun;
-    float adcs_lat_sun;
-    int32_t adcs_m_RPM; 
-
-    uint32_t comms_tx_state;
-
-    uint8_t eps_batterypack_health_status;
-    uint8_t eps_heaters_status;
-
-    uint16_t eps_top_voltage;
-    uint16_t eps_top_current;
-
-    uint8_t eps_top_pwm_duty_cycle;
-
-    uint16_t eps_bottom_voltage;
-    uint16_t eps_bottom_current;
-
-    uint8_t eps_bottom_pwm_duty_cycle;
-
-    uint16_t eps_left_voltage;
-    uint16_t eps_left_current;
-
-    uint8_t eps_left_pwm_duty_cycle;
-
-    uint16_t eps_right_voltage;
-    uint16_t eps_right_current;
-
-    uint8_t eps_right_pwm_duty_cycle;
-
-    uint8_t eps_deployment_status;
-
-    uint8_t eps_safety_battery_mode;
-
-    uint8_t eps_safety_temperature_mode;
-
 };
 
 static struct _sat_ext_status sat_ext_status;
@@ -149,32 +106,6 @@ void clear_wod() {
     sat_status.temp_comms = 0;
 }
 
-void clear_ext_wod() {
-    sat_ext_status.comms_sys_epoch = 0;
-
-    sat_ext_status.comms_sys_time = 0;
-    sat_ext_status.adcs_sys_time = 0;
-    sat_ext_status.eps_sys_time = 0;
-    sat_ext_status.obc_sys_time = 0;
-
-    sat_ext_status.adcs_gyro[0] = 0;
-    sat_ext_status.adcs_gyro[1] = 0;
-    sat_ext_status.adcs_gyro[2] = 0;
-    sat_ext_status.adcs_rm_mag[0] = 0;
-    sat_ext_status.adcs_rm_mag[1] = 0;
-    sat_ext_status.adcs_rm_mag[2] = 0;
-    sat_ext_status.adcs_vsun[0] = 0;
-    sat_ext_status.adcs_vsun[1] = 0;
-    sat_ext_status.adcs_vsun[2] = 0;
-    sat_ext_status.adcs_vsun[3] = 0;
-    sat_ext_status.adcs_vsun[4] = 0;
-    sat_ext_status.adcs_long_sun = 0;
-    sat_ext_status.adcs_lat_sun = 0;
-    sat_ext_status.adcs_m_RPM = 0; 
-
-    sat_ext_status.comms_tx_state = 0;
-}
-
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
     
     if(!C_ASSERT(data != NULL) == true) { return SATR_ERROR; }
@@ -192,7 +123,10 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
     } else if(app_id == ADCS_APP_ID && sid == EX_HEALTH_REP) {
         
         if(!C_ASSERT(len != ADCS_EXT_WOD_SIZE) == true) { return SATR_ERROR; }
-        //Apo take from here the sciende header
+        
+        for(uint8_t i = 0; i < SCI_REP_SIZE; i++) {
+            su_sci_header[i + SCI_ARR_OFFSET] = data[i + ADCS_EXT_SCI_OFFSET]; 
+        }
         memcpy(&ext_wod_buffer[ADCS_EXT_WOD_OFFSET], &data[1], ADCS_EXT_WOD_SIZE);
     
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
