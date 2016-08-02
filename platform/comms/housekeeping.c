@@ -45,6 +45,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 	i = 1;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
         i += sizeof(uint32_t);
+        /* Store the reset source */
+        b = comms_stats.rst_src;
+        pkt->data[i] = b;
+        i += sizeof(uint8_t);
+        /* FIXME: Add the last assert line */
+        cnv32_8(0x0, &pkt->data[i]);
+        i += sizeof(uint32_t);
         cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
 		&pkt->data[i]);
         i += sizeof(uint32_t);
@@ -67,10 +74,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(int16_t);
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
-        /* FIXME: Get the actual reboot code */
-        b = comms_stats.rst_src;
-        pkt->data[i] = b;
-        i += sizeof(uint8_t);
         pkt->len = i;
     } 
 
