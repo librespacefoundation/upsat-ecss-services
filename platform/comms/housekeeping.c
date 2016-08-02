@@ -1,10 +1,13 @@
 #include "housekeeping.h"
+#include "housekeeping_service.h"
+#include "service_utilities.h"
 #include "sensors.h"
 #include "comms_manager.h"
 #include "flash.h"
 #include "stats.h"
 #include "wod_handling.h"
 #include "sysview.h"
+#include <math.h>
 
 extern comms_rf_stat_t comms_stats;
 
@@ -13,13 +16,9 @@ extern comms_rf_stat_t comms_stats;
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
 
-   if(sid == WOD_REP) {
-        //data[98] = 0xFE;
-        //data[99] = 0xED;
-        //data[100] = 0xBE;
-        //data[101] = 0xEF;
-        
-        send_payload(&data[1], (size_t)MAX_PKT_DATA, 0, COMMS_DEFAULT_TIMEOUT_MS);
+   if(sid == EXT_WOD_REP) {
+        SYSVIEW_PRINT("Storing exWOD of size %u\n");
+        store_ex_wod_obc(data, len);
    }
 
    return SATR_ERROR;
@@ -49,9 +48,12 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         b = comms_stats.rst_src;
         pkt->data[i] = b;
         i += sizeof(uint8_t);
+        /* FIXME: Add the last assert file */
+        pkt->data[i] = 0x0;
+        i += sizeof(uint8_t);
         /* FIXME: Add the last assert line */
-        cnv32_8(0x0, &pkt->data[i]);
-        i += sizeof(uint32_t);
+        cnv16_8(0x0, &pkt->data[i]);
+        i += sizeof(uint16_t);
         cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
 		&pkt->data[i]);
         i += sizeof(uint32_t);
