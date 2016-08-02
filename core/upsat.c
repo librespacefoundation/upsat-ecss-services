@@ -6,8 +6,6 @@
 #include "verification_service.h"
 #include "test_service.h"
 
-static uint8_t sys_view_temp[40];
-
 #undef __FILE_ID__
 #define __FILE_ID__ 31
 
@@ -46,12 +44,7 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
             pkt = get_pkt(size);
 
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
-            if((res = unpack_pkt(data->deframed_buf, pkt, size)) == SATR_OK) {
-
-            	sprintf(sys_view_temp,"pre-route_pkt %u", 0, 0);
-            	SEGGER_SYSVIEW_Print(sys_view_temp);
-            	route_pkt(pkt);
-            }
+            if((res = unpack_pkt(data->deframed_buf, pkt, size)) == SATR_OK) { route_pkt(pkt); }
             else { pkt->verification_state = res; }
             verification_app(pkt);
             free_pkt(pkt);
@@ -80,9 +73,6 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     if(res == SATR_ERROR) { return SATR_ERROR; }
 
     if(!C_ASSERT(size > 0) == true) { return SATR_ERROR; }
-
-    sprintf(sys_view_temp,"pre-uart-tx %u", 0, 0);
-    SEGGER_SYSVIEW_Print(sys_view_temp);
 
     HAL_uart_tx(app_id, data->framed_buf, size);
 
