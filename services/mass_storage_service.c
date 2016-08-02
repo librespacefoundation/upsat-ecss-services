@@ -47,6 +47,7 @@
 struct _MS_data {
     FATFS Fs;
     uint8_t enabled;
+    uint16_t l;
     SAT_returnState last_err;
 };
 
@@ -59,9 +60,18 @@ static struct _MS_data MS_data = { .enabled = true, \
 void ms_debugging(FRESULT res, uint16_t l) {
 
     MS_data.last_err = res;
+    MS_data.last_err = l;
 
     trace_MS_STORE_ERROR(res, l);
     SYSVIEW_PRINT("M %u %u", res, l);
+}
+
+void ms_get_state(uint8_t *res, uint8_t *status, uint16_t *l) {
+
+    *res = MS_data.last_err;
+    *status = MS_data.enabled;
+    *l = MS_data.l;
+
 }
 
 /**
