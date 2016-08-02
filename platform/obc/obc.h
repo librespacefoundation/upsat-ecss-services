@@ -56,6 +56,8 @@ struct _obc_data
     uint16_t vbat;
     uint32_t adc_time;
     uint8_t adc_flag;
+
+    uint8_t iac_state;
 };
 
 struct _sys_data {

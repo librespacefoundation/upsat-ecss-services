@@ -214,6 +214,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8((uint16_t)ms_l, &pkt->data[size]);
         size += 2;
 
+        pkt->data[size] = obc_data.iac_state;
+        size += 1;
+
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
         size += 1;
 
@@ -294,6 +297,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 1;
         cnv16_8((uint16_t)ms_l, &pkt->data[size]);
         size += 2;
+
+        pkt->data[size] = obc_data.iac_state;
+        size += 1;
 
         //add su,sch data
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
