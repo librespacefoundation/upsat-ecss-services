@@ -279,7 +279,8 @@ typedef enum {
     ADCS_SET_POINT  = 16,
     EPS_WRITE_FLS   = 17,
     SYS_DBG         = 18,
-    LAST_DEV_ID     = 19
+    COMMS_WOD_PAT   = 19,
+    LAST_DEV_ID     = 20
 }FM_dev_id;
 
 /*Mass storage ids*/
