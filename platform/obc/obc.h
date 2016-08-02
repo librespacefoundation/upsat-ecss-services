@@ -29,7 +29,12 @@ struct _obc_data
     uint16_t *fs_ext_tail;
     uint16_t *fs_ev_tail;
     uint16_t *fs_fotos;
-    
+
+    uint16_t *comms_boot_cnt;
+    uint16_t *eps_boot_cnt;
+    uint32_t *comms_tick;
+    uint32_t *eps_tick;
+
     uint8_t *log;
     uint32_t *log_cnt;
     uint32_t *log_state;
@@ -51,6 +56,8 @@ struct _obc_data
     uint16_t vbat;
     uint32_t adc_time;
     uint8_t adc_flag;
+
+    uint8_t iac_state;
 };
 
 struct _sys_data {
@@ -94,5 +101,9 @@ void get_reset_source(uint8_t *rsrc);
 void update_boot_counter();
 
 void get_boot_counter(uint32_t *cnt);
+
+void update_eps_boot_counter(uint32_t tick);
+
+void update_comms_boot_counter(uint32_t tick);
 
 #endif

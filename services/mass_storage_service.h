@@ -6,6 +6,8 @@
 
 #define MS_MAX_FILES            5000
 
+void ms_get_state(uint8_t *res, uint8_t *status, uint16_t *l);
+
 SAT_returnState mass_storage_init();
 
 SAT_returnState mass_storage_app(tc_tm_pkt *pkt);

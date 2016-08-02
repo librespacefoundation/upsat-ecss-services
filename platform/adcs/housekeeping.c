@@ -13,7 +13,7 @@
 #define __FILE_ID__ 28
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid,
-        uint8_t *data) {
+        uint8_t *data, uint8_t len) {
 
     return SATR_ERROR;
 }
