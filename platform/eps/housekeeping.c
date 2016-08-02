@@ -19,7 +19,7 @@ extern EPS_State eps_board_state;
 extern EPS_PowerModule power_module_top, power_module_bottom, power_module_left, power_module_right;
 
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
    return SATR_ERROR;
 }
 

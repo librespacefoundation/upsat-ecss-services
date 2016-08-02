@@ -171,7 +171,7 @@ void clear_ext_wod() {
     sat_ext_status.comms_tx_state = 0;
 }
 
-SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data) {
+SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
     
     if(app_id == EPS_APP_ID && sid == HEALTH_REP) {
         sat_status.batt_volt = data[1];
