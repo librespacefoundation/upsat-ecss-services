@@ -219,24 +219,23 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         cnv32_8(*MNLP_data.su_init_func_run_time, &pkt->data[size]);
         size +=4;
-        
+
         pkt->data[size] = *MNLP_data.su_nmlp_last_active_script;
         size += 1;
-        
+
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
         size += 1;
-                
+
         pkt->data[size] = *MNLP_data.su_service_scheduler_active;
         size += 1;
- 
+
         cnv16_8(*MNLP_data.tt_perm_norm_exec_count, &pkt->data[size]);
         size += 2;
-        
+
         cnv16_8(*MNLP_data.tt_perm_exec_on_span_count, &pkt->data[size]);
         size += 2;
 
         pkt->len = size;
-
 
     } else if(sid == WOD_REP) {
 
@@ -316,13 +315,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         //add su,sch data
         cnv32_8(*MNLP_data.su_init_func_run_time, &pkt->data[size]);
         size +=4;
-        
+
         pkt->data[size] = *MNLP_data.su_nmlp_last_active_script;
         size += 1;
-        
+
         pkt->data[size] = *MNLP_data.su_nmlp_script_scheduler_active;
         size += 1;
-                
+
         pkt->data[size] = *MNLP_data.su_service_scheduler_active;
         size += 1;
  

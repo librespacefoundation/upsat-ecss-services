@@ -19,7 +19,6 @@ uint32_t qb_50_time;
 uint32_t obc_day_moment_secs = 0;
 uint32_t tt_day_moment_secs = 0; /*script time-table moment in seconds from start of current day*/
 uint32_t moment_diff = 0;        /**/
-uint8_t sys_view_temp[40];
 
 
 //uint32_t first_tt_exec_moment = 0;
@@ -92,8 +91,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
         case 13: /*su reset mnlp state*/
             *MNLP_data.su_nmlp_last_active_script = (uint8_t) SU_NOSCRIPT;
             *MNLP_data.su_nmlp_script_scheduler_active = (uint8_t) false;
-//            sprintf(sys_view_temp,"MNLP STATE RESET %u", 0, 0);
-            SEGGER_SYSVIEW_Print("MNLP STATE RESET");
+            SYSVIEW_PRINT("MNLP STATE RESET");
             spacket->verification_state = SATR_OK;
 //            su_power_ctrl(P_OFF);
             //TODO: add other actios to do, eg: close the mnlp power?
@@ -124,8 +122,7 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
             break;
         case 22: /*su scheduler task notify*/
                 xTaskNotifyGive(su_schHandle);
-//                sprintf(sys_view_temp,"TASKNOTIFYRECEIVED  %u", 0, 0);
-                SEGGER_SYSVIEW_Print("TASKNOTIFYRECEIVED");
+                SYSVIEW_PRINT("TSK NTF RCVD");
                 spacket->verification_state = SATR_OK;
             break;      
         case 23: /*MNLP status report*/
@@ -138,19 +135,17 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
         case 24: /*Manage su nmlp service scheduler*/
             if( spacket->data[0]){ /*enable nmlp service scheduler*/
                 *MNLP_data.su_service_scheduler_active = (uint8_t) true;
-                 spacket->verification_state = SATR_OK;
-//                 sprintf(sys_view_temp,"MNLP SERV SCH SET %u", (uint8_t)true, 0);
-                 SEGGER_SYSVIEW_Print("MNLP SERV SCH SET 1");
+                SYSVIEW_PRINT("MNLP SERV SCH SET ACTV");
+                spacket->verification_state = SATR_OK;
             }
             else{ /*disable nmlp service scheduler*/
                 *MNLP_data.su_service_scheduler_active = (uint8_t) false;
+                SYSVIEW_PRINT("MNLP SERV SCH SET DACTV");
                 spacket->verification_state = SATR_OK;
-//                sprintf(sys_view_temp,"MNLP SERV SCH SET %u", (uint8_t)false, 0);
-                SEGGER_SYSVIEW_Print("MNLP SERV SCH SET 0");
             }
             break;
     }/*switch ends here*/
-    
+
     return SATR_OK;
 }
 
@@ -362,14 +357,12 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
 //                *sleep_val_secs = time_diff; //TODO substract something
                 *sleep_val_secs = 5;
                 trace_SCR_MARKED_ACTIVE(i);
-                sprintf(sys_view_temp,"SCR_MRK_ACT %u", i, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+                SYSVIEW_PRINT("SCR MRK ACT %u", i);
                 return su_new_scr_selected;
             }
         }
         else{ /*here log if you want the invalid script's number*/
-                sprintf(sys_view_temp,"SCR_INVLD %u", i, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+                SYSVIEW_PRINT("SCR INVLD %u",i);
                 continue;
         }
     }
@@ -394,8 +387,7 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
        *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
     
     trace_SCR_NO_NEW_TO_BACT(*MNLP_data.su_nmlp_last_active_script);
-    sprintf(sys_view_temp,"SCR_NO_NEW_TO_ACT_L_IS %u", *MNLP_data.su_nmlp_last_active_script, 0);
-    SEGGER_SYSVIEW_Print(sys_view_temp);
+    SYSVIEW_PRINT("NO NEW SCR TO ACT, LAST IS: %u",*MNLP_data.su_nmlp_last_active_script);
     return su_no_new_scr_selected;
 }
 
@@ -433,17 +425,15 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                  /*reset the script index*/
                 MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index = SU_SCR_TT_SNONE;
                 MNLP_data.current_tt = 0; /*set TimeTable index to zero*/
-		trace_SCR_ENDED();                
-                sprintf(sys_view_temp,"SCR_ENDED %u", 0, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+		trace_SCR_ENDED();
+                SYSVIEW_PRINT("SCR ENDED");
 		return su_sche_script_ended;
             }
             else
             if(tt_call_state == SATR_ERROR){
                 /*non valid time table, go for next time table*/
                 MNLP_data.current_tt++;
-                sprintf(sys_view_temp,"ERROR_TT_CUR_TIM_TBL %u", MNLP_data.current_tt, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+                SYSVIEW_PRINT("ERROR TT, CUR TT IS: %u",MNLP_data.current_tt);
                 continue;
             }
             else
@@ -466,8 +456,7 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                             /*f us 6 seconds, and execute a little late*/
                             MNLP_data.tt_exec_on_span_count++;
                             *MNLP_data.tt_perm_exec_on_span_count++;
-			    sprintf(sys_view_temp,"EXEC_TT_ON_TIMESPAN %u", MNLP_data.tt_exec_on_span_count, 0);
-                            SEGGER_SYSVIEW_Print(sys_view_temp);
+                            SYSVIEW_PRINT("EXEC TT ON TIMEMSPAN COUNT: %u",MNLP_data.tt_exec_on_span_count);
                             serve_tt();
                             break;
                         }
@@ -475,8 +464,7 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                         if(moment_diff > 6){
                             /*for some reason we have lost this time-table, go to next one*/                  
                             MNLP_data.tt_lost_count++;
-                            sprintf(sys_view_temp,"LOST TIME TABLES %u", MNLP_data.tt_lost_count, 0);
-                            SEGGER_SYSVIEW_Print(sys_view_temp);
+                            SYSVIEW_PRINT("LOST TIME TABLES: %u",MNLP_data.tt_lost_count);
                             break;
                         }
                     }
@@ -489,22 +477,19 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                         if( to_set == 0){ /*some times half a second earlier*/                            
                             MNLP_data.tt_norm_exec_count++;
                             *MNLP_data.tt_perm_norm_exec_count++;
-			    sprintf(sys_view_temp,"GO TO EXECUTE TT %u", MNLP_data.tt_norm_exec_count, 0);
-                            SEGGER_SYSVIEW_Print(sys_view_temp);
+                            SYSVIEW_PRINT("GO TO EXEC TT: %u", MNLP_data.tt_norm_exec_count);
                             serve_tt();
                             break;
                         }
                         else{                                    
-                            sprintf(sys_view_temp,"SLEEP FOR TT UNTIL %u", to_set*1000, 0);
-                            SEGGER_SYSVIEW_Print(sys_view_temp);
+                            SYSVIEW_PRINT("SLEEP FOR TT UNTIL: %u", to_set*1000);
                             ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS((to_set)*1000));
                         }
                     }
                     else{ /*execute at once*/
                         MNLP_data.tt_norm_exec_count++;
                         *MNLP_data.tt_perm_norm_exec_count++;
-			sprintf(sys_view_temp,"EXEC NORMAL TT %u", 0, 0);
-                        SEGGER_SYSVIEW_Print(sys_view_temp);
+                       SYSVIEW_PRINT("GO TO EXEC NRML TT: %u", MNLP_data.tt_norm_exec_count);
                         serve_tt();
                         break;
                     }
@@ -532,8 +517,7 @@ void serve_tt(){
                 &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header,
                 &current_ss_pointer);
             if( scom_call_state == SATR_EOT){
-                sprintf(sys_view_temp,"SCR SEQ ENDED", 0, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+                SYSVIEW_PRINT("SCR SEQ ENDED");
                 /*no more commands on script sequences to be executed*/
                 MNLP_data.current_sip = 0x55;
                 /*reset seq_header->cmd_if field to something else other than 0xFE*/
@@ -544,14 +528,12 @@ void serve_tt(){
                 MNLP_data.current_sip = 0x66;
                 /*an unknown command has been encountered in the script sequences, so go for the next command*/
                 //TODO: generate error?
-		sprintf(sys_view_temp,"ERROR CMD FOR SU", 0, 0);
-                SEGGER_SYSVIEW_Print(sys_view_temp);
+                SYSVIEW_PRINT("ERRONEOUS CMD FOR SU");
                 continue;
             }else{
                 /*handle script sequence command*/
                 if( MNLP_data.su_timed_out == (uint8_t) true){
-                    sprintf(sys_view_temp,"SU TIMED OUT", 0, 0);
-                    SEGGER_SYSVIEW_Print(sys_view_temp);
+                    SYSVIEW_PRINT("SU TIMED OUT, break");
                     break;
                 }
                 else{ //TODO: add an extra check here, for valid seq_header state
@@ -650,8 +632,7 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd){
     }
     else*/
     { /*route to real su mnlp unit*/
-	sprintf(sys_view_temp,"GO TO EXEC CMD %u", MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id, 0);
-        SEGGER_SYSVIEW_Print(sys_view_temp);
+        SYSVIEW_PRINT("GO TO EXEC CMD: %u",  MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header.cmd_id);
         if(cmd->cmd_id == SU_OBC_SU_ON_CMD_ID){ /*route to OBC*/
             su_power_ctrl(P_ON);
             MNLP_data.su_state = SU_POWERED_ON;
@@ -669,13 +650,12 @@ SAT_returnState su_cmd_handler( science_unit_script_sequence *cmd){
         }else
         { 
             if( MNLP_data.su_timed_out == (uint8_t) true){
+                SYSVIEW_PRINT("SU TIMED OUT, return SATR_OK");
                 return SATR_OK;
             }
             else{ HAL_su_uart_tx(cmd->command, cmd->len + 2); } /*send to mnlp*/
         }
-    
-//    HAL_sys_delay( ((cmd->dt_min * 60) + cmd->dt_sec) * 1000);
-    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS( ((cmd->dt_min * 60) + cmd->dt_sec) *1000 ) );
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS( ((cmd->dt_min * 60) + cmd->dt_sec) *1000 ) );
     }
     return SATR_OK;
 }
