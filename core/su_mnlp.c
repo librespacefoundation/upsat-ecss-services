@@ -36,7 +36,7 @@ uint8_t su_log_buff[SU_LOG_SIZE];
 uint8_t obc_su_err_seq_cnt = 1;
 
 su_mnlp_returnState state = su_sche_last;
-//mnlp_response_science_header flight_data;
+/*mnlp_response_science_header flight_data;*/
 
 /* if true all commands are routed to nmlp serial,
  * if false some commands are routed to cubesat subsystems. (obc_su_on, obc_su_off, )
@@ -136,6 +136,8 @@ SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
                 *MNLP_data.su_service_scheduler_active = (uint8_t) false;
                 SYSVIEW_PRINT("MNLP SERV SCH SET DACTV");
                 spacket->verification_state = SATR_OK;
+//                sprintf(sys_view_temp,"MNLP SERV SCH SET %u", (uint8_t)false, 0);
+                SEGGER_SYSVIEW_Print("MNLP SERV SCH SET 0");
             }
             break;
     }

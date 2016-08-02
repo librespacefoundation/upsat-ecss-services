@@ -57,8 +57,6 @@ struct _obc_data obc_data = { .dbg_uart.init_time = 0,
                               .adc_time = 0,
                               .adc_flag = false };
 
-
-struct _wdg_state wdg = { .hk_valid = false, .uart_valid = false };
 struct _task_times task_times;
 static struct _sys_data sys_data;
 
