@@ -29,7 +29,7 @@ struct _sat_status sat_status;
 
 static tc_tm_pkt hk_pkt;
 static uint8_t hk_pkt_data[264];
-static uint8_t ext_wod_buffer[SUB_SYS_EXT_WOD_SIZE];
+static uint8_t ext_wod_buffer[SYS_EXT_WOD_SIZE];
 
 void hk_INIT() {
    hk_pkt.data = hk_pkt_data;

@@ -3,16 +3,16 @@
 
 #include "services.h"
 
+#define OBC_EXT_WOD_SIZE      51
+#define OBC_EXT_WOD_OFFSET     1
 #define COMMS_EXT_WOD_SIZE    29
-//#define COMMS_EXT_WOD_OFFSET  48
-#define COMMS_EXT_WOD_OFFSET  0
+#define COMMS_EXT_WOD_OFFSET  51
 #define ADCS_EXT_WOD_SIZE     87
-//#define ADCS_EXT_WOD_OFFSET   77
-#define ADCS_EXT_WOD_OFFSET   30
+#define ADCS_EXT_WOD_OFFSET   80
 #define EPS_EXT_WOD_SIZE      34
-//#define EPS_EXT_WOD_OFFSET   164
-#define EPS_EXT_WOD_OFFSET   116
+#define EPS_EXT_WOD_OFFSET   167
 
+#define SYS_EXT_WOD_SIZE     201
 #define SUB_SYS_EXT_WOD_SIZE 150
 
 #define SCI_REP_SIZE		  18
