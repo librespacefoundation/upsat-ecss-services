@@ -146,6 +146,9 @@ void bkup_sram_INIT() {
 
     uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
 
+    for(uint32_t i = 0; i < 4096; i++) {
+        base_pointer[i] = 0;
+    }
 
     obc_data.log_cnt = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
@@ -159,7 +162,6 @@ void bkup_sram_INIT() {
     obc_data.wod_cnt = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
 
-
     obc_data.comms_boot_cnt = (uint16_t*)base_pointer;
     base_pointer += sizeof(uint16_t);
 
@@ -172,13 +174,15 @@ void bkup_sram_INIT() {
     obc_data.eps_tick = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
 
-
-    MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) base_pointer; //264; //265;
-    base_pointer += sizeof(uint32_t);
-
     MNLP_data.su_init_func_run_time = (uint32_t *) base_pointer; //264; //265;
     base_pointer += sizeof(uint32_t);
     
+    MNLP_data.tt_perm_norm_exec_count = (uint16_t *) base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    MNLP_data.tt_perm_exec_on_span_count = (uint16_t *) base_pointer;
+    base_pointer += sizeof(uint16_t);
+
     obc_data.fs_su_head = (uint16_t*)base_pointer;
     base_pointer += sizeof(uint16_t);
 
@@ -209,28 +213,18 @@ void bkup_sram_INIT() {
     MNLP_data.su_nmlp_script_scheduler_active =  (uint8_t*) base_pointer;
     base_pointer += sizeof(uint8_t);
 
-    MNLP_data.su_service_sheduler_active = (uint8_t*) base_pointer;
+    MNLP_data.su_service_scheduler_active = (uint8_t*) base_pointer;
     base_pointer += sizeof(uint8_t);
     
     MNLP_data.su_nmlp_last_active_script = (uint8_t*) base_pointer;
     base_pointer += sizeof(uint8_t);
-
-    //*MNLP_data.su_nmlp_last_active_script = 0;
-    MNLP_data.su_next_time_table = (uint8_t*) base_pointer;
-    base_pointer += sizeof(uint8_t);
-
-    MNLP_data.su_next_script_seq = (uint8_t*) base_pointer;
-    base_pointer += sizeof(uint8_t);
-//    *MNLP_data.su_next_script_seq = 0;
-
-    //*MNLP_data.su_nmlp_perm_state_pnt = 0;
     
     obc_data.log = (uint8_t *)base_pointer;
     base_pointer += sizeof(uint8_t);
+    
     obc_data.wod_log = (uint8_t *)base_pointer + (EV_MAX_BUFFER);
     base_pointer += sizeof(uint8_t);
-    
-    
+        
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
     if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 1; }
