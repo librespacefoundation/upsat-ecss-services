@@ -73,4 +73,6 @@ SAT_returnState sys_data_INIT();
 
 SAT_returnState test_crt_heartbeat(tc_tm_pkt **pkt);
 
+SAT_returnState firewall(tc_tm_pkt *pkt);
+
 #endif
