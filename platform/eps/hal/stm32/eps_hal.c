@@ -1,10 +1,7 @@
-
-
 #include "eps_state.h"
-
 #include "upsat.h"
-
 #include "hldlc.h"
+#include "eps_time.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 22
@@ -220,5 +217,6 @@ void HAL_reset_source(uint8_t *src) {
 }
 
 uint32_t HAL_sys_GetTick() {
-  return HAL_GetTick();
+	uint32_t current_time_50ms_res = EPS_time_counter_get();
+	return 50*current_time_50ms_res;
 }

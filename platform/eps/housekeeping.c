@@ -133,6 +133,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
         size += 4;
 
+        //reset sourc assert source + line placeholder.
+        size += 4;
+
         /*batterypack health status*/
         pkt->data[size] = (uint8_t)(eps_board_state.batterypack_health_status);
         size += 1;
@@ -174,37 +177,35 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     	pkt->data[size] = (uint8_t)power_module_right.pwm_duty_cycle;
         size += 1;
 
-    	/* deployment status*/
-    	EPS_deployment_status deployment_status = EPS_check_deployment_status();
-    	pkt->data[size] = (uint8_t)deployment_status;
+        uint8_t paketoma_buffer = 0x0000;
+        uint8_t tempA = 0;
+        uint8_t tempB = 0;
+        uint8_t tempC = 0;
+        uint8_t tempD = 0;
+
+        /*| deployment_status (2bits) | EPS_safety_battery_mode (3bits) | EPS_safety_temperature_mode (3bits) |*/
+        EPS_deployment_status deployment_status = EPS_check_deployment_status();
+        tempA = ( ((uint8_t) deployment_status) << 6 );
+        tempB = ((uint8_t)(eps_board_state.EPS_safety_battery_mode ))<<4;
+        tempC = ((uint8_t)(eps_board_state.EPS_safety_temperature_mode ));
+        paketoma_buffer =  tempA & tempB;
+        pkt->data[size] = (paketoma_buffer  & tempC );
+		size += 1;
+
+
+        /*| SU power_switch (2bits) | OBC power_switch (2bits) | ADCS power_switch (2bits) | COMM power_switch (2bits) |*/
+        paketoma_buffer = 0x0000;
+        tempA = (uint8_t)(EPS_get_rail_switch_status(SU) )<<6;
+        tempB = (uint8_t)(EPS_get_rail_switch_status(OBC) )<<4;
+        tempC = (uint8_t)(EPS_get_rail_switch_status(ADCS) )<<2;
+        tempD = (uint8_t)(EPS_get_rail_switch_status(COMM) );
+        paketoma_buffer =  tempA & tempB;
+        paketoma_buffer =  paketoma_buffer & tempC;
+        pkt->data[size] = (paketoma_buffer  & tempD );
         size += 1;
 
-    	/* battery voltage safety */
-    	pkt->data[size] = (uint8_t)(eps_board_state.EPS_safety_battery_mode );
-        size += 1;
-
-    	/* battery temperature safety */
-    	pkt->data[size] = (uint8_t)(eps_board_state.EPS_safety_temperature_mode );
-        size += 1;
-
-    	/* subsytem power state */
-    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(SU) );
-        size += 1;
-
-    	/* subsytem power state */
-    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(OBC) );
-        size += 1;
-
-    	/* subsytem power state */
-    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(ADCS) );
-        size += 1;
-
-    	/* subsytem power state */
-    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(COMM) );
-        size += 1;
-
-    	/* subsytem power state */
-    	pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(TEMP_SENSOR) );
+        /* Temp sensor power_switch (2bits) | 6bits padding*/
+        pkt->data[size] = (uint8_t)(EPS_get_rail_switch_status(TEMP_SENSOR) );
         size += 1;
 
     	/* soft error status*/
@@ -212,7 +213,38 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 1;
 
         pkt->len = size;
+    } else if(sid == EPS_FLS_REP) {
 
+    	uint16_t size = 1;
+    	uint32_t memory_read_value;
+
+    	/* LIMIT_BATTERY_LOW*/
+    	EPS_get_memory_word( LIMIT_BATTERY_LOW_ADDRESS, &memory_read_value );
+    	cnv32_8( memory_read_value, &pkt->data[size]);
+    	size += 4;
+
+    	/* LIMIT_BATTERY_HIGH*/
+    	EPS_get_memory_word( LIMIT_BATTERY_HIGH_ADDRESS, &memory_read_value );
+    	cnv32_8( memory_read_value, &pkt->data[size]);
+    	size += 4;
+
+    	/* LIMIT_BATTERY_CRITICAL*/
+    	EPS_get_memory_word( LIMIT_BATTERY_CRITICAL_ADDRESS, &memory_read_value );
+    	cnv32_8( memory_read_value, &pkt->data[size]);
+    	size += 4;
+
+    	/* LIMIT_BATTERY_TEMPERATURE_LOW*/
+    	EPS_get_memory_word( LIMIT_BATTERY_TEMPERATURE_LOW_ADDRESS, &memory_read_value );
+    	cnv32_8( memory_read_value, &pkt->data[size]);
+    	size += 4;
+
+    	/* LIMIT_BATTERY_TEMPERATURE_HIGH*/
+    	EPS_get_memory_word( LIMIT_BATTERY_TEMPERATURE_HIGH_ADDRESS, &memory_read_value );
+    	cnv32_8( memory_read_value, &pkt->data[size]);
+    	size += 4;
+
+
+    	pkt->len = size;
     }
 
     return SATR_OK;
