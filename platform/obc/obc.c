@@ -147,9 +147,6 @@ void bkup_sram_INIT() {
 
     uint8_t *base_pointer = (uint8_t*)HAL_obc_BKPSRAM_BASE();
 
-    //for(uint32_t i = 0; i < 4096; i++) {
-    //    base_pointer[i] = 0;
-    //}
 
     obc_data.log_cnt = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
@@ -162,6 +159,20 @@ void bkup_sram_INIT() {
 
     obc_data.wod_cnt = (uint32_t*)base_pointer;
     base_pointer += sizeof(uint32_t);
+
+
+    obc_data.comms_boot_cnt = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.eps_boot_cnt = (uint16_t*)base_pointer;
+    base_pointer += sizeof(uint16_t);
+
+    obc_data.comms_tick = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
+
+    obc_data.eps_tick = (uint32_t*)base_pointer;
+    base_pointer += sizeof(uint32_t);
+
 
     MNLP_data.su_nmlp_perm_state_pnt = (uint32_t *) base_pointer; //264; //265;
     base_pointer += sizeof(uint32_t);
@@ -397,4 +408,18 @@ void update_boot_counter() {
 
 void get_boot_counter(uint32_t *cnt) {
     *cnt = *sys_data.boot_counter;
+}
+
+void update_eps_boot_counter(uint32_t tick) {
+    if(tick != 0 && tick < *obc_data.eps_tick) {
+        *obc_data.eps_boot_cnt++;
+    }
+    *obc_data.eps_tick = tick;
+}
+
+void update_comms_boot_counter(uint32_t tick) {
+    if(tick != 0 && tick < *obc_data.comms_tick) {
+        *obc_data.comms_boot_cnt++;
+    }
+    *obc_data.comms_tick = tick;
 }

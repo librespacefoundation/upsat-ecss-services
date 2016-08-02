@@ -25,12 +25,6 @@ extern void get_time_QB50(uint32_t *qb);
 extern SAT_returnState wod_log();
 extern SAT_returnState wod_log_load(uint8_t *buf);
 
-struct _sat_ext_status {
-    uint32_t comms_sys_time;
-    uint32_t eps_sys_time;
-};
-
-static struct _sat_ext_status sat_ext_status;
 struct _sat_status sat_status;
 
 static tc_tm_pkt hk_pkt;
@@ -130,14 +124,22 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
       
         if(!C_ASSERT(len != EPS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
 
-        cnv8_32(&data[1], &sat_ext_status.eps_sys_time);
+        uint32_t tick = 0;
+
+        cnv8_32(&data[1], &tick);
+        update_eps_boot_counter(tick);
+
         memcpy(&ext_wod_buffer[EPS_EXT_WOD_OFFSET], &data[1], EPS_EXT_WOD_SIZE);
     
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
     
         if(!C_ASSERT(len != COMMS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
 
-        cnv8_32(&data[1], &sat_ext_status.comms_sys_time);
+        uint32_t tick = 0;
+
+        cnv8_32(&data[1], &tick);
+        update_comms_boot_counter(tick);
+        
         memcpy(&ext_wod_buffer[COMMS_EXT_WOD_OFFSET], &data[1], COMMS_EXT_WOD_SIZE);
     
     } else {
@@ -181,9 +183,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8( boot_counter, &pkt->data[size]);
         size += 4;
 
-        //Boot Counter comms
+        cnv32_8( *obc_data.comms_boot_cnt, &pkt->data[size]);
         size += 2;
-        //Boot Counter eps
+        cnv32_8( *obc_data.eps_boot_cnt, &pkt->data[size]);
         size += 2;
 
         pkt->data[size] = assertion_last_file;
