@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-struct _wdg_state {
-    uint8_t hk_valid;
-    uint8_t uart_valid; 
-};
-
 void wdg_reset_HK();
 
 void wdg_reset_UART();

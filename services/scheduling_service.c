@@ -198,6 +198,7 @@ void cross_schedules() {
             }
         }
     }
+    wdg_reset_SCH();
 }
 
 SAT_returnState scheduling_app( tc_tm_pkt *spacket){
