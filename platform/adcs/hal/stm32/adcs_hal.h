@@ -42,9 +42,9 @@ void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
 
 void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);
 
-void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year);
+void HAL_sys_setDate(uint8_t weekday, uint8_t mon, uint8_t date, uint8_t year);
 
-void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year);
+void HAL_sys_getDate(uint8_t *weekday, uint8_t *mon, uint8_t *date, uint8_t *year);
 
 uint32_t HAL_sys_GetTick();
 

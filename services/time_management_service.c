@@ -5,11 +5,13 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 2
 
-extern void HAL_sys_setTime(uint8_t hours, uint8_t mins, uint8_t sec);
-extern void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec);
-extern void HAL_sys_setDate(uint8_t weekday, uint8_t mon, uint8_t date, uint8_t year);
-extern void HAL_sys_getDate(uint8_t *weekday, uint8_t *mon, uint8_t *date, uint8_t *year);
-extern uint32_t HAL_sys_GetTick();
+
+#if (SYSTEM_APP_ID == ADCS_APP_ID_)
+#include "adcs_hal.h"
+#else if (SYSTEM_APP_ID == OBC_APP_ID_)
+#include "obc_hal.h"
+#endif
+
 
 static const uint32_t UTC_QB50_YM[MAX_YEAR][13] = {    
  /*2000*/{0 , 0, 2678400, 5184000, 7862400, 10454400, 13132800, 15724800, 18403200, 21081600, 23673600, 26352000, 28944000},
@@ -106,8 +108,20 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
     if( ser_subtype == TM_TIME_REPORT_IN_UTC){
         /* time report from a time_management_service implementor in UTC format exists here,
          * user should implement his own code to handle the time report response*/
-        uint8_t stop_here=0;
-    }
+        /*set time in utc mode*/
+        if(!(C_ASSERT(pkt->data[0]>= 1)&&C_ASSERT(pkt->data[0] < 8)) == true)  { return SATR_ERROR; } /*weekday1to7*/
+        if(!(C_ASSERT(pkt->data[1] > 0)&&C_ASSERT(pkt->data[1] < 32)) == true) { return SATR_ERROR; } /*day1to31*/
+        if(!(C_ASSERT(pkt->data[2] > 0)&&C_ASSERT(pkt->data[2] < 13)) == true) { return SATR_ERROR; } /*month1to12*/
+        if(!(C_ASSERT(pkt->data[3]>= 15)&&C_ASSERT(pkt->data[3] < 100)) == true){ return SATR_ERROR; } /*year15to99*/
+        if(!(C_ASSERT(pkt->data[4]>= 0)&&C_ASSERT(pkt->data[4] < 24)) == true) { return SATR_ERROR; } /*hours0to23*/
+        if(!(C_ASSERT(pkt->data[5]>= 0)&&C_ASSERT(pkt->data[5] < 60)) == true) { return SATR_ERROR; } /*minutes0to59*/
+        if(!(C_ASSERT(pkt->data[6]>= 0)&&C_ASSERT(pkt->data[6] < 60)) == true) { return SATR_ERROR; } /*seconds0to59*/
+        temp_time.weekday = pkt->data[0];
+        temp_time.day = pkt->data[1];  temp_time.month = pkt->data[2];
+        temp_time.year = pkt->data[3]; temp_time.hour = pkt->data[4];
+        temp_time.min = pkt->data[5];  temp_time.sec = pkt->data[6];
+        set_time_UTC(temp_time);
+        pkt->verification_state = SATR_OK;    }
     else
     if( ser_subtype == TM_TIME_REPORT_IN_QB50){
         /*time report from a time_management_service implementor in QB50 format exists here,

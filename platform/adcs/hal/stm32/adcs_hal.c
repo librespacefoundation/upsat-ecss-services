@@ -201,11 +201,11 @@ void HAL_sys_getTime(uint8_t *hours, uint8_t *mins, uint8_t *sec) {
    *sec = sTime.Seconds;
 }
 
-void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
+void HAL_sys_setDate(uint8_t weekday, uint8_t mon, uint8_t date, uint8_t year) {
 
   RTC_DateTypeDef sDate;
 
-//  sDate.WeekDay = RTC_WEEKDAY_FRIDAY;
+  sDate.WeekDay = weekday;
   sDate.Month = mon;
   sDate.Date = date;
   sDate.Year = year;
@@ -214,7 +214,7 @@ void HAL_sys_setDate(uint8_t mon, uint8_t date, uint8_t year) {
 
 }
 
-void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
+void HAL_sys_getDate(uint8_t *weekday, uint8_t *mon, uint8_t *date, uint8_t *year) {
 
   RTC_DateTypeDef sDate;
 
@@ -223,6 +223,7 @@ void HAL_sys_getDate(uint8_t *mon, uint8_t *date, uint8_t *year) {
   *mon = sDate.Month;
   *date = sDate.Date;
   *year = sDate.Year;
+  *weekday = sDate.WeekDay;
 
 }
 
