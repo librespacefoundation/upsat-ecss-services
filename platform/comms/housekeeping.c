@@ -80,7 +80,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     } else if(sid == EXT_WOD_REP) {
 
         /*zero padding*/
-        memset(&pkt->data[1] 0, SYS_EXT_WOD_SIZE);
+        memset(&pkt->data[1], 0, SYS_EXT_WOD_SIZE);
 
         i = COMMS_EXT_WOD_OFFSET;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
