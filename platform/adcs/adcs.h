@@ -50,10 +50,16 @@ SAT_returnState event_log(uint8_t *buf, const uint16_t size);
 
 SAT_returnState check_timeouts();
 
+void set_reset_source(const uint8_t rsrc);
+
+void get_reset_source(uint8_t *rsrc);
+
 void HAL_adcs_SENSORS_ON();
 void HAL_adcs_SENSORS_OFF();
+void HAL_adcs_GPS_ON();
+void HAL_adcs_GPS_OFF();
 void HAL_adcs_SPIN(int32_t RPM);
-void HAL_adcs_MAGNETO(int32_t current_x, int32_t current_y);
+void HAL_adcs_MAGNETO(int8_t current_x, int8_t current_y);
 void HAL_adcs_DBG(uint8_t var, uint8_t val);
 
 #endif
