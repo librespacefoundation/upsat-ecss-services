@@ -84,7 +84,7 @@ void queue_IDLE(TC_TM_app_id app_id) {
     tc_tm_pkt *pkt;
 
     pkt = queuePeak(app_id);
-    if(!C_ASSERT(pkt != NULL) == true) { return; }
+    if(pkt != NULL) { return; }
 
     if(is_free_pkt(pkt) == true) {
         queuePop(app_id);
