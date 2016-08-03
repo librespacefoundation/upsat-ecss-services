@@ -41,7 +41,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         SYSVIEW_PRINT("COMMS %u", pkt->data[1]);
 
     } else if(sid == EX_HEALTH_REP) {
-	i = 1;
+	    i = 1;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
         i += sizeof(uint32_t);
         /* Store the reset source */
@@ -77,7 +77,49 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
         pkt->len = i;
-    } 
+    } else if(sid == EXT_WOD_REP) {
+
+        /*zero padding*/
+        memset(&pkt->data[1] 0, SYS_EXT_WOD_SIZE);
+
+        i = COMMS_EXT_WOD_OFFSET;
+        cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
+        i += sizeof(uint32_t);
+        /* Store the reset source */
+        b = comms_stats.rst_src;
+        pkt->data[i] = b;
+        i += sizeof(uint8_t);
+        /* FIXME: Add the last assert file */
+        pkt->data[i] = 0x0;
+        i += sizeof(uint8_t);
+        /* FIXME: Add the last assert line */
+        cnv16_8(0x0, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
+        &pkt->data[i]);
+        i += sizeof(uint32_t);
+        b = flash_read_trasmit(__COMMS_HEADLESS_TX_FLASH_OFFSET);
+        pkt->data[i] = b;
+        i += sizeof(uint8_t);
+        cnv16_8(comms_stats.rx_failed_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv16_8(comms_stats.rx_crc_failed_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv16_8(comms_stats.tx_failed_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv16_8(comms_stats.tx_frames_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv16_8(comms_stats.rx_frames_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        cnv16_8(comms_stats.last_tx_error_code, &pkt->data[i]);
+        i += sizeof(int16_t);
+        cnv16_8(comms_stats.last_rx_error_code, &pkt->data[i]);
+        i += sizeof(int16_t);
+        cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
+        i += sizeof(uint16_t);
+        pkt->len = i + SUB_SYS_EXT_WOD_SIZE;
+    }
+
 
     return SATR_OK;
 }
