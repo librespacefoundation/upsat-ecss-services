@@ -46,10 +46,10 @@ void hk_SCH() {
     route_pkt(&hk_pkt);
     wake_uart_task();
 
-    wdg.hk_valid = true;
+    wdg_reset_HK();
     HAL_sys_delay(14000);
 
-    wdg.hk_valid = true;
+    wdg_reset_HK();
     HAL_sys_delay(14000);
 
     wod_log();
@@ -75,11 +75,11 @@ void hk_SCH() {
     wake_uart_task();
     HAL_sys_delay(1000);
 
-    // wdg.hk_valid = true;
-    //HAL_sys_delay(12500);
+    wdg_reset_HK();
+    HAL_sys_delay(12500);
 
-    // wdg.hk_valid = true;
-    HAL_sys_delay(26000);  
+    wdg_reset_HK();
+    HAL_sys_delay(12500);  
 
     //hk_crt_pkt_TM(&hk_pkt, GND_APP_ID, EXT_WOD_REP);
     hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
