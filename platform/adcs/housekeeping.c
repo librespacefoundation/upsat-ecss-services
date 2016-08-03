@@ -29,8 +29,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         uint16_t size = 1;
         uint32_t sys_epoch = 0;
         uint8_t rsrc = 0;
-        uint8_t assertion_last_file = 0;
-        uint16_t assertion_last_line = 0;
         /* System specific */
         cnv32_8(HAL_sys_GetTick(), &pkt->data[size]);
         size += 4;
