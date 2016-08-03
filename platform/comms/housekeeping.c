@@ -48,11 +48,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         b = comms_stats.rst_src;
         pkt->data[i] = b;
         i += sizeof(uint8_t);
-        /* FIXME: Add the last assert file */
-        pkt->data[i] = 0x0;
+        pkt->data[i] = assertion_last_file;
         i += sizeof(uint8_t);
-        /* FIXME: Add the last assert line */
-        cnv16_8(0x0, &pkt->data[i]);
+        cnv16_8(assertion_last_line, &pkt->data[i]);
         i += sizeof(uint16_t);
         cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
 		&pkt->data[i]);
@@ -89,11 +87,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         b = comms_stats.rst_src;
         pkt->data[i] = b;
         i += sizeof(uint8_t);
-        /* FIXME: Add the last assert file */
-        pkt->data[i] = 0x0;
+        pkt->data[i] = assertion_last_file;
         i += sizeof(uint8_t);
-        /* FIXME: Add the last assert line */
-        cnv16_8(0x0, &pkt->data[i]);
+        cnv16_8(assertion_last_line, &pkt->data[i]);
         i += sizeof(uint16_t);
         cnv32_8(flash_read_trasmit(__COMMS_RF_KEY_FLASH_OFFSET),
         &pkt->data[i]);
