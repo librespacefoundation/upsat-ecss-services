@@ -60,6 +60,12 @@
 #define traceIMPORT(ID) SEGGER_SYSVIEW_RecordU32(ID_IMPORT + COMMS_module.EventOffset, ID)
 #define traceEXPORT(ID) SEGGER_SYSVIEW_RecordU32(ID_EXPORT + COMMS_module.EventOffset, ID)
 
+#define ID_CTRL_START  0
+#define ID_CTRL_STOP   1
+
+#define traceCTRL_START() SEGGER_SYSVIEW_RecordVoid(ID_CTRL_START + ADCS_module.EventOffset)
+#define traceCTRL_STOP() SEGGER_SYSVIEW_RecordVoid(ID_CTRL_STOP + ADCS_module.EventOffset)
+
 #define ID_ASSERTION  0
 
 #define traceASSERTION(FID, LINE) SEGGER_SYSVIEW_RecordU32x2(ID_ASSERTION + ASSERTION_module.EventOffset, FID, LINE)
@@ -84,6 +90,7 @@
 
 extern SEGGER_SYSVIEW_MODULE PKT_POOL_module;
 extern SEGGER_SYSVIEW_MODULE MS_module;
+extern SEGGER_SYSVIEW_MODULE ADCS_module;
 extern SEGGER_SYSVIEW_MODULE COMMS_module;
 extern SEGGER_SYSVIEW_MODULE ASSERTION_module;
 extern SEGGER_SYSVIEW_MODULE SU_module;
@@ -116,6 +123,9 @@ void sysview_init();
 
 #define traceIMPORT(ID) ;
 #define traceEXPORT(ID) ;
+
+#define traceCTRL_START() ;
+#define traceCTRL_STOP() ;
 
 #define trace_SCR_MARKED_ACTIVE(ID)  ;
 #define trace_SCR_NON_ELIG()         ;

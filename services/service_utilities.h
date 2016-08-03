@@ -22,6 +22,7 @@ void cnv8_32(uint8_t *from, uint32_t *to);
 
 void cnv8_16(uint8_t *from, uint16_t *to);
 
+void cnv8_16LE(uint8_t *from, uint16_t *to);
 
 void cnvF_8(const float from, uint8_t *to);
 
