@@ -194,27 +194,31 @@ typedef struct{
 
 struct _MNLP_data{
     uint32_t *su_init_func_run_time;     /*contains the time that su initialization occured -su_init- run (QB50 epoch)*/
-    uint32_t *su_nmlp_perm_state_pnt;
     uint8_t *su_nmlp_last_active_script; /*last active script chosen by the scheduler, and saved on sram region*/
-    uint8_t *su_next_time_table;         /*points to the time table that needs to be executed when the scheduler will run*/
-    uint8_t *su_next_script_seq;         /*point to the script sequence that needs to be executed when the scheduler will run*/
+//    uint8_t *su_next_time_table;         /*points to the time table that needs to be executed when the scheduler will run*/
+//    uint8_t *su_next_script_seq;         /*point to the script sequence that needs to be executed when the scheduler will run*/
     uint8_t *su_nmlp_script_scheduler_active;   /*True if mNLP scheduler script is active/running, false otherwise*/    
-    uint8_t *su_service_sheduler_active; /*True if mNLP service is active/running, false otherwise*/
+    uint8_t *su_service_scheduler_active;   /*True if mNLP service is active/running, false otherwise*/
+    
+    /*uint16_t *tt_perm_lost_count;            /*number of time tables that we have lost execution time*/
+    
+    uint16_t *tt_perm_norm_exec_count;       /*number of time tables that were normally executed on time*/
+    uint16_t *tt_perm_exec_on_span_count;   /*number of time tables that were executed on time span of <n> seconds*/
     
     uint8_t su_timed_out;               /*True when the su is in timed out state*/
     MS_sid active_script;               /*the current (runtime) active script*/
     uint8_t current_tt;                 /*current activated script's time table*/
     uint8_t current_sip;                /*current time table's script index*/
-    uint32_t tt_lost_count;             /*number of time tables that we have lost execution time*/
-    uint32_t tt_norm_exec_count;        /*number of time tables that were normally executed on time*/
-    uint32_t tt_exec_on_span_count;     /*number of time tables that were executed on time span of <n> seconds*/
+    uint16_t tt_lost_count;             /*number of time tables that we have lost execution time*/
+    uint16_t tt_norm_exec_count;        /*number of time tables that were normally executed on time*/
+    uint16_t tt_exec_on_span_count;     /*number of time tables that were executed on time span of <n> seconds*/
     SU_state su_state;                  /*the state of the science unit*/
     uint32_t last_su_response_time;     /*the qb50 epoch time of last su response reception*/
     
     science_unit_script_inst su_scripts[SU_SCRIPTS_POPU]; /*holds references to science unit scripts, loaded from permanent storage*/    
     uint8_t su_inc_resp[180];            /*174 response data + 6 bytes to detect nmlp response offsets*/
     
-//    mnlp_response_science_header mnlp_science_header;
+    /*mnlp_response_science_header mnlp_science_header;*/
 };
 
 extern struct _MNLP_data MNLP_data;
