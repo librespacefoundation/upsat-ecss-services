@@ -23,26 +23,24 @@ Scheduling_service_state sc_s_state;
 Schedule_pkt_pool schedule_mem_pool;
 
 /*
- *  Initiates the scheduling service.
+ *  Initializes the scheduling service.
  */
 SAT_returnState scheduling_service_init(){
     
     /* Initialize schedules memory.
-     * Assign proper location to inner TC of ScheduleTC for its data.
+     * Assign proper memory allocation to inner TC of ScheduleTC for its data payload.
      */
     for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES;s++){
         schedule_mem_pool.sc_mem_array[s].tc_pck.data 
                          = schedule_mem_pool.innerd_tc_data[s];
         
         /* Marks every schedule as invalid, so its position
-         * can be taken by a request to the Schedule packets pool.
+         * can be taken by a request to the Schedule packet pool.
          */
-        schedule_mem_pool.sc_mem_array[s].pos_avail = false;
-//        schedule_mem_pool.sc_mem_array[s].release_time = 0;
+        schedule_mem_pool.sc_mem_array[s].pos_taken = false;
     }
-    /*leave the two last (15 su scheduler on, 16 off) schedules, are su specific*/
-    
-    sc_s_state.nmbr_of_ld_sched=0;
+        
+    sc_s_state.nmbr_of_ld_sched = 0;
     sc_s_state.schedule_arr_full = false;
     
     /*Enable scheduling release for every APID*/
@@ -50,12 +48,10 @@ SAT_returnState scheduling_service_init(){
         sc_s_state.scheduling_apids_enabled[s] = true;
     }
     
-    /*hard set the two su_schedules*/
-    
     /* Load Schedules from storage.
      * 
      */
-//    load_schedules();
+    
 }
 
 /*  
@@ -66,14 +62,16 @@ SAT_returnState scheduling_service_load_schedules(){
 //    SC_pkt *temp_pkt;
     uint8_t sche_tc_buffer[30];
     memset(sche_tc_buffer,0x00,30);
-    for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES-2;s++){
+    for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES;s++){
 //        temp_pkt = find_schedule_pos();
-        mass_storage_schedule_load_api(SCHS,s,sche_tc_buffer);
-        /*save the tc's data lenght in the first 2 bytes*/
-        cnv8_16LE(sche_tc_buffer,&schedule_mem_pool.sc_mem_array[s].tc_pck.len);
+        mass_storage_schedule_load_api(SCHS, s, sche_tc_buffer);
+        
+        /*save the tc's data length in the first 2 bytes*/
+        cnv8_16LE(sche_tc_buffer, &schedule_mem_pool.sc_mem_array[s].tc_pck.len);
+        
         /*start loading the sch packet*/
         schedule_mem_pool.sc_mem_array[s].app_id = (TC_TM_app_id)sche_tc_buffer[2];
-        cnv8_16LE(&sche_tc_buffer[3],&schedule_mem_pool.sc_mem_array[s].seq_count);
+        cnv8_16LE(&sche_tc_buffer[3], &schedule_mem_pool.sc_mem_array[s].seq_count);
         schedule_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[5];
         schedule_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[6];        
         schedule_mem_pool.sc_mem_array[s].num_of_sch_tc = sche_tc_buffer[7];
@@ -81,27 +79,29 @@ SAT_returnState scheduling_service_load_schedules(){
         schedule_mem_pool.sc_mem_array[s].intrlck_ass_id = sche_tc_buffer[9];
         schedule_mem_pool.sc_mem_array[s].assmnt_type = sche_tc_buffer[10];
         schedule_mem_pool.sc_mem_array[s].sch_evt = (uint8_t)sche_tc_buffer[11];        
-        cnv8_32(&sche_tc_buffer[12],&schedule_mem_pool.sc_mem_array[s].release_time);
-        cnv8_16LE(&sche_tc_buffer[16],&schedule_mem_pool.sc_mem_array[s].timeout);       
+        cnv8_32(&sche_tc_buffer[12], &schedule_mem_pool.sc_mem_array[s].release_time);
+        cnv8_16LE(&sche_tc_buffer[16], &schedule_mem_pool.sc_mem_array[s].timeout);    
+        
         /*TC parsing begins here*/
         schedule_mem_pool.sc_mem_array[s].tc_pck.app_id = sche_tc_buffer[18];
         schedule_mem_pool.sc_mem_array[s].tc_pck.type = sche_tc_buffer[19];
         schedule_mem_pool.sc_mem_array[s].tc_pck.seq_flags = sche_tc_buffer[20];
-        cnv8_16LE(&sche_tc_buffer[21],&schedule_mem_pool.sc_mem_array[s].tc_pck.seq_count);
-        cnv8_16LE(&sche_tc_buffer[23],&schedule_mem_pool.sc_mem_array[s].tc_pck.len);
+        cnv8_16LE(&sche_tc_buffer[21], &schedule_mem_pool.sc_mem_array[s].tc_pck.seq_count);
+        cnv8_16LE(&sche_tc_buffer[23], &schedule_mem_pool.sc_mem_array[s].tc_pck.len);
         schedule_mem_pool.sc_mem_array[s].tc_pck.ack = sche_tc_buffer[25];
         schedule_mem_pool.sc_mem_array[s].tc_pck.ser_type = sche_tc_buffer[26];
         schedule_mem_pool.sc_mem_array[s].tc_pck.ser_subtype = sche_tc_buffer[27];
         schedule_mem_pool.sc_mem_array[s].tc_pck.dest_id =  (uint8_t)sche_tc_buffer[28];
+        
         /*copy tc payload data*/
         uint16_t i = 0;
         for(;i<schedule_mem_pool.sc_mem_array[s].tc_pck.len;i++){
             schedule_mem_pool.sc_mem_array[s].tc_pck.data[i] = sche_tc_buffer[29+i];
         }
         schedule_mem_pool.sc_mem_array[s].tc_pck.verification_state = (uint8_t) sche_tc_buffer[29+i];
-        schedule_mem_pool.sc_mem_array[s].pos_avail = true;
-        uint8_t stop_here;
+        schedule_mem_pool.sc_mem_array[s].pos_taken = true;
         
+        uint8_t stop_here;
         memset(sche_tc_buffer,0x00,30);
     }
 }
@@ -111,11 +111,12 @@ SAT_returnState scheduling_service_save_schedules(){
     uint8_t sche_tc_buffer[30]; //TODO redefine this
     
     /*convert the Schedule packet from Schedule_pkt_pool format to an array of linear bytes*/        
-    for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES-2;s++){
+    for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES;s++){
         
         uint16_t file_size=0;                
-        /*save the tc's data lenght in the first 2 bytes*/
+        /*save the tc's data length in the first 2 bytes*/
         cnv16_8(schedule_mem_pool.sc_mem_array[s].tc_pck.len, sche_tc_buffer);
+        
         /*start saving sch packet*/
         sche_tc_buffer[2] = (uint8_t)schedule_mem_pool.sc_mem_array[s].app_id;
         cnv16_8(schedule_mem_pool.sc_mem_array[s].seq_count, &sche_tc_buffer[3]);
@@ -128,6 +129,7 @@ SAT_returnState scheduling_service_save_schedules(){
         sche_tc_buffer[11] = (uint8_t)schedule_mem_pool.sc_mem_array[s].sch_evt;
         cnv32_8(schedule_mem_pool.sc_mem_array[s].release_time,&sche_tc_buffer[12]);
         cnv16_8(schedule_mem_pool.sc_mem_array[s].timeout,&sche_tc_buffer[16]);
+        
         /*TC parsing begins here*/
         sche_tc_buffer[18] = (uint8_t)schedule_mem_pool.sc_mem_array[s].tc_pck.app_id;
         sche_tc_buffer[19] = schedule_mem_pool.sc_mem_array[s].tc_pck.type;
@@ -138,6 +140,7 @@ SAT_returnState scheduling_service_save_schedules(){
         sche_tc_buffer[26] = schedule_mem_pool.sc_mem_array[s].tc_pck.ser_type;
         sche_tc_buffer[27] = schedule_mem_pool.sc_mem_array[s].tc_pck.ser_subtype;
         sche_tc_buffer[28] = (uint8_t)schedule_mem_pool.sc_mem_array[s].tc_pck.dest_id;
+        
         /*copy tc payload data*/
         uint16_t i = 0;
         for(;i<schedule_mem_pool.sc_mem_array[s].tc_pck.len;i++){
@@ -147,6 +150,7 @@ SAT_returnState scheduling_service_save_schedules(){
         file_size = 30+i;
         mass_storage_storeFile(SCHS,s,sche_tc_buffer,&file_size);
         //TODO messet the sche_tc_buffer
+        
     }
 }
 
@@ -160,42 +164,56 @@ void cross_schedules() {
      *      if time>= release time, then mark it as !valid
      */
     
-    /*priority for specific su schedules*/
-    for(uint8_t y=15;y<17;y++){
-        if (schedule_mem_pool.sc_mem_array[y].pos_avail == true){
-            uint32_t qb_temp_secs = 0;
-            get_time_QB50(&qb_temp_secs);
-            if (schedule_mem_pool.sc_mem_array[y].release_time <= qb_temp_secs) { /**/
-                route_pkt(&(schedule_mem_pool.sc_mem_array[y].tc_pck));
-                schedule_mem_pool.sc_mem_array[y].pos_avail = false;
-    //            sc_s_state.nmbr_of_ld_sched--;
-    //            sc_s_state.schedule_arr_full = false;
-            }
-        }
-    }
+    /*priority for any specific schedule positions*/
+//    for(uint8_t y=15;y<17;y++){
+//        if (schedule_mem_pool.sc_mem_array[y].pos_taken == true){
+//            uint32_t qb_temp_secs = 0;
+//            get_time_QB50(&qb_temp_secs);
+//            if (schedule_mem_pool.sc_mem_array[y].release_time <= qb_temp_secs) { /**/
+//                route_pkt(&(schedule_mem_pool.sc_mem_array[y].tc_pck));
+//                schedule_mem_pool.sc_mem_array[y].pos_taken = false;
+//    //            sc_s_state.nmbr_of_ld_sched--;
+//    //            sc_s_state.schedule_arr_full = false;
+//            }
+//        }
+//    }
     
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
-        if (schedule_mem_pool.sc_mem_array[i].pos_avail == true &&
-                sc_s_state.scheduling_apids_enabled[(schedule_mem_pool.sc_mem_array[i].app_id) - 1] == true) {
-            if (schedule_mem_pool.sc_mem_array[i].sch_evt == ABSOLUTE) { /*then count from OBC boot time*/
-                uint32_t boot_secs = HAL_GetTick();
-                if (schedule_mem_pool.sc_mem_array[i].release_time <= (boot_secs / 1000)) {
-                    route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
-                    schedule_mem_pool.sc_mem_array[i].pos_avail = false;
-                    sc_s_state.nmbr_of_ld_sched--;
-                    sc_s_state.schedule_arr_full = false;
-                }
-            } else
-                if (schedule_mem_pool.sc_mem_array[i].sch_evt == QB50EPC) { /*then check qb50 epoch time*/
-                uint32_t qb_temp_secs = 0;
-                get_time_QB50(&qb_temp_secs);
-                if (schedule_mem_pool.sc_mem_array[i].release_time <= qb_temp_secs) { /**/
-                    route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
-                    schedule_mem_pool.sc_mem_array[i].pos_avail = false;
-                    sc_s_state.nmbr_of_ld_sched--;
-                    sc_s_state.schedule_arr_full = false;
-                }
-            }
+        if (schedule_mem_pool.sc_mem_array[i].pos_taken == true &&
+                sc_s_state.scheduling_apids_enabled[(schedule_mem_pool.sc_mem_array[i].app_id) - 1] == true){
+            
+            switch( schedule_mem_pool.sc_mem_array[i].sch_evt){
+                case 0: /*ABSOLUTE*/
+                    uint32_t boot_secs = HAL_GetTick();
+                    if( schedule_mem_pool.sc_mem_array[i].release_time <= (boot_secs / 1000)){
+                        route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
+                        schedule_mem_pool.sc_mem_array[i].pos_taken = false;
+                        sc_s_state.nmbr_of_ld_sched--;
+                        sc_s_state.schedule_arr_full = false;
+                    }
+                    break;
+                case 4: /*QB50EPOCH*/
+                    uint32_t qb_temp_secs = 0;
+                    get_time_QB50(&qb_temp_secs);
+                    if( schedule_mem_pool.sc_mem_array[i].release_time <= qb_temp_secs) {
+                        route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
+                        schedule_mem_pool.sc_mem_array[i].pos_taken = false;
+                        sc_s_state.nmbr_of_ld_sched--;
+                        sc_s_state.schedule_arr_full = false;
+                    }
+                    break;                    
+                case 5: /*REPETITIVE*/
+                    //uint32_t boot_secs = HAL_GetTick();
+                    if( schedule_mem_pool.sc_mem_array[i].release_time <= (boot_secs / 1000)){
+                        route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
+                        schedule_mem_pool.sc_mem_array[i].release_time = 0;
+                        
+//                        schedule_mem_pool.sc_mem_array[i].pos_taken = false;
+//                        sc_s_state.nmbr_of_ld_sched--;
+//                        sc_s_state.schedule_arr_full = false;
+                    }
+                    break;
+             }
         }
     }
     wdg_reset_SCH();
@@ -287,15 +305,16 @@ SAT_returnState time_shift_all_tcs(uint8_t *time_v){
 SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t apid  ){
     
     //TODO: add logging on actions
-    if( subtype == 1 ){ 
+    if( subtype == 1 ){
         sc_s_state.scheduling_apids_enabled[apid-1] = true; }
-    else { 
+    else{
         sc_s_state.scheduling_apids_enabled[apid-1] = false; }
     
     return SATR_OK;
 }
 
 SAT_returnState operations_scheduling_reset_schedule_api(){
+    
     uint8_t g = 0;
     sc_s_state.nmbr_of_ld_sched = 0;
     sc_s_state.schedule_arr_full = false;
@@ -304,7 +323,7 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
     
     /*mark every pos as !valid, = available*/
     for( g;g<SC_MAX_STORED_SCHEDULES;g++ ){
-        schedule_mem_pool.sc_mem_array[g].pos_avail = false;
+        schedule_mem_pool.sc_mem_array[g].pos_taken = false;
     }
     /*enable release for all apids*/
     for( g=0;g<LAST_APP_ID;g++ ){
@@ -435,7 +454,7 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     schedule_mem_pool.sc_mem_array[posit].seq_count = theSchpck.seq_count;
     schedule_mem_pool.sc_mem_array[posit].sub_schedule_id = theSchpck.sub_schedule_id;
     schedule_mem_pool.sc_mem_array[posit].timeout = theSchpck.timeout;
-    schedule_mem_pool.sc_mem_array[posit].pos_avail = theSchpck.pos_avail;
+    schedule_mem_pool.sc_mem_array[posit].pos_taken = theSchpck.pos_taken;
     schedule_mem_pool.sc_mem_array[posit].timeout = theSchpck.timeout;
     
     schedule_mem_pool.sc_mem_array[posit].tc_pck.ack = theSchpck.tc_pck.ack;
@@ -452,41 +471,8 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     schedule_mem_pool.sc_mem_array[posit].tc_pck.ser_type = theSchpck.tc_pck.ser_type;
     schedule_mem_pool.sc_mem_array[posit].tc_pck.verification_state = theSchpck.tc_pck.verification_state;
     
-//    if ( report ){
-//        
-//    }
-//    else if ( completely_remove_schedule ){
-//        
-//    }
-//    else if ( temporarilly_disable_a_schedule ){
-//        
-//    }
-//    else if ( enable_a_schedule ){
-//        
-//    }
-//    else if ( reset_schedule ){
-//        
-//    }
-//    else if ( insert_a_schedule ){
-//        
-//    }
-//    else if ( get_service_state ){
-//        
-//    }
-//    else if ( reset_schedule ){
-//        
-//    }
-//    else if ( time_shift_all ){
-//        
-//    }
-//    else if ( time_shift_selected ){
-//        
-//    }
-//    else if ( report_summary_all_and_everything_else ){
-//        
-//    }
     /*check if schedule array is already full*/
-    
+        
 //    if ( !C_ASSERT(sc_s_state.schedule_arr_full) == true ){  
 //        /*TODO: Here to create a telemetry/log saying "I'm full"*/
 //        return SATR_SCHEDULE_FULL;
@@ -526,7 +512,6 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
 //    if (  ){
 //       return INTRL_LOGIC_ERROR; 
 //    }
-        
     
     return SATR_OK;
 }
@@ -544,7 +529,7 @@ SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,
                 schedule_mem_pool.sc_mem_array[i].seq_count == seqc &&   
                 schedule_mem_pool.sc_mem_array[i].app_id == apid ){
                     
-                schedule_mem_pool.sc_mem_array[i].pos_avail = false;
+                schedule_mem_pool.sc_mem_array[i].pos_taken = false;
                 sc_s_state.nmbr_of_ld_sched--;
                 sc_s_state.schedule_arr_full = false;
             }
@@ -555,7 +540,7 @@ SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,
 SAT_returnState scheduling_reset_schedule_api(SC_pkt* sch_mem_pool){
     uint8_t pos = 0;
     while( pos<SC_MAX_STORED_SCHEDULES ){
-        sch_mem_pool[pos++].pos_avail = false;
+        sch_mem_pool[pos++].pos_taken = false;
     }
     return SATR_OK;
 }
@@ -610,7 +595,7 @@ SAT_returnState time_shift_sel_schedule(SC_pkt* sch_mem_pool, uint8_t apid, uint
 SC_pkt* find_schedule_pos(/*SC_pkt* sche_mem_pool*/) {
 
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
-        if (schedule_mem_pool.sc_mem_array[i].pos_avail != true) {
+        if (schedule_mem_pool.sc_mem_array[i].pos_taken != true) {
             return &(schedule_mem_pool.sc_mem_array[i]);
         }
     }
@@ -738,7 +723,7 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     (*sc_pkt).seq_count = (*sc_pkt).seq_count | (tc_pkt->data[offset + 3]);
     (*sc_pkt).release_time = time;
     (*sc_pkt).timeout = exec_timeout;
-    (*sc_pkt).pos_avail = true;
+    (*sc_pkt).pos_taken = true;
     (*sc_pkt).enabled = true;
 
     /*copy the internal TC packet for future use*/
