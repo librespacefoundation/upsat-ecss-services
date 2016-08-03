@@ -231,7 +231,11 @@ void bkup_sram_INIT() {
     if(!C_ASSERT(*obc_data.fs_ext_tail < MS_MAX_FILES) == true)   { *obc_data.fs_ext_tail = 1; }
     if(!C_ASSERT(*obc_data.fs_ev_tail < MS_MAX_FILES) == true)    { *obc_data.fs_ev_tail = 1; }
     if(!C_ASSERT(*obc_data.fs_fotos < MS_MAX_FILES) == true)      { *obc_data.fs_fotos = 1; }
-
+    if(!C_ASSERT( (*MNLP_data.su_nmlp_script_scheduler_active == false) ||
+                  (*MNLP_data.su_nmlp_script_scheduler_active == true) ) == true) {*MNLP_data.su_nmlp_script_scheduler_active = true; }
+    if(!C_ASSERT( (*MNLP_data.su_service_scheduler_active == false ) || 
+                  (*MNLP_data.su_service_scheduler_active == true) ) == true) { *MNLP_data.su_service_scheduler_active = true; }
+    if(!C_ASSERT(*MNLP_data.su_nmlp_last_active_script <= SU_SCRIPT_7 ) == true) { *MNLP_data.su_nmlp_last_active_script = SU_NOSCRIPT; }
 }
 
 SAT_returnState event_log(uint8_t *buf, const uint16_t size) {

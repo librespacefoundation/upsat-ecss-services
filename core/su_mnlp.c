@@ -368,8 +368,8 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
     /* assert that active script is not zero (SU_NOSCRIPT), if it is and we have reached this execution point something is not quite right
      * so hard-set script 1 as the running script
      */
-    if(!C_ASSERT(MNLP_data.active_script != (uint8_t) 0) ){
-       *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = 1; }
+    if(!C_ASSERT(MNLP_data.active_script <= SU_SCRIPT_7) ){
+       *MNLP_data.su_nmlp_last_active_script = 1; MNLP_data.active_script = SU_SCRIPT_1; }
 
     trace_SCR_NO_NEW_TO_BACT(*MNLP_data.su_nmlp_last_active_script);
     SYSVIEW_PRINT("NO NEW SCR TO ACT, LAST IS: %u",*MNLP_data.su_nmlp_last_active_script);
