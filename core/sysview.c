@@ -75,12 +75,26 @@ SEGGER_SYSVIEW_MODULE SU_module = {
     // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
 };
 
+SEGGER_SYSVIEW_MODULE ADCS_module = {
+    "M=ADCS, " \
+    "0 CONTROL started, " \
+    "1 CONTROL stoped ", // sModule
+    2, // NumEvents
+    0,
+    0,
+    0,
+    // EventOffset, Set by SEGGER_SYSVIEW_RegisterModule() NULL,
+    // pfSendModuleDesc, NULL: No additional module description NULL,
+    // pNext, Set by SEGGER_SYSVIEW_RegisterModule()
+};
+
 void sysview_init() {
     SEGGER_SYSVIEW_RegisterModule(&PKT_POOL_module);
     SEGGER_SYSVIEW_RegisterModule(&MS_module);
     SEGGER_SYSVIEW_RegisterModule(&COMMS_module);
     SEGGER_SYSVIEW_RegisterModule(&ASSERTION_module);
     SEGGER_SYSVIEW_RegisterModule(&SU_module);
+    SEGGER_SYSVIEW_RegisterModule(&ADCS_module);
 }
 
 #else
