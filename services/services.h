@@ -249,7 +249,8 @@ typedef enum {
     SU_SCI_HDR_REP  = 6,
     ADCS_TLE_REP    = 7,
     EPS_FLS_REP     = 8,
-    LAST_STRUCT_ID  = 9
+    ECSS_STATS_REP  = 9,
+    LAST_STRUCT_ID  = 10
 }HK_struct_id;
 
 typedef enum {

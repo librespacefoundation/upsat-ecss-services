@@ -10,6 +10,7 @@
 #include "WahbaRotM.h"
 #include "adcs_error_handler.h"
 #include "adcs_gps.h"
+#include "ecss_stats.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 28
@@ -175,6 +176,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 4;
 
         pkt->len = size;
+    }
+
+    } else if(sid == ECSS_STATS_REP) {
+
+        uint16_t size = ecss_stats_hk(&pkt->data[1]);
+
+        pkt->len = size + 1;
     }
 
     return SATR_OK;

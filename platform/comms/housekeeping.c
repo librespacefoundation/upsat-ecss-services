@@ -8,6 +8,7 @@
 #include "wod_handling.h"
 #include "sysview.h"
 #include <math.h>
+#include "ecss_stats.h"
 
 extern comms_rf_stat_t comms_stats;
 
