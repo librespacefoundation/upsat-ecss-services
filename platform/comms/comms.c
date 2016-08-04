@@ -11,6 +11,7 @@
 #include "queue.h"
 #include "stats.h"
 #include "wod_handling.h"
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 25
@@ -63,17 +64,17 @@ route_pkt (tc_tm_pkt *pkt)
   SAT_returnState res;
   TC_TM_app_id id;
 
-  if (C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+  if ( !C_ASSERT(pkt != NULL && pkt->data != NULL)) {
     verification_app (pkt);
     free_pkt (pkt);
     return SATR_ERROR;
   }
-  if (C_ASSERT(pkt->type != TC && pkt->type != TM)) {
+  if (!C_ASSERT(pkt->type == TC || pkt->type == TM)) {
     verification_app (pkt);
     free_pkt (pkt);
     return SATR_ERROR;
   }
-  if (C_ASSERT(pkt->app_id >= LAST_APP_ID || pkt->dest_id >= LAST_APP_ID)) {
+  if (!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID)) {
     verification_app (pkt);
     free_pkt (pkt);
     return SATR_ERROR;
@@ -96,6 +97,7 @@ route_pkt (tc_tm_pkt *pkt)
      * A new WOD arrived from the OBC. Store it and extract the information.
      * The transmission of each WOD is handled by the COMMS dispatcher function
      */
+    SYSVIEW_PRINT("WOD from OBC");
     store_wod_obc(pkt->data + 1, pkt->len - 1);
   }
   else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
@@ -165,7 +167,7 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
 
   pkt = get_pkt (payload_size);
 
-  if (C_ASSERT(pkt == NULL)) {
+  if (!C_ASSERT(pkt != NULL)) {
     return SATR_ERROR;
   }
   if (unpack_pkt (payload, pkt, payload_size) == SATR_OK) {
