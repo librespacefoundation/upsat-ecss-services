@@ -331,7 +331,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8(*MNLP_data.tt_perm_exec_on_span_count, &pkt->data[size]);
         size += 2;
                 
-        memcpy( &pkt->data[size], ext_wod_buffer, SUB_SYS_EXT_WOD_SIZE);
+        memcpy( &pkt->data[size], &ext_wod_buffer[COMMS_EXT_WOD_OFFSET], SUB_SYS_EXT_WOD_SIZE);
 
         pkt->len = size + SUB_SYS_EXT_WOD_SIZE;
     }
