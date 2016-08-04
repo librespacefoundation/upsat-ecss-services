@@ -100,8 +100,19 @@ void sys_refresh() {
 
     tc_tm_pkt *temp_pkt = 0;
 
-    test_crt_pkt(&temp_pkt, EPS_APP_ID);
+    test_crt_heartbeat(&temp_pkt);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return ; }
 
     route_pkt(temp_pkt);
+}
+
+SAT_returnState test_crt_heartbeat(tc_tm_pkt **pkt) {
+
+    *pkt = get_pkt(PKT_NORMAL);
+    if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
+    crt_pkt(*pkt, SYSTEM_APP_ID, TC, TC_ACK_NO, TC_TEST_SERVICE, TC_CT_PERFORM_TEST, EPS_APP_ID);
+
+    (*pkt)->len = 0;
+
+    return SATR_OK;
 }

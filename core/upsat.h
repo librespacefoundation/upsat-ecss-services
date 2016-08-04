@@ -71,4 +71,6 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data);
 
 SAT_returnState sys_data_INIT();
 
+SAT_returnState test_crt_heartbeat(tc_tm_pkt **pkt);
+
 #endif
