@@ -41,7 +41,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         SYSVIEW_PRINT("COMMS %u", pkt->data[1]);
 
     } else if(sid == EX_HEALTH_REP) {
-	    i = 1;
+        i = 1;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
         i += sizeof(uint32_t);
         /* Store the reset source */
@@ -113,7 +113,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(int16_t);
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
-        pkt->len = i + SUB_SYS_EXT_WOD_SIZE;
+        pkt->len = SYS_EXT_WOD_SIZE;
     }
 
 
