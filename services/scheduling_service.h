@@ -139,7 +139,7 @@ typedef struct {
          * If a schedule position is noted as !pos_taken, it can be replaced 
          * by a new SC_pkt packet.
          * When a schedule goes for execution, 
-         * automatically its position becomes !pos_taken.
+         * automatically its position becomes !pos_taken (exception for repetitive SC_pkt(s) ).
          * pos_taken=true, 1, !pos_taken=false ,0
          */
     uint8_t pos_taken;
@@ -214,16 +214,8 @@ SAT_returnState scheduling_state_api();
  */
 SAT_returnState edit_schedule_stateAPI(tc_tm_pkt* spacket);
 
-/* 
- * 
- */
 SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t apid );
 
-/* Reset the schedule memory pool.
- * Marks every schedule struct as invalid and eligible for allocation.
- * Release to every APID will be enabled.
- * 
- */
 SAT_returnState operations_scheduling_reset_schedule_api();
 
 /* Inserts a given Schedule_pck on the schedule array

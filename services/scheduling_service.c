@@ -13,17 +13,16 @@
 
 #include "scheduling_service.h"
 
-struct time_keeping obc_time;
-
 extern void wdg_reset_SCH();
 extern SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, uint8_t *buf);
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
 
+struct time_keeping obc_time;
+
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size);
 SC_pkt* find_schedule_pos();
-
 Scheduling_service_state sc_s_state;
 Schedule_pkt_pool schedule_mem_pool;
 
@@ -60,8 +59,9 @@ SAT_returnState scheduling_service_init(){
     return SATR_OK;
 }
 
-/*  
- *  Loads the schedules from persistent storage.
+/**
+ *  Loads the schedules from persistent storage. 
+ * @return the execution state.
  */
 SAT_returnState scheduling_service_load_schedules(){
 
@@ -113,6 +113,10 @@ SAT_returnState scheduling_service_load_schedules(){
     return SATR_OK;
 }
 
+/**
+ * Saves current active schedules on permanent storage.
+ * @return the execution state.
+ */
 SAT_returnState scheduling_service_save_schedules(){
     
     uint8_t sche_tc_buffer[30]; //TODO redefine this
@@ -163,15 +167,15 @@ SAT_returnState scheduling_service_save_schedules(){
     return SATR_OK;
 }
 
+/* Cross schedules array, 
+ * in every pass check if the specific schedule 
+ * if enabled,
+ *  if it is then check if its relative or absolute and check the time.
+ *  if time >= release time, then execute it. (?? what if time has passed?)
+ * else !enabled
+ *  if time>= release time, then mark it as !valid
+ */
 void cross_schedules() {
-    /* Cross schedules array, 
-     *  in every pass check if the specific schedule 
-     *  if enabled,
-     *      if it is then check if its relative or absolute and check the time.
-     *      if time >= release time, then execute it. (?? what if time has passed?)
-     *  else !enabled
-     *      if time>= release time, then mark it as !valid
-     */
     
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
         if (schedule_mem_pool.sc_mem_array[i].pos_taken == true &&
@@ -202,7 +206,7 @@ void cross_schedules() {
                     if( schedule_mem_pool.sc_mem_array[i].release_time <= (boot_secs / 1000)){
                         route_pkt(&(schedule_mem_pool.sc_mem_array[i].tc_pck));
                         schedule_mem_pool.sc_mem_array[i].release_time = 0;
-                        
+
 //                        schedule_mem_pool.sc_mem_array[i].pos_taken = false;
 //                        sc_s_state.nmbr_of_ld_sched--;
 //                        sc_s_state.schedule_arr_full = false;
@@ -214,28 +218,33 @@ void cross_schedules() {
     wdg_reset_SCH();
 }
 
-SAT_returnState scheduling_app( tc_tm_pkt *spacket){
+/**
+ * Serves requests to Scheduling service.
+ * @param spacket
+ * @return 
+ */
+SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
     
     /*TODO: add assertions*/
     SAT_returnState insertion_state = SATR_ERROR;
-    SC_pkt *the_sc_packet;
+    SC_pkt *sc_packet;
     
-    switch( spacket->ser_subtype){
+    switch( tc_tm_packet->ser_subtype){
         case 1: /*Enable / Disable release TCs*/
-            enable_disable_schedule_apid_release( spacket->ser_subtype, spacket->data[3] );
+            enable_disable_schedule_apid_release( tc_tm_packet->ser_subtype, tc_tm_packet->data[3] );
             break;
         case 2:
-            enable_disable_schedule_apid_release( spacket->ser_subtype, spacket->data[3] );
+            enable_disable_schedule_apid_release( tc_tm_packet->ser_subtype, tc_tm_packet->data[3] );
             break;
         case 3: /*Reset TCs Schedule*/
             operations_scheduling_reset_schedule_api();
             break;
         case 4: /*Insert TC*/
-            if( (the_sc_packet = find_schedule_pos()) == NULL){
+            if( (sc_packet = find_schedule_pos()) == NULL){
                 return SATR_SCHEDULE_FULL;
             }
-            else{   
-                    insertion_state = parse_sch_packet(the_sc_packet, spacket);
+            else{
+                    insertion_state = parse_sch_packet(sc_packet, tc_tm_packet);
                     if (insertion_state == SATR_OK) {
                         /*Place the packet into the scheduling array*/
                         sc_s_state.nmbr_of_ld_sched++;
@@ -247,7 +256,7 @@ SAT_returnState scheduling_app( tc_tm_pkt *spacket){
                 }
             break;
         case 5: /*Delete specific TC from schedule, selection criteria is destined APID and Seq.Count*/
-            scheduling_remove_schedule_api( spacket->data[1], spacket->data[2]);
+            scheduling_remove_schedule_api( tc_tm_packet->data[1], tc_tm_packet->data[2]);
             break;
         case 6: /*Delete TCs over a time period*/
                 /*unimplemented*/
@@ -260,7 +269,7 @@ SAT_returnState scheduling_app( tc_tm_pkt *spacket){
             ;
             break;
         case 15: /*Time shift all TCs*/
-            time_shift_all_tcs(spacket->data);
+            time_shift_all_tcs(tc_tm_packet->data);
             break;
         case 24: /*Load TCs from permanent storage*/
             scheduling_service_load_schedules();
@@ -273,6 +282,13 @@ SAT_returnState scheduling_app( tc_tm_pkt *spacket){
     return SATR_OK;
 }
 
+/**
+ * Time shifts forward/backward all currently active schedules.
+ * For repetitive schedules add /substract the repetition time (restrictions apply).
+ * For one time schedules add / substract the execution time (QB50).
+ * @param time_v
+ * @return the execution state.
+ */
 SAT_returnState time_shift_all_tcs(uint8_t *time_v){
     
     int32_t time_diff = 0;
@@ -297,6 +313,15 @@ SAT_returnState time_shift_all_tcs(uint8_t *time_v){
     return SATR_OK;
 }
 
+/**
+ * Enable / Disable the APID releases.
+ * If the release for a specific APID is enabled (true) then the Sch_pkt(s) destined
+ * for this APID are normally scheduled and executed.
+ * False otherwise.
+ * @param subtype
+ * @param apid
+ * @return the execution state.
+ */
 SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t apid  ){
     
     if(!C_ASSERT( subtype == 1 || subtype == 2) == true) { return SATR_ERROR; }
@@ -310,13 +335,17 @@ SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t a
     return SATR_OK;
 }
 
+/**
+ * Reset the schedule memory pool.
+ * Marks every schedule position as invalid and eligible for allocation to a new
+ * request. Also, release to every APID will be enabled.
+ * @return the execution state.
+ */
 SAT_returnState operations_scheduling_reset_schedule_api(){
     
     uint8_t g = 0;
     sc_s_state.nmbr_of_ld_sched = 0;
     sc_s_state.schedule_arr_full = false;
-    
-//    sc_s_state.scheduling_service_enabled = true;
     
     /*mark every pos as !valid, = available*/
     for( ;g<SC_MAX_STORED_SCHEDULES;g++ ){
@@ -326,11 +355,17 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
     for( g=0;g<LAST_APP_ID;g++ ){
         sc_s_state.scheduling_apids_enabled[g] = true;
     }
-    
     //TODO: reload schedules from storage?
     return SATR_OK;
 }
 
+/**
+ * Extracts the inner TC packet from the Sch_pkt structure
+ * @param buf
+ * @param pkt
+ * @param size
+ * @return the execution state.
+ */
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size) {
 
     uint8_t tmp_crc[2];
@@ -435,10 +470,9 @@ SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t
 }
 
 /**
- * 
  * @param posit, position of schedule to set.
  * @param theSchpck, the SC_pkt to insert in the schedule.
- * @return 
+ * @return the execution state.
  */
 SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     
@@ -515,11 +549,21 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     return SATR_OK;
 }
 
+/**
+ * 
+ * @return the execution state.
+ */
 SAT_returnState scheduling_state_api(){
 
     return (scheduling_enabled ? SATR_OK : SATR_SCHEDULE_DISABLED);
 }
 
+/**
+ * 
+ * @param apid
+ * @param seqc
+ * @return the execution state.
+ */
 SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,  
                                                 SC_pkt* theSchpck, */ uint8_t apid, uint16_t seqc ){
     
@@ -536,6 +580,11 @@ SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,
     return SATR_OK;
 } 
 
+/**
+ * 
+ * @param sch_mem_pool
+ * @return the execution state.
+ */
 SAT_returnState scheduling_reset_schedule_api(SC_pkt* sch_mem_pool){
     uint8_t pos = 0;
     while( pos<SC_MAX_STORED_SCHEDULES ){
@@ -544,6 +593,12 @@ SAT_returnState scheduling_reset_schedule_api(SC_pkt* sch_mem_pool){
     return SATR_OK;
 }
 
+/**
+ * 
+ * @param sch_mem_pool
+ * @param secs
+ * @return the execution state.
+ */
 SAT_returnState scheduling_time_shift_all_schedules_api(SC_pkt* sch_mem_pool, int32_t secs ){
     
     uint8_t pos = 0;
@@ -563,8 +618,13 @@ SAT_returnState scheduling_time_shift_all_schedules_api(SC_pkt* sch_mem_pool, in
     return SATR_OK;
 }
 
-/* Time shifts selected Schedule_pcks on the Schedule 
- * * Service Subtype 7
+/** 
+ * Time shifts selected Schedule_pcks on the Schedule 
+ * Service Subtype 7
+ * @param sch_mem_pool
+ * @param apid
+ * @param seqcount
+ * @return the execution state.
  */
 SAT_returnState time_shift_sel_schedule(SC_pkt* sch_mem_pool, uint8_t apid, uint16_t seqcount ){
     
@@ -594,7 +654,7 @@ SAT_returnState time_shift_sel_schedule(SC_pkt* sch_mem_pool, uint8_t apid, uint
 SC_pkt* find_schedule_pos(/*SC_pkt* sche_mem_pool*/) {
 
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
-        if (schedule_mem_pool.sc_mem_array[i].pos_taken != true) {
+        if (!schedule_mem_pool.sc_mem_array[i].pos_taken) {
             return &(schedule_mem_pool.sc_mem_array[i]);
         }
     }
@@ -617,49 +677,68 @@ OBC_returnStateTypedef report_( Schedule_pck theSchpck ){
     return R_OK;
 }*/
 
-/* Reports summary info of all telecommands from the Schedule 
- * * Service Subtype 17
+/**
+ * Reports summary info of all telecommands from the Schedule 
+ * Service Subtype 17
+ * @param theSchpck
+ * @return the execution state.
  */
 SAT_returnState report_summary_all( SC_pkt theSchpck ){
     
     return SATR_OK;
 }
 
-/* Time shifts selected telecommands over a time period on the Schedule 
- * * Service Subtype 8
+/**
+ * Time shifts selected telecommands over a time period on the Schedule 
+ * Service Subtype 8 
+ * @param theSchpck
+ * @return the execution state.
  */
 SAT_returnState time_shift_sel_scheduleOTP( SC_pkt* theSchpck ){
     
     return SATR_OK;
 }
 
-/* Reports detailed info about every telecommand the Schedule 
- * * Service Subtype 16
+/**
+ * Reports detailed info about every telecommand the Schedule 
+ * Service Subtype 16 
+ * @param theSchpck
+ * @return the execution state.
  */
 SAT_returnState report_detailed( SC_pkt theSchpck ){
     
     return SATR_OK;
 }
 
-/* Reports summary info of a subset of telecommands from the Schedule 
- * * Service Subtype 12
+/**
+ *  Reports summary info of a subset of telecommands from the Schedule 
+ * Service Subtype 12
+ * @param theSchpck
+ * @return the execution state.
  */
 SAT_returnState report_summary_subset( SC_pkt theSchpck ){
     
     return SATR_OK;
 }
 
-/* Reports detailed info about a subset of telecommands from the Schedule 
- * * Service Subtype 9
+/**
+ * Reports detailed info about a subset of telecommands from the Schedule 
+ * Service Subtype 9
+ * @param theSchpck
+ * @return the execution state.
  */
 SAT_returnState report_detailed_subset( SC_pkt theSchpck ){
     
     return SATR_OK;
 }
 
+/**
+ * 
+ * @param sc_pkt
+ * @param tc_pkt
+ * @return the execution state.
+ */
 SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
-
-    //    if( tc_pkt->data[3] != 1 || tc_pkt->data[3] != 2 ){
 
     /*extract the packet and route accordingly*/
     uint32_t time = 0;
@@ -725,16 +804,16 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     (*sc_pkt).enabled = true;
 
     /*copy the internal TC packet for future use*/
-    /*  tc_pkt is a TC containing 12 bytes of data related to scheduling service.
-     *  After those 12 bytes, a 'whole_inner_tc' packet starts.
+    /*  tc_pkt is a TC containing 14 bytes of data related to scheduling service.
+     *  After those 14 bytes, a 'whole_inner_tc' packet starts.
      *  
-     *  The 'whole_inner_tc' offset in the tc_pkt's data payload is: 12 (13th byte).
+     *  The 'whole_inner_tc' offset in the tc_pkt's data payload is: 13 (14th byte).
      *  
-     *  The length of the 'whole_inner_tc' is tc_pkt->data - 12 bytes
+     *  The length of the 'whole_inner_tc' is tc_pkt->data - 14 bytes
      *  
      *  Within the 'whole_inner_tc' the length of the 'inner' goes for:
      *  16+16+16+32+(tc_pkt->len - 11)+16 bytes.
      */
-    return copy_inner_tc(&(tc_pkt->data[12]), &((*sc_pkt).tc_pck), (uint16_t) tc_pkt->len - 12);
+    return copy_inner_tc( &(tc_pkt->data[12]), &((*sc_pkt).tc_pck), (uint16_t) tc_pkt->len - 12);
 
 }
