@@ -20,7 +20,6 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         SYSVIEW_PRINT("Storing exWOD of size %u\n");
         store_ex_wod_obc(data, len);
    }
-
    return SATR_ERROR;
 }
 
@@ -32,15 +31,16 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     if(sid == HEALTH_REP) {
         temp = comms_rf_stats_get_temperature(&comms_stats);
         if(isnanf(temp)){
-          return SATR_ERROR;
+          /* Shit hack */
+          pkt->data[1] = 1;
         }
-        pkt->data[1] = wod_convert_temperature(temp);
-
+        else {
+          pkt->data[1] = wod_convert_temperature(temp);
+        }
         pkt->len = 2;
-
-        SYSVIEW_PRINT("COMMS %u", pkt->data[1]);
-
+        SYSVIEW_PRINT("COMMS HEALTH: Temp %u", pkt->data[1]);
     } else if(sid == EX_HEALTH_REP) {
+        SYSVIEW_PRINT("COMMS EX HEALTH REP");
         i = 1;
         cnv32_8(HAL_sys_GetTick(), &pkt->data[i]);
         i += sizeof(uint32_t);
@@ -76,7 +76,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(uint16_t);
         pkt->len = i;
     } else if(sid == EXT_WOD_REP) {
-
+      SYSVIEW_PRINT("COMMS ONLY EX WOD");
         /*zero padding*/
         memset(&pkt->data[1], 0, SYS_EXT_WOD_SIZE);
 
@@ -113,9 +113,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(int16_t);
         cnv16_8(comms_stats.invalid_dest_frames_cnt, &pkt->data[i]);
         i += sizeof(uint16_t);
-        pkt->len = SYS_EXT_WOD_SIZE;
+        pkt->len = SYS_EXT_WOD_SIZE + 1;
     }
-
-
     return SATR_OK;
 }

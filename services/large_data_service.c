@@ -45,7 +45,7 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
 
     lid = pkt->data[0]; 
 
-    if(C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
       return SATR_ERROR;
     }
 
@@ -64,11 +64,11 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
 
-    if(C_ASSERT(app_id != DBG_APP_ID && app_id != GND_APP_ID)) {
+    if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID)) {
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(size > LD_PKT_DATA)){
+    if(!C_ASSERT(size <= LD_PKT_DATA)){
       return SATR_ERROR;
     }
 
@@ -84,11 +84,11 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
         route_pkt(temp_pkt);
         return SATR_OK;
     }
-    else if(C_ASSERT(LD_status.state != LD_STATE_FREE)) {
+    else if(!C_ASSERT(LD_status.state == LD_STATE_FREE)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid,
 			    TM_LD_ABORT_RE_UPLINK);
 
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -123,19 +123,19 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
-    if(C_ASSERT(pkt == NULL || pkt->data == NULL)){
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL)){
       return SATR_ERROR;
     }
 
     lid = pkt->data[0];
 
-    if(C_ASSERT(LD_status.state != LD_STATE_RECEIVING)){
+    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING)){
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(LD_status.rx_lid != lid)) {
+    if(!C_ASSERT(LD_status.rx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TM_LD_ABORT_RE_UPLINK); 
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -153,15 +153,15 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
 
-    if(C_ASSERT(app_id != DBG_APP_ID && app_id != GND_APP_ID)) {
+    if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID)) {
       return SATR_ERROR;
     }
 
-    if (C_ASSERT(LD_status.ld_num + 1 < ld_num)) {
+    if (!C_ASSERT(LD_status.ld_num + 1 >= ld_num)) {
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(size > LD_PKT_DATA)) {
+    if(!C_ASSERT(size <= LD_PKT_DATA)) {
       return SATR_ERROR;
     }
 
@@ -201,20 +201,20 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
-    if(C_ASSERT(pkt == NULL || pkt->data == NULL)){
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL)){
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(LD_status.state != LD_STATE_RECEIVING
-		 && LD_status.state != LD_STATE_RECV_OK)) {
+    if(!C_ASSERT(LD_status.state == LD_STATE_RECEIVING
+		 || LD_status.state == LD_STATE_RECV_OK)) {
       return SATR_ERROR;
     }
 
     lid = pkt->data[0];
 
-    if(C_ASSERT(LD_status.rx_lid != lid)) {
+    if(!C_ASSERT(LD_status.rx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TM_LD_ABORT_RE_UPLINK); 
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -232,15 +232,15 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
 
-    if(C_ASSERT(app_id != DBG_APP_ID && app_id != GND_APP_ID)) {
+    if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID)) {
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(LD_status.ld_num + 1 < ld_num)) {
+    if(!C_ASSERT(LD_status.ld_num + 1 >= ld_num)) {
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(size <= LD_PKT_DATA_HDR_SIZE)) {
+    if(!C_ASSERT(size > LD_PKT_DATA_HDR_SIZE)) {
       return SATR_ERROR;
     }
 
@@ -273,7 +273,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     LD_status.state = LD_STATE_RECV_OK;
 
     temp_pkt = get_pkt(LD_status.rx_size);
-    if(C_ASSERT(pkt == NULL)) {
+    if(!C_ASSERT(pkt != NULL)) {
       return SATR_ERROR;
     }
 
@@ -297,7 +297,7 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
     SAT_returnState res;
     tc_tm_pkt *temp_pkt = 0;
 
-    if(C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
       return SATR_ERROR;
     }
 
@@ -312,11 +312,11 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
     }
 
     res = pack_pkt(LD_status.buf, pkt, &size);
-    if(C_ASSERT(res != SATR_OK)) {
+    if(!C_ASSERT(res == SATR_OK)) {
       return SATR_ERROR;
     }
 
-    if(C_ASSERT(size <= MAX_PKT_DATA)) {
+    if(!C_ASSERT(size > MAX_PKT_DATA)) {
       return SATR_ERROR;
     }
 
