@@ -404,14 +404,14 @@ void get_boot_counter(uint32_t *cnt) {
 
 void update_eps_boot_counter(uint32_t tick) {
     if(tick != 0 && tick < *obc_data.eps_tick) {
-        *obc_data.eps_boot_cnt++;
+        (*obc_data.eps_boot_cnt)++;
     }
     *obc_data.eps_tick = tick;
 }
 
 void update_comms_boot_counter(uint32_t tick) {
     if(tick != 0 && tick < *obc_data.comms_tick) {
-        *obc_data.comms_boot_cnt++;
+        (*obc_data.comms_boot_cnt)++;
     }
     *obc_data.comms_tick = tick;
 }

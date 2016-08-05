@@ -68,6 +68,7 @@ void hk_SCH() {
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
     wake_uart_task();
+    SYSVIEW_PRINT("SEND EX REP COMMS");
     HAL_sys_delay(1000);
 
     hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
