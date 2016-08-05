@@ -68,6 +68,7 @@ void hk_SCH() {
     hk_crt_pkt_TC(&hk_pkt, COMMS_APP_ID, EX_HEALTH_REP);
     route_pkt(&hk_pkt);
     wake_uart_task();
+    SYSVIEW_PRINT("SEND EX REP COMMS");
     HAL_sys_delay(1000);
 
     hk_crt_pkt_TC(&hk_pkt, ADCS_APP_ID, EX_HEALTH_REP);
@@ -85,7 +86,7 @@ void hk_SCH() {
     hk_crt_pkt_TM(&hk_pkt, DBG_APP_ID, EXT_WOD_REP);
     route_pkt(&hk_pkt);
     wake_uart_task();
-    // clear_ext_wod();
+    clear_ext_wod();
     HAL_sys_delay(1000);
 }
 
@@ -97,6 +98,10 @@ void clear_wod() {
     sat_status.temp_eps = 0;
     sat_status.temp_batt = 0;
     sat_status.temp_comms = 0;
+}
+
+void clear_ext_wod() {
+    memset(ext_wod_buffer, 0, SYS_EXT_WOD_SIZE);
 }
 
 SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint8_t *data, uint8_t len) {
@@ -119,7 +124,9 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
             su_sci_header[i + SCI_ARR_OFFSET] = data[i + ADCS_EXT_SCI_OFFSET]; 
         }
         memcpy(&ext_wod_buffer[ADCS_EXT_WOD_OFFSET], &data[1], ADCS_EXT_WOD_SIZE);
-    
+
+        SYSVIEW_PRINT("EX H ADCS");
+
     } else if(app_id == EPS_APP_ID && sid == EX_HEALTH_REP) {
       
         if(!C_ASSERT(len != EPS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
@@ -130,7 +137,9 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         update_eps_boot_counter(tick);
 
         memcpy(&ext_wod_buffer[EPS_EXT_WOD_OFFSET], &data[1], EPS_EXT_WOD_SIZE);
-    
+
+        SYSVIEW_PRINT("EX H EPS");
+
     } else if(app_id == COMMS_APP_ID && sid == EX_HEALTH_REP) {
     
         if(!C_ASSERT(len != COMMS_EXT_WOD_SIZE - 1) == true) { return SATR_ERROR; }
@@ -141,6 +150,8 @@ SAT_returnState hk_parameters_report(TC_TM_app_id app_id, HK_struct_id sid, uint
         update_comms_boot_counter(tick);
         
         memcpy(&ext_wod_buffer[COMMS_EXT_WOD_OFFSET], &data[1], COMMS_EXT_WOD_SIZE);
+
+        SYSVIEW_PRINT("EX H COMMS");
     
     } else {
         return SATR_ERROR; // this should change to inv pkt
@@ -331,7 +342,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8(*MNLP_data.tt_perm_exec_on_span_count, &pkt->data[size]);
         size += 2;
                 
-        memcpy( &pkt->data[size], ext_wod_buffer, SUB_SYS_EXT_WOD_SIZE);
+        memcpy( &pkt->data[size], &ext_wod_buffer[COMMS_EXT_WOD_OFFSET], SUB_SYS_EXT_WOD_SIZE);
 
         pkt->len = size + SUB_SYS_EXT_WOD_SIZE;
     }
