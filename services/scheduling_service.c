@@ -15,10 +15,15 @@
 
 struct time_keeping obc_time;
 
+extern void wdg_reset_SCH();
+extern SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, uint8_t *buf);
+extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+extern uint32_t HAL_GetTick(void);
+
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size);
 SC_pkt* find_schedule_pos();
 
-//SC_pkt scheduling_mem_array[SC_MAX_STORED_SCHEDULES];
 Scheduling_service_state sc_s_state;
 Schedule_pkt_pool schedule_mem_pool;
 
@@ -52,6 +57,7 @@ SAT_returnState scheduling_service_init(){
      * 
      */
     
+    return SATR_OK;
 }
 
 /*  
@@ -73,17 +79,17 @@ SAT_returnState scheduling_service_load_schedules(){
         schedule_mem_pool.sc_mem_array[s].app_id = (TC_TM_app_id)sche_tc_buffer[2];
         cnv8_16LE(&sche_tc_buffer[3], &schedule_mem_pool.sc_mem_array[s].seq_count);
         schedule_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[5];
-        schedule_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[6];        
+        schedule_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[6];
         schedule_mem_pool.sc_mem_array[s].num_of_sch_tc = sche_tc_buffer[7];
         schedule_mem_pool.sc_mem_array[s].intrlck_set_id = sche_tc_buffer[8];
         schedule_mem_pool.sc_mem_array[s].intrlck_ass_id = sche_tc_buffer[9];
         schedule_mem_pool.sc_mem_array[s].assmnt_type = sche_tc_buffer[10];
-        schedule_mem_pool.sc_mem_array[s].sch_evt = (uint8_t)sche_tc_buffer[11];        
+        schedule_mem_pool.sc_mem_array[s].sch_evt = (SC_event_time_type) sche_tc_buffer[11];
         cnv8_32(&sche_tc_buffer[12], &schedule_mem_pool.sc_mem_array[s].release_time);
-        cnv8_16LE(&sche_tc_buffer[16], &schedule_mem_pool.sc_mem_array[s].timeout);    
+        cnv8_16LE(&sche_tc_buffer[16], &schedule_mem_pool.sc_mem_array[s].timeout);
         
         /*TC parsing begins here*/
-        schedule_mem_pool.sc_mem_array[s].tc_pck.app_id = sche_tc_buffer[18];
+        schedule_mem_pool.sc_mem_array[s].tc_pck.app_id = (TC_TM_app_id) sche_tc_buffer[18];
         schedule_mem_pool.sc_mem_array[s].tc_pck.type = sche_tc_buffer[19];
         schedule_mem_pool.sc_mem_array[s].tc_pck.seq_flags = sche_tc_buffer[20];
         cnv8_16LE(&sche_tc_buffer[21], &schedule_mem_pool.sc_mem_array[s].tc_pck.seq_count);
@@ -91,19 +97,20 @@ SAT_returnState scheduling_service_load_schedules(){
         schedule_mem_pool.sc_mem_array[s].tc_pck.ack = sche_tc_buffer[25];
         schedule_mem_pool.sc_mem_array[s].tc_pck.ser_type = sche_tc_buffer[26];
         schedule_mem_pool.sc_mem_array[s].tc_pck.ser_subtype = sche_tc_buffer[27];
-        schedule_mem_pool.sc_mem_array[s].tc_pck.dest_id =  (uint8_t)sche_tc_buffer[28];
+        schedule_mem_pool.sc_mem_array[s].tc_pck.dest_id = (TC_TM_app_id) sche_tc_buffer[28];
         
         /*copy tc payload data*/
         uint16_t i = 0;
         for(;i<schedule_mem_pool.sc_mem_array[s].tc_pck.len;i++){
             schedule_mem_pool.sc_mem_array[s].tc_pck.data[i] = sche_tc_buffer[29+i];
         }
-        schedule_mem_pool.sc_mem_array[s].tc_pck.verification_state = (uint8_t) sche_tc_buffer[29+i];
+        schedule_mem_pool.sc_mem_array[s].tc_pck.verification_state = (SAT_returnState) sche_tc_buffer[29+i];
         schedule_mem_pool.sc_mem_array[s].pos_taken = true;
-        
-        uint8_t stop_here;
+
         memset(sche_tc_buffer,0x00,30);
     }
+    
+    return SATR_OK;
 }
 
 SAT_returnState scheduling_service_save_schedules(){
@@ -152,6 +159,8 @@ SAT_returnState scheduling_service_save_schedules(){
         //TODO messet the sche_tc_buffer
         
     }
+    
+    return SATR_OK;
 }
 
 void cross_schedules() {
@@ -164,24 +173,10 @@ void cross_schedules() {
      *      if time>= release time, then mark it as !valid
      */
     
-    /*priority for any specific schedule positions*/
-//    for(uint8_t y=15;y<17;y++){
-//        if (schedule_mem_pool.sc_mem_array[y].pos_taken == true){
-//            uint32_t qb_temp_secs = 0;
-//            get_time_QB50(&qb_temp_secs);
-//            if (schedule_mem_pool.sc_mem_array[y].release_time <= qb_temp_secs) { /**/
-//                route_pkt(&(schedule_mem_pool.sc_mem_array[y].tc_pck));
-//                schedule_mem_pool.sc_mem_array[y].pos_taken = false;
-//    //            sc_s_state.nmbr_of_ld_sched--;
-//    //            sc_s_state.schedule_arr_full = false;
-//            }
-//        }
-//    }
-    
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
         if (schedule_mem_pool.sc_mem_array[i].pos_taken == true &&
                 sc_s_state.scheduling_apids_enabled[(schedule_mem_pool.sc_mem_array[i].app_id) - 1] == true){
-            
+
             switch( schedule_mem_pool.sc_mem_array[i].sch_evt){
                 case 0: /*ABSOLUTE*/
                     uint32_t boot_secs = HAL_GetTick();
@@ -304,7 +299,9 @@ SAT_returnState time_shift_all_tcs(uint8_t *time_v){
 
 SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t apid  ){
     
-    //TODO: add logging on actions
+    if(!C_ASSERT( subtype == 1 || subtype == 2) == true) { return SATR_ERROR; }
+    if(!C_ASSERT( apid < LAST_APP_ID) == true)           { return SATR_ERROR; }
+    
     if( subtype == 1 ){
         sc_s_state.scheduling_apids_enabled[apid-1] = true; }
     else{
@@ -322,13 +319,15 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
 //    sc_s_state.scheduling_service_enabled = true;
     
     /*mark every pos as !valid, = available*/
-    for( g;g<SC_MAX_STORED_SCHEDULES;g++ ){
+    for( ;g<SC_MAX_STORED_SCHEDULES;g++ ){
         schedule_mem_pool.sc_mem_array[g].pos_taken = false;
     }
     /*enable release for all apids*/
     for( g=0;g<LAST_APP_ID;g++ ){
         sc_s_state.scheduling_apids_enabled[g] = true;
     }
+    
+    //TODO: reload schedules from storage?
     return SATR_OK;
 }
 
@@ -460,7 +459,7 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     schedule_mem_pool.sc_mem_array[posit].tc_pck.ack = theSchpck.tc_pck.ack;
     schedule_mem_pool.sc_mem_array[posit].tc_pck.app_id = theSchpck.tc_pck.app_id;
     uint8_t i=0;
-    for(i;i<theSchpck.tc_pck.len;i++){
+    for( ;i<theSchpck.tc_pck.len;i++){
         schedule_mem_pool.sc_mem_array[posit].tc_pck.data[i] = theSchpck.tc_pck.data[i];
     }
     schedule_mem_pool.sc_mem_array[posit].tc_pck.dest_id = theSchpck.tc_pck.dest_id;
@@ -665,7 +664,6 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     /*extract the packet and route accordingly*/
     uint32_t time = 0;
     uint16_t exec_timeout = 0;
-    uint8_t tc_data_len = 0;
     uint8_t offset = 12;
 
     /*extract the scheduling packet from the data pointer*/
@@ -714,7 +712,7 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     exec_timeout = (exec_timeout | tc_pkt->data[11]);
 
     /*extract data from internal TC packet ( app_id )*/
-    (*sc_pkt).app_id = tc_pkt->data[offset + 1];
+    (*sc_pkt).app_id = (TC_TM_app_id)tc_pkt->data[offset + 1];
     if (!C_ASSERT((*sc_pkt).app_id < LAST_APP_ID) == true) {
         return SATR_PKT_ILLEGAL_APPID;
     }
