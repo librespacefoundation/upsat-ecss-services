@@ -1,10 +1,3 @@
-/* 
- * File:   scheduling_service.h
- * Author: 
- *
- * Created on March 8, 2016, 9:05 PM
- */
-
 #ifndef SCHEDULING_SERVICE_H
 #define SCHEDULING_SERVICE_H
 
@@ -23,38 +16,38 @@
 #define SC_MAX_STORED_SCHEDULES 15
 
 typedef enum {
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is absolute to OBC time.
      */
     ABSOLUTE        = 0, 
     
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the schedule's
      * activation time.
      */
     SCHEDULE        = 1, 
     
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the sub-schedule's
      * activation time.
      */
     SUBSCHEDULE     = 2, 
     
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the notification time
      * of success of failure of interlocked schedule.
      * time.
      */
     INTERLOCK       = 3,
     
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the seconds passed from
      * QB50 epoch (01/01/2000 00:00:00 UTC).
      * time.
      */        
     QB50EPC         = 4,
     
-    /* The 'release_time' member
+        /* The 'release_time' member
      * specified on the Scheduling_pck is absolute to OBC time, but when is fired
      * for execution its automatically re-sets itself for execution.
      */
@@ -66,8 +59,7 @@ typedef enum {
 /* (Page 105-106 of ECSS-E-70-41A document)
  * Schedule command structure:
  */
-typedef struct {
-    
+typedef struct {    
         /* This is the application id that the telecommand it is destined to.
          * This info will be extracted from the encapsulated TC packet.
          */
@@ -184,27 +176,16 @@ typedef struct {
     
 }Scheduling_service_state;
 
-//extern SC_pkt scheduling_mem_array[SC_MAX_STORED_SCHEDULES];
 extern Scheduling_service_state sc_s_state;
 
 static uint8_t scheduling_enabled = true;
 
 void cross_schedules();
 
-/* Service initialization.
- * 
- */
 SAT_returnState scheduling_service_init();
 
-/* To serve as unique entry point to the Service.
- * To be called from route_packet. 
- */
 SAT_returnState scheduling_app(tc_tm_pkt* spacket);
 
-/*
- * Returns R_OK if scheduling is enabled and running.
- * Returns R_NOK if scheduling is disabled.  
- */
 SAT_returnState scheduling_state_api();
 
 /* Enables / Disables the scheduling execution as a service.
@@ -218,15 +199,8 @@ SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t a
 
 SAT_returnState operations_scheduling_reset_schedule_api();
 
-/* Inserts a given Schedule_pck on the schedule array
- * Service Subtype 4
- */
 SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck );
 
-/* Removes a given Schedule_pck from the schedule array
- * Service Subtype 5.
- * Selection Criteria is destined APID and Sequence Count.
- */
 SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,  
                                                 SC_pkt* theSchpck, */ uint8_t apid, uint16_t seqc );
 
@@ -235,30 +209,13 @@ SAT_returnState scheduling_remove_schedule_api( /*SC_pkt* sch_mem_pool,
  */
 SAT_returnState remove_from_scheduleOTPAPI( SC_pkt theSchpck );
 
-/* Time shifts all Schedule_pcks on the Schedule.
- * int32_t secs parameter can be positive or negative seconds value.
- * If positive the seconds are added to the Schedule's TC time, 
- * if negative the seconds are substracted from the Schedule's TC time value. 
- * Service Subtype 15.
- */
 SAT_returnState scheduling_time_shift_all_schedules_api( SC_pkt* sch_mem_pool, int32_t secs );
 
-/**
- * 
- * @param sc_pkt
- * @param tc_pkt
- * @return 
- */
 SAT_returnState parse_sch_packet( SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt );
 
-/**
- * Time shifts (adds or substructs seconds) all loaded telecommands.
- * @param time_v
- * @return 
- */
 SAT_returnState time_shift_all_tcs(uint8_t *time_v);
 
 SAT_returnState scheduling_service_save_schedules();
 
-#endif /* SCHEDULING_SERVICE_H */
+#endif
 

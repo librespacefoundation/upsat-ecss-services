@@ -8,6 +8,7 @@
  * Service Type 11 
  * (some restrictions apply)
  */
+
 #undef __FILE_ID__
 #define __FILE_ID__ 6
 
@@ -26,8 +27,10 @@ SC_pkt* find_schedule_pos();
 Scheduling_service_state sc_s_state;
 Schedule_pkt_pool schedule_mem_pool;
 
-/*
- *  Initializes the scheduling service.
+/**
+ * Initializes the scheduling service.
+ * 
+ * @return the execution state.
  */
 SAT_returnState scheduling_service_init(){
     
@@ -219,7 +222,7 @@ void cross_schedules() {
 }
 
 /**
- * Serves requests to Scheduling service.
+ * Serves requests to Scheduling service, unique entry point to the Service.
  * @param spacket
  * @return 
  */
@@ -470,6 +473,8 @@ SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t
 }
 
 /**
+ * Inserts a given Schedule_pck on the schedule array
+ * Service Subtype 4
  * @param posit, position of schedule to set.
  * @param theSchpck, the SC_pkt to insert in the schedule.
  * @return the execution state.
@@ -559,7 +564,9 @@ SAT_returnState scheduling_state_api(){
 }
 
 /**
- * 
+ * Removes a given Schedule_pck from the schedule array
+ * Service Subtype 5.
+ * Selection Criteria is destined APID and Sequence Count.
  * @param apid
  * @param seqc
  * @return the execution state.
@@ -594,7 +601,11 @@ SAT_returnState scheduling_reset_schedule_api(SC_pkt* sch_mem_pool){
 }
 
 /**
- * 
+ * Time shifts all Schedule_pcks on the Schedule.
+ * int32_t secs parameter can be positive or negative seconds value.
+ * If positive the seconds are added to the Schedule's TC time, 
+ * if negative the seconds are substracted from the Schedule's TC time value. 
+ * Service Subtype 15.
  * @param sch_mem_pool
  * @param secs
  * @return the execution state.
