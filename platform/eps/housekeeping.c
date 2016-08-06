@@ -246,7 +246,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
 
     	pkt->len = size;
-    }
 
     } else if(sid == ECSS_STATS_REP) {
 
