@@ -68,8 +68,8 @@ SAT_returnState HAL_uart_tx_check(TC_TM_app_id app_id) {
     }
 
     res = HAL_UART_GetState(huart);
-    if(res == HAL_UART_STATE_BUSY &&
-       res == HAL_UART_STATE_BUSY_TX &&
+    if(res == HAL_UART_STATE_BUSY ||
+       res == HAL_UART_STATE_BUSY_TX ||
        res == HAL_UART_STATE_BUSY_TX_RX) { return SATR_ALREADY_SERVICING; }
 
     return SATR_OK;
