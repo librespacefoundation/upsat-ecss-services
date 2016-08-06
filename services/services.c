@@ -36,7 +36,7 @@ uint16_t assertion_last_line = 0;
 uint8_t tst_debugging(uint16_t fi, uint32_t l, char *e) {
 
   traceASSERTION(fi, l);
-  SYSVIEW_PRINT("A %u %u", fi, l);
+  SYSVIEW_PRINT("AS_ER %u %u", fi, l);
 
   assertion_last_file = fi;
   assertion_last_line = l;
