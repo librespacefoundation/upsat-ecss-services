@@ -2,6 +2,9 @@
 #include "service_utilities.h"
 #include "sysview.h"
 
+#undef __FILE_ID__
+#define __FILE_ID__ 39
+
 struct _ecss_stats
 {
     uint16_t inbound_packet[LAST_APP_ID][LAST_APP_ID];
@@ -28,6 +31,10 @@ static struct _ecss_stats ecss_stats = { .inbound_packet = {{ 0, 0},
                                          .dropped_unpack = 0 }; 
 
 void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt) {
+
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)               { return ; }
+    if(!C_ASSERT(app_id < LAST_APP_ID && dest_id < LAST_APP_ID) == true)  { return ; }
+
     TC_TM_app_id source = 0;
     TC_TM_app_id dest = 0;
 
@@ -46,6 +53,10 @@ void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_t
 }
 
 void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt) {
+
+    if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)               { return ; }
+    if(!C_ASSERT(app_id < LAST_APP_ID && dest_id < LAST_APP_ID) == true)  { return ; }
+
     TC_TM_app_id source = 0;
     TC_TM_app_id dest = 0;
 
