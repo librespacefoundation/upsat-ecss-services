@@ -14,7 +14,10 @@ SAT_returnState test_app(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true)       { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->ser_subtype == TC_CT_PERFORM_TEST) == true) { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->ser_subtype == TC_CT_PERFORM_TEST ||
+                 pkt->ser_subtype == TM_CT_REPORT_TEST) == true) { return SATR_ERROR; }
+
+    if(pkt->ser_subtype == TM_CT_REPORT_TEST) { return SATR_ERROR; }
 
     test_crt_pkt(&temp_pkt, pkt->dest_id);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }

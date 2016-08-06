@@ -1,6 +1,6 @@
 #include "service_utilities.h"
 #include "time_management_service.h"
-
+#include "sysview.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 5
@@ -194,6 +194,7 @@ SAT_returnState unpack_pkt(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t si
 
     if(!C_ASSERT(services_verification_TC_TM[pkt->ser_type][pkt->ser_subtype][pkt->type] == 1) == true) { 
         pkt->verification_state = SATR_PKT_ILLEGAL_PKT_TP;
+        SYSVIEW_PRINT("INV TP %u,%u,%u,%u,%u", pkt->type, pkt->app_id, pkt->dest_id, pkt->ser_type, pkt->ser_subtype);
         return SATR_PKT_ILLEGAL_PKT_TP; 
     }
 
