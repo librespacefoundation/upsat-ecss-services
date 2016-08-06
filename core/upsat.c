@@ -121,7 +121,7 @@ SAT_returnState test_crt_heartbeat(tc_tm_pkt **pkt) {
 
     *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(*pkt != NULL) == true) { return SATR_ERROR; }
-    crt_pkt(*pkt, SYSTEM_APP_ID, TC, TC_ACK_NO, TC_TEST_SERVICE, TC_CT_PERFORM_TEST, EPS_APP_ID);
+    crt_pkt(*pkt, EPS_APP_ID, TC, TC_ACK_NO, TC_TEST_SERVICE, TC_CT_PERFORM_TEST, SYSTEM_APP_ID);
 
     (*pkt)->len = 0;
 

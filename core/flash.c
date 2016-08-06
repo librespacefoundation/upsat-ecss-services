@@ -36,10 +36,10 @@ void flash_write_trasmit(uint32_t data, size_t offset) {
     size_t i;
     uint32_t word;
     /* Store first the contents of the memory */
-    memcpy(temp_mem, (uint32_t*)TRANSMIT_VAR_ADD,
+    memcpy(temp_mem, (void *)TRANSMIT_VAR_ADD,
 	   COMMS_FLASH_CONF_WORDS * sizeof(uint32_t));
     /* Write the new value */
-    memcpy(temp_mem + offset, &data, sizeof(uint32_t));
+    memcpy(temp_mem + offset, (void *)&data, sizeof(uint32_t));
 
     HAL_FLASH_Unlock();
 
@@ -49,7 +49,7 @@ void flash_write_trasmit(uint32_t data, size_t offset) {
     FLASH_Erase_Sector(FLASH_SECTOR_3, VOLTAGE_RANGE_3);
 
     for(i = 0; i < COMMS_FLASH_CONF_WORDS; i++){
-      memcpy(&word, temp_mem + i * sizeof(uint32_t), sizeof(uint32_t));
+      memcpy((void *)(&word), temp_mem + i * sizeof(uint32_t), sizeof(uint32_t));
       HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,
 			TRANSMIT_VAR_ADD + i * sizeof(uint32_t),
 			word);
