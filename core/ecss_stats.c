@@ -1,5 +1,6 @@
 #include "ecss_stats.h"
 #include "service_utilities.h"
+#include "sysview.h"
 
 struct _ecss_stats
 {
@@ -26,7 +27,7 @@ static struct _ecss_stats ecss_stats = { .inbound_packet = {{ 0, 0},
                                          .dropped_hldlc = 0,
                                          .dropped_unpack = 0 }; 
 
-void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uint16_t seq_count) {
+void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt) {
     TC_TM_app_id source = 0;
     TC_TM_app_id dest = 0;
 
@@ -40,9 +41,11 @@ void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uint
     }
 
     ecss_stats.inbound_packet[source][dest]++;
+
+    SYSVIEW_PRINT("IN %u,%u,%u,%u", source, dest, pkt->seq_count, pkt->ser_type);
 }
 
-void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uint16_t seq_count) {
+void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt) {
     TC_TM_app_id source = 0;
     TC_TM_app_id dest = 0;
 
@@ -56,6 +59,8 @@ void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uin
     }
 
     ecss_stats.outbound_packet[source][dest]++;
+
+    SYSVIEW_PRINT("OUT %u,%u,%u,%u", source, dest, pkt->seq_count, pkt->ser_type);
 }
 
 void stats_dropped_hldlc() {

@@ -3,9 +3,9 @@
 
 #include "services.h"
 
-void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uint16_t seq_count);
+void stats_inbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt);
 
-void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, uint16_t seq_count);
+void stats_outbound(uint8_t type, TC_TM_app_id app_id, TC_TM_app_id dest_id, tc_tm_pkt *pkt);
 
 void stats_dropped_hldlc();
 

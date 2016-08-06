@@ -46,7 +46,7 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
 
             if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
             if((res = unpack_pkt(data->deframed_buf, pkt, size)) == SATR_OK) {
-                stats_inbound(pkt->type, pkt->app_id, pkt->dest_id, pkt->seq_count);
+                stats_inbound(pkt->type, pkt->app_id, pkt->dest_id, pkt);
                 route_pkt(pkt); }
             else {
                 stats_dropped_upack();
@@ -76,7 +76,7 @@ SAT_returnState export_pkt(TC_TM_app_id app_id, struct uart_data *data) {
     /* Checks if that the pkt that was transmitted is still in the queue */
     if((pkt = queuePop(app_id)) ==  NULL) { return SATR_OK; }
 
-    stats_outbound(pkt->type, pkt->app_id, pkt->dest_id, pkt->seq_count);
+    stats_outbound(pkt->type, pkt->app_id, pkt->dest_id, pkt);
 
     pack_pkt(data->uart_pkted_buf,  pkt, &size);
 
