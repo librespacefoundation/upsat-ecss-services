@@ -374,7 +374,7 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
-    if (C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+    if (!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
       return SATR_ERROR;
     }
 
@@ -382,10 +382,10 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
     cnv8_16(&pkt->data[1], &ld_num);
     //if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
     //if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && (app_id == GND_APP_ID || app_id == DBG_APP_ID)) == true)    { return SATR_ERROR; }
-    if(C_ASSERT(LD_status.tx_lid != lid)) {
+    if(!C_ASSERT(LD_status.tx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id,
 			    lid, TC_LD_ABORT_RE_DOWNLINK);
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -393,7 +393,7 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-    if(C_ASSERT(LD_status.tx_pkt != ld_num)) {
+    if(!C_ASSERT(LD_status.tx_pkt == ld_num)) {
       return SATR_ERROR;
     }
 
@@ -416,7 +416,7 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
-    if (C_ASSERT(pkt == NULL || pkt->data == NULL)) {
+    if (!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
       return SATR_ERROR;
     }
 
@@ -428,9 +428,9 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
     //if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
     //if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && (app_id == GND_APP_ID || app_id == DBG_APP_ID)) == true)    { return SATR_ERROR; }
     //if(!C_ASSERT(LD_status.tx_pkt < ld_num) == true)                                               { return SATR_ERROR; }
-    if(C_ASSERT(LD_status.tx_lid != lid)) {
+    if(!C_ASSERT(LD_status.tx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TC_LD_ABORT_RE_DOWNLINK); 
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -477,11 +477,11 @@ SAT_returnState large_data_updatePkt(tc_tm_pkt *pkt, uint16_t size, uint8_t subt
 
 SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 				       uint16_t dest_id) {
-    if(C_ASSERT(pkt == NULL)) {
+    if(!C_ASSERT(pkt != NULL)) {
       return SATR_ERROR;
     }
     *pkt = get_pkt(PKT_NORMAL);
-    if(C_ASSERT(*pkt == NULL)) {
+    if(!C_ASSERT(*pkt != NULL)) {
       return SATR_ERROR;
     }
     crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_LARGE_DATA_SERVICE, 0, dest_id); //what dest_id ?
@@ -494,11 +494,11 @@ SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 
 SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 				     uint16_t dest_id) {
-    if(C_ASSERT(pkt == NULL)) {
+    if(!C_ASSERT(pkt != NULL)) {
       return SATR_ERROR;
     }
     *pkt = get_pkt(PKT_NORMAL);
-    if(C_ASSERT(*pkt == NULL)) {
+    if(!C_ASSERT(*pkt != NULL)) {
       return SATR_ERROR;
     }
 
@@ -516,11 +516,11 @@ SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 SAT_returnState large_data_abortPkt(tc_tm_pkt **pkt, uint8_t lid,
 				    uint16_t dest_id, uint8_t subtype) {
 
-    if(C_ASSERT(*pkt == NULL)) {
+    if(!C_ASSERT(*pkt != NULL)) {
       return SATR_ERROR;
     }
     *pkt = get_pkt(PKT_NORMAL);
-    if(C_ASSERT(*pkt == NULL)) {
+    if(!C_ASSERT(*pkt != NULL)) {
       return SATR_ERROR;
     }
     crt_pkt(*pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_LARGE_DATA_SERVICE, subtype, dest_id);
@@ -550,7 +550,7 @@ SAT_returnState large_data_timeout() {
     if(LD_status.state == LD_STATE_TRANSMITING) {
         large_data_abortPkt(&temp_pkt, LD_status.tx_lid, LD_status.app_id,
 			    TM_LD_ABORT_SE_DOWNLINK);
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
@@ -560,7 +560,7 @@ SAT_returnState large_data_timeout() {
     else if(LD_status.state == LD_STATE_RECEIVING) {
         large_data_abortPkt(&temp_pkt, LD_status.rx_lid, LD_status.app_id,
 			    TM_LD_ABORT_RE_UPLINK);
-        if(C_ASSERT(temp_pkt == NULL)) {
+        if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
 
