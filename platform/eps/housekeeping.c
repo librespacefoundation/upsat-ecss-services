@@ -5,6 +5,7 @@
 #include "eps_power_module.h"
 #include "eps_non_volatile_mem_handling.h"
 #include "sysview.h"
+#include "ecss_stats.h"
 
 #include "eps_soft_error_handling.h"
 
@@ -245,6 +246,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
 
     	pkt->len = size;
+    }
+
+    } else if(sid == ECSS_STATS_REP) {
+
+        uint16_t size = ecss_stats_hk(&pkt->data[1]);
+
+        pkt->len = size + 1;
     }
 
     return SATR_OK;
