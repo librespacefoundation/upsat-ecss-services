@@ -189,8 +189,8 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         tempA = ( ((uint8_t) deployment_status) << 6 );
         tempB = ((uint8_t)(eps_board_state.EPS_safety_battery_mode ))<<4;
         tempC = ((uint8_t)(eps_board_state.EPS_safety_temperature_mode ));
-        paketoma_buffer =  tempA & tempB;
-        pkt->data[size] = (paketoma_buffer  & tempC );
+        paketoma_buffer =  tempA | tempB;
+        pkt->data[size] = (paketoma_buffer  | tempC );
 		size += 1;
 
 
@@ -200,9 +200,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         tempB = (uint8_t)(EPS_get_rail_switch_status(OBC) )<<4;
         tempC = (uint8_t)(EPS_get_rail_switch_status(ADCS) )<<2;
         tempD = (uint8_t)(EPS_get_rail_switch_status(COMM) );
-        paketoma_buffer =  tempA & tempB;
-        paketoma_buffer =  paketoma_buffer & tempC;
-        pkt->data[size] = (paketoma_buffer  & tempD );
+        paketoma_buffer =  tempA | tempB;
+        paketoma_buffer =  paketoma_buffer | tempC;
+        pkt->data[size] = (paketoma_buffer  | tempD );
         size += 1;
 
         /* Temp sensor power_switch (2bits) | 6bits padding*/
@@ -246,7 +246,6 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
 
     	pkt->len = size;
-    }
 
     } else if(sid == ECSS_STATS_REP) {
 
