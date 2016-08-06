@@ -262,8 +262,8 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
     buf[1] = cnv.cnv8[0];
 
     /*if the pkt was created in OBC, it updates the counter*/
-    if(pkt->type == TC && pkt->dest_id == SYSTEM_APP_ID)      { pkt->seq_count = pkt_state.seq_cnt[pkt->dest_id]++; } 
-    else if(pkt->type == TM && pkt->app_id == SYSTEM_APP_ID)  { pkt->seq_count = pkt_state.seq_cnt[pkt->app_id]++; }
+    if(pkt->type == TC && pkt->dest_id == SYSTEM_APP_ID)      { pkt->seq_count = pkt_state.seq_cnt[pkt->app_id]++; }
+    else if(pkt->type == TM && pkt->app_id == SYSTEM_APP_ID)  { pkt->seq_count = pkt_state.seq_cnt[pkt->dest_id]++; }
 
     pkt->seq_flags = TC_TM_SEQ_SPACKET;
     cnv.cnv16[0] = pkt->seq_count;
