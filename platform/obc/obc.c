@@ -98,11 +98,21 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         //TODO: ADD C_ASSERT
         res = su_nmlp_app(pkt);
     }
-    else if(id == EPS_APP_ID)      { queuePush(pkt, EPS_APP_ID); }
-    else if(id == ADCS_APP_ID)     { queuePush(pkt, ADCS_APP_ID); }
-    else if(id == COMMS_APP_ID)    { queuePush(pkt, COMMS_APP_ID); }
-    else if(id == GND_APP_ID)      { queuePush(pkt, COMMS_APP_ID); }
-    else if(id == DBG_APP_ID)      { queuePush(pkt, DBG_APP_ID); }
+    else if(id == EPS_APP_ID) {
+        queuePush(pkt, EPS_APP_ID);
+    }
+    else if(id == ADCS_APP_ID) {
+        queuePush(pkt, ADCS_APP_ID);
+    }
+    else if(id == COMMS_APP_ID) {
+        queuePush(pkt, COMMS_APP_ID);
+    }
+    else if(id == GND_APP_ID) {
+        queuePush(pkt, COMMS_APP_ID);
+    }
+    else if(id == DBG_APP_ID) {
+        queuePush(pkt, DBG_APP_ID);
+    }
 
     return SATR_OK;
 }
