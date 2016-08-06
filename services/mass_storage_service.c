@@ -1067,7 +1067,8 @@ SAT_returnState get_fs_stat(uint8_t *buf, uint16_t *size) {
 
         } else if(sid <= EVENT_LOG) {
 
-            uint16_t files_num = head - tail + 1;
+            int16_t files_num = head - tail + 1;
+            if(files_num < 0) { files_num = MS_MAX_FILES + files_num; }
 
             cnv16_8(files_num, &buf[(*size)]);
             *size += sizeof(uint16_t);

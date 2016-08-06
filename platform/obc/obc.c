@@ -219,7 +219,7 @@ void bkup_sram_INIT() {
     
     obc_data.wod_log = (uint8_t *)base_pointer + (EV_MAX_BUFFER);
     base_pointer += sizeof(uint8_t);
-        
+
     if(!C_ASSERT(*obc_data.log_cnt < EV_MAX_BUFFER) == true)      { *obc_data.log_cnt = 0; }
     if(!C_ASSERT(*obc_data.wod_cnt < EV_MAX_BUFFER) == true)      { *obc_data.wod_cnt = 0; }
     if(!C_ASSERT(*obc_data.fs_su_head < MS_MAX_FILES) == true)    { *obc_data.fs_su_head = 1; }
