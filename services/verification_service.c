@@ -48,7 +48,7 @@ SAT_returnState verification_crt_pkt(const tc_tm_pkt *pkt, tc_tm_pkt **out, SAT_
     uint8_t subtype;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
-    if(!C_ASSERT(res < SATR_LAST) == true)                  { return SATR_ERROR; }
+    if(!C_ASSERT(res < SATR_LAST) == true)                  { res = SATR_VER_ERROR; }
 
     *out = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(*out != NULL) == true) { return SATR_ERROR; }

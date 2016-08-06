@@ -857,7 +857,7 @@ void mass_storage_getState(uint8_t *state) {
 SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t file, uint8_t num) {
 
     uint16_t size;
-    SAT_returnState res;
+    SAT_returnState res = SATR_ERROR;
     FRESULT fres;
     TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
@@ -886,9 +886,9 @@ SAT_returnState mass_storage_downlink_api(tc_tm_pkt *pkt, MS_sid sid, uint16_t f
         uint16_t fsize = 0;
         uint16_t tfile = file + i;
 
-        fres = mass_storage_downlinkFile(sid, tfile, &temp_pkt->data[size + 2], &fsize);
+        res = mass_storage_downlinkFile(sid, tfile, &temp_pkt->data[size + 2], &fsize);
 
-        if(res == FR_NO_FILE)   { continue; }
+        if(res == SATRF_NO_FILE) { continue; }
         else if(res != SATR_OK) { free_pkt(temp_pkt); return res; }
 
         if(!C_ASSERT((sid <= SU_SCRIPT_7 && fsize < MAX_PKT_EXT_DATA) ||
