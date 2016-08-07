@@ -115,6 +115,13 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         i += sizeof(uint16_t);
         pkt->len = SYS_EXT_WOD_SIZE + 1;
         SYSVIEW_PRINT("COMMS ONLY EX WOD: Len %u", pkt->len);
+
+    } else if(sid == ECSS_STATS_REP) {
+
+        uint16_t size = ecss_stats_hk(&pkt->data[1]);
+
+        pkt->len = size + 1;
     }
+
     return SATR_OK;
 }
