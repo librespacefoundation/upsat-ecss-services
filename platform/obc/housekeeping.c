@@ -345,7 +345,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
                 
         memcpy( &pkt->data[size], &ext_wod_buffer[COMMS_EXT_WOD_OFFSET], SUB_SYS_EXT_WOD_SIZE);
 
-        pkt->len = size + SUB_SYS_EXT_WOD_SIZE;
+        size += SUB_SYS_EXT_WOD_SIZE;
+        mass_storage_storeFile(EXT_WOD_LOG, 0, &pkt->data[1], &size);
+        pkt->len = size;
     
     } else if(sid == ECSS_STATS_REP) {
 
