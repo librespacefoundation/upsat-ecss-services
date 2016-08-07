@@ -77,10 +77,12 @@ extern struct _task_times task_times;
 extern struct _obc_data obc_data;
 extern struct _wdg_state wdg;
 extern struct _MNLP_data MNLP_data;
+
 SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 SAT_returnState obc_INIT();
 
+SAT_returnState check_subsystems_timeouts(uint32_t sys_t_now);
 
 void bkup_sram_INIT();
 
