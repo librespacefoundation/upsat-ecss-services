@@ -364,8 +364,8 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
 
 /**
  * Extracts the inner TC packet from the Sch_pkt structure
- * @param buf
- * @param pkt
+ * @param buf is the source of the data.
+ * @param pkt the inner tc_tm_pkt to be created.
  * @param size
  * @return the execution state.
  */
@@ -374,7 +374,7 @@ SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t
     uint8_t tmp_crc[2];
     uint8_t ver, dfield_hdr, ccsds_sec_hdr, tc_pus;
     if(!C_ASSERT(buf != NULL && pkt != NULL && pkt->data != NULL) == true)  { return SATR_ERROR; }
-//    if(!C_ASSERT(size > MIN_PKT_SIZE && size < MAX_PKT_SIZE) == true)       { return SATR_ERROR; }
+    if(!C_ASSERT(size < MAX_PKT_SIZE) == true)                              { return SATR_ERROR; }
 
     tmp_crc[0] = buf[size - 1];
     checkSum(buf, size-2, &tmp_crc[1]); /* -2 for excluding the checksum bytes*/
@@ -754,7 +754,7 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     /*extract the packet and route accordingly*/
     uint32_t time = 0;
     uint16_t exec_timeout = 0;
-    uint8_t offset = 12;
+    uint8_t offset = 14;
 
     /*extract the scheduling packet from the data pointer*/
     (*sc_pkt).sub_schedule_id = tc_pkt->data[0];
@@ -791,15 +791,18 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
 
         return SATR_RLS_TIMET_ID_INVALID;
     }
+    
     /*7,8,9,10th bytes are the time fields, combine them to a uint32_t*/
-    time = (time | tc_pkt->data[6]) << 8;
-    time = (time | tc_pkt->data[7]) << 8;
+    time = (time | tc_pkt->data[9]) << 8;
     time = (time | tc_pkt->data[8]) << 8;
-    time = (time | tc_pkt->data[9]);
+    time = (time | tc_pkt->data[7]) << 8;
+    time = (time | tc_pkt->data[6]);
 
     /*read execution time out fields*/
-    exec_timeout = (exec_timeout | tc_pkt->data[10]) << 8;
-    exec_timeout = (exec_timeout | tc_pkt->data[11]);
+    exec_timeout = (exec_timeout | tc_pkt->data[13]) << 8;
+    exec_timeout = (exec_timeout | tc_pkt->data[12]) << 8;
+    exec_timeout = (exec_timeout | tc_pkt->data[11]) << 8;
+    exec_timeout = (exec_timeout | tc_pkt->data[10]);
 
     /*extract data from internal TC packet ( app_id )*/
     (*sc_pkt).app_id = (TC_TM_app_id)tc_pkt->data[offset + 1];
@@ -818,13 +821,13 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     /*  tc_pkt is a TC containing 14 bytes of data related to scheduling service.
      *  After those 14 bytes, a 'whole_inner_tc' packet starts.
      *  
-     *  The 'whole_inner_tc' offset in the tc_pkt's data payload is: 13 (14th byte).
+     *  The 'whole_inner_tc' offset in the tc_pkt's data payload is: 15 (16th byte).
      *  
      *  The length of the 'whole_inner_tc' is tc_pkt->data - 14 bytes
      *  
      *  Within the 'whole_inner_tc' the length of the 'inner' goes for:
      *  16+16+16+32+(tc_pkt->len - 11)+16 bytes.
      */
-    return copy_inner_tc( &(tc_pkt->data[12]), &((*sc_pkt).tc_pck), (uint16_t) tc_pkt->len - 12);
+    return copy_inner_tc( &(tc_pkt->data[14]), &((*sc_pkt).tc_pck), (uint16_t) tc_pkt->len - 14);
 
 }
