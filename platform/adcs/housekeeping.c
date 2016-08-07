@@ -1,16 +1,9 @@
 #include "housekeeping.h"
 #include "service_utilities.h"
 #include "adcs_hal.h"
-
-#include "adcs_sensors.h"
-#include "adcs_actuators.h"
-#include "adcs_common.h"
-#include "adcs_flash.h"
-#include "sgp4.h"
-#include "WahbaRotM.h"
-#include "adcs_error_handler.h"
-#include "adcs_gps.h"
 #include "ecss_stats.h"
+
+#include "adcs_manager.h"
 
 #undef __FILE_ID__
 #define __FILE_ID__ 28
@@ -48,20 +41,20 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         pkt->data[size] = trasmit_error_status;
         size += 1;
         /* SU header */
-        cnv16_8((int16_t) (WahbaRot.Euler[0] * RAD2DEG / 0.01),
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[0]) / 0.01),
                 &pkt->data[size]); // Roll in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.Euler[1] * RAD2DEG / 0.01),
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[1]) / 0.01),
                 &pkt->data[size]); // Pitch in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.Euler[2] * RAD2DEG / 0.01),
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[2]) * RAD2DEG / 0.01),
                 &pkt->data[size]); // Yaw in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[0] * RAD2DEG / 0.001), &pkt->data[size]); // Roll Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[0]) / 0.001), &pkt->data[size]); // Roll Dot in deg/sec
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[1] * RAD2DEG / 0.001), &pkt->data[size]); // Pitch Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[1]) / 0.001), &pkt->data[size]); // Pitch Dot in deg/sec
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[2] * RAD2DEG / 0.001), &pkt->data[size]); // Yaw Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[2]) / 0.001), &pkt->data[size]); // Yaw Dot in deg/sec
         size += 2;
         cnv16_8((int16_t) (p_eci.x / 0.5), &pkt->data[size]); // X ECI in km
         size += 2;
@@ -74,44 +67,44 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 1;
         uint32_t flash_read_address = GPS_LOCK_BASE_ADDRESS;
         for (uint8_t i = 0; i < 7; i++) {
-            size += i;
             if (flash_read_byte(&pkt->data[size], flash_read_address) == FLASH_NORMAL) {
                 flash_read_address = flash_read_address + GPS_LOCK_OFFSET_ADDRESS;
             } else {
                 error_status = ERROR_FLASH;
-                break;
+                pkt->data[size] = 0;
             }
+            size += 1;
         }
         /* Sensors */
-        cnv16_8(adcs_sensors.temp.temp_raw, &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.temp.temp_c*100), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.gyr_raw[0], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.gyr[0]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.gyr_raw[1], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.gyr[1]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.gyr_raw[2], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.gyr[2]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.xm_raw[0], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[0]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.xm_raw[1], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[1]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.imu.xm_raw[2], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[2]*1000), &pkt->data[size]);
         size += 2;
-        cnv32_8(adcs_sensors.mgn.rm_raw[0], &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[0]*1000), &pkt->data[size]);
         size += 4;
-        cnv32_8(adcs_sensors.mgn.rm_raw[1], &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[1]*1000), &pkt->data[size]);
         size += 4;
-        cnv32_8(adcs_sensors.mgn.rm_raw[2], &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[2]*1000), &pkt->data[size]);
         size += 4;
-        cnv16_8(adcs_sensors.sun.v_sun_raw[0], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.sun.v_sun[0]*100), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.sun.v_sun_raw[1], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.sun.v_sun[1]*100), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.sun.v_sun_raw[2], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.sun.v_sun[2]*100), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.sun.v_sun_raw[3], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.sun.v_sun[3]*100), &pkt->data[size]);
         size += 2;
-        cnv16_8(adcs_sensors.sun.v_sun_raw[4], &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.sun.v_sun[4]*100), &pkt->data[size]);
         size += 2;
         /* Actuators */
         cnv16_8((int16_t) adcs_actuator.spin_torquer.m_RPM, &pkt->data[size]);
