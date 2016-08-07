@@ -47,6 +47,38 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
 		        || memory_write_address == LIMIT_BATTERY_CRITICAL_ADDRESS
 		        || memory_write_address == LIMIT_BATTERY_TEMPERATURE_LOW_ADDRESS
 		        || memory_write_address == LIMIT_BATTERY_TEMPERATURE_HIGH_ADDRESS) {
+
+			/*sanity check in ranges*/
+			if (memory_write_address == LIMIT_BATTERY_LOW_ADDRESS){
+				if( (memory_write_value>=LIMIT_BATTERY_LOW_MAX)||(memory_write_value<=LIMIT_BATTERY_LOW_MIN)){
+					memory_write_value = LIMIT_BATTERY_VOLTAGE_LOW_DEFAULT;
+				}
+			}
+
+			if (memory_write_address == LIMIT_BATTERY_HIGH_ADDRESS){
+				if( (memory_write_value>=LIMIT_BATTERY_HIGH_MAX)||(memory_write_value<=LIMIT_BATTERY_HIGH_MIN)){
+					memory_write_value = LIMIT_BATTERY_VOLTAGE_HIGH_DEFAULT;
+				}
+			}
+
+			if (memory_write_address == LIMIT_BATTERY_CRITICAL_ADDRESS){
+				if( (memory_write_value>=LIMIT_BATTERY_CRITICAL_MAX)||(memory_write_value<=LIMIT_BATTERY_CRITICAL_MIN)){
+					memory_write_value = LIMIT_BATTERY_VOLTAGE_CRITICAL_DEFAULT;
+				}
+			}
+
+			if (memory_write_address == LIMIT_BATTERY_TEMPERATURE_LOW_ADDRESS){
+				if( (memory_write_value>=LIMIT_BATTERY_TEMPERATURE_LOW__MAX)||(memory_write_value<=LIMIT_BATTERY_TEMPERATURE_LOW__MIN)){
+					memory_write_value = LIMIT_BATTERY_TEMPERATURE_LOW_DEFAULT;
+				}
+			}
+
+			if (memory_write_address == LIMIT_BATTERY_TEMPERATURE_HIGH_ADDRESS){
+				if( (memory_write_value>=LIMIT_BATTERY_TEMPERATURE_HIGH__MAX)||(memory_write_value<=LIMIT_BATTERY_TEMPERATURE_HIGH__MIN)){
+					memory_write_value = LIMIT_BATTERY_TEMPERATURE_HIGH_DEFAULT;
+				}
+			}
+
 			EPS_set_memory_word(memory_write_address, &memory_write_value);
 		}
     }
