@@ -13,10 +13,10 @@
 #ifdef __GNUC__
 const uint32_t __attribute__((section (".comms_storage_section"))) occupy_sector[SECTOR_3_SIZE] __attribute__ ((aligned (4)))
     =
-      { 0x16264e84, 0x10};
+      { 0x16264e84, 0x48};
 #else
 #pragma location = 0x0800C000
-const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0x16264e84, 0x10 };
+const uint32_t occupy_sector[SECTOR_3_SIZE] = { 0x16264e84, 0x48 };
 #endif
 
 static uint8_t temp_mem[COMMS_FLASH_CONF_WORDS * sizeof(uint32_t)] = {0};
