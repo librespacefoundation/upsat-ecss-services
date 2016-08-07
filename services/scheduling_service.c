@@ -19,6 +19,7 @@ extern SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_n
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
+SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
 
 struct time_keeping obc_time;
 
@@ -232,6 +233,8 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
     SAT_returnState insertion_state = SATR_ERROR;
     SC_pkt *sc_packet;
     
+    if(!C_ASSERT(tc_tm_packet != NULL) == true) { return SATR_ERROR; }
+    
     switch( tc_tm_packet->ser_subtype){
         case 1: /*Enable / Disable release TCs*/
             enable_disable_schedule_apid_release( tc_tm_packet->ser_subtype, tc_tm_packet->data[3] );
@@ -274,6 +277,16 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
         case 15: /*Time shift all TCs*/
             time_shift_all_tcs(tc_tm_packet->data);
             break;
+        case 16: /*Scheduling reporting*/
+//            handle_sch_reporting(tc_tm_packet->data);
+            if(!C_ASSERT(tc_tm_packet->data[0] == REPORT_SIMPLE || tc_tm_packet->data[0] == REPORT_FULL) == true ) { return SATR_ERROR; }
+            if (tc_tm_packet->data[0] == REPORT_SIMPLE ){
+                uint8_t stop_here = 0;
+            }
+            else if (tc_tm_packet->data[0]== REPORT_FULL){
+                uint8_t stop_here = 0;
+            }
+            break;
         case 24: /*Load TCs from permanent storage*/
             scheduling_service_load_schedules();
             break;
@@ -283,6 +296,28 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
     }
         
     return SATR_OK;
+}
+
+SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id){
+
+    if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
+    
+    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, sid, dest_app_id);
+    pkt->len = 0;
+
+    return SATR_OK;
+}
+
+/**
+ * Handles internal reporting functions of scheduling service.
+ * @param tc_tm_data, the  data of the report request to distinguish
+ * between different report types.
+ */
+SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data){
+    
+    
+    
+    
 }
 
 /**

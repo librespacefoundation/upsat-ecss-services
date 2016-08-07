@@ -15,6 +15,9 @@
  */
 #define SC_MAX_STORED_SCHEDULES 15
 
+#define REPORT_SIMPLE 0
+#define REPORT_FULL   1
+
 typedef enum {
         /* The 'release_time' member
      * specified on the Scheduling_pck is absolute to OBC time.
@@ -138,7 +141,7 @@ typedef struct {
     
 }SC_pkt;
 
- typedef struct{    
+typedef struct{    
     /*Holds structures, containing Scheduling Telecommands*/
     SC_pkt sc_mem_array[SC_MAX_STORED_SCHEDULES];
     
