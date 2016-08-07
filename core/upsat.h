@@ -23,7 +23,7 @@
 /*cubesat subsystem's timeouts*/
 #define TIMEOUT_V_COMMS     5000
 #define TIMEOUT_V_ADCS      5000
-#define TIMEOUT_V_IAC       5000
+#define TIMEOUT_V_IAC     600000
 #define TIMEOUT_V_EPS       5000
 #define TIMEOUT_V_SU_BYTE   5000
 #define TIMEOUT_V_DBG       5000
