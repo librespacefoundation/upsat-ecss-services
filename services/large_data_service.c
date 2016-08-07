@@ -4,6 +4,7 @@
 #include "pkt_pool.h"
 #include "verification_service.h"
 #include "stm32f4xx_hal.h"
+#include "sysview.h"
 #include <math.h>
 
 #undef __FILE_ID__
@@ -43,6 +44,7 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
+    SYSVIEW_PRINT("LD RX: First Frame");
     lid = pkt->data[0]; 
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
@@ -152,6 +154,7 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
 
     app_id = (TC_TM_app_id)pkt->dest_id;
     size = pkt->len; //ldata headers
+    SYSVIEW_PRINT("LD RX: Frame %u, Len %u", ld_num, size);
 
     if(!C_ASSERT(app_id == DBG_APP_ID || app_id == GND_APP_ID)) {
       return SATR_ERROR;
@@ -201,6 +204,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
 
+    SYSVIEW_PRINT("LD RX: Last frame");
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL)){
       return SATR_ERROR;
     }
@@ -273,16 +277,16 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
     LD_status.state = LD_STATE_RECV_OK;
 
     temp_pkt = get_pkt(LD_status.rx_size);
-    if(!C_ASSERT(pkt != NULL)) {
+    if(!C_ASSERT(temp_pkt != NULL)) {
       return SATR_ERROR;
     }
 
     if(unpack_pkt(LD_status.buf, temp_pkt, LD_status.rx_size) == SATR_OK) {
-      route_pkt(pkt);
+      route_pkt(temp_pkt);
     }
     else {
-      verification_app(pkt);
-      free_pkt(pkt);
+      verification_app(temp_pkt);
+      free_pkt(temp_pkt);
     }
 
     return SATR_OK;
