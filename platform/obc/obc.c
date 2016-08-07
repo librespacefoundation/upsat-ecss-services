@@ -53,6 +53,7 @@ struct _obc_data obc_data = { .dbg_uart.init_time = 0,
                               .comms_uart.init_time = 0,
                               .adcs_uart.init_time = 0,
                               .eps_uart.init_time = 0,
+                              .iac_timeout = 0,
                               .vbat = 0,
                               .adc_time = 0,
                               .adc_flag = false };
@@ -360,37 +361,12 @@ void timeout_stop_IAC() {
     obc_data.iac_timeout = 0;
 }
 
-SAT_returnState check_subsystems_timeouts() {
+SAT_returnState check_subsystems_timeouts(uint32_t sys_t_now) {
     
-    uint32_t sys_t_now = HAL_sys_GetTick();
-    
-    if( (sys_t_now - obc_data.adcs_uart.last_com_time) >= TIMEOUT_V_ADCS ) { 
-        /*Handle ADCS subsystem's timeout*/
-        tc_tm_pkt *tmp_pkt = 0;
-
-        SAT_returnState res = function_management_pctrl_crt_pkt_api(&tmp_pkt, EPS_APP_ID, P_RESET, ADCS_DEV_ID);
-        if(res == SATR_OK) { 
-            route_pkt(tmp_pkt); 
-            obc_data.adcs_uart.last_com_time = sys_t_now;
-        }
-        else { free_pkt(tmp_pkt); }
-    }
-    
-    if( (sys_t_now - obc_data.comms_uart.last_com_time) >= TIMEOUT_V_COMMS ) { 
-        /*Handle COMMS subsystem's timeout*/
-        tc_tm_pkt *tmp_pkt = 0;
-
-        SAT_returnState res = function_management_pctrl_crt_pkt_api(&tmp_pkt, EPS_APP_ID, P_RESET, COMMS_DEV_ID);
-        if(res == SATR_OK) { 
-            route_pkt(tmp_pkt); 
-            obc_data.comms_uart.last_com_time = sys_t_now;
-        }
-        else { free_pkt(tmp_pkt); }
-    }
-    
-    if((sys_t_now - obc_data.iac_timeout) >= TIMEOUT_V_IAC) { 
+    if(obc_data.iac_timeout != 0 && ((sys_t_now - obc_data.iac_timeout) >= TIMEOUT_V_IAC)) { 
         /*Handle IAC subsystem's timeout*/
         power_control_api(IAC_DEV_ID, P_OFF);
+        obc_data.iac_timeout = 0;
     }
 
     return SATR_OK;
