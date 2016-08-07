@@ -31,7 +31,10 @@
 #define NMEA_GGA_NUM_SAT    7
 
 typedef enum {
-    GPS_ERROR_FLASH = 0, GPS_ERROR_HAL, GPS_ERROR, GPS_OFF, GPS_UNLOCK, GPS_RESET
+    GPS_ERROR_FLASH = 0,
+    GPS_OFF,
+    GPS_UNLOCK,
+    GPS_RESET
 } _gps_status;
 
 typedef struct {
@@ -43,12 +46,15 @@ typedef struct {
     uint16_t week;
     uint8_t num_sat;
     _gps_status status;
+    uint8_t reset_flag;
 } _gps_state;
 
 extern _gps_state gps_state;
 
-SAT_returnState gps_parse_fields(uint8_t *buf, const uint8_t size,  uint8_t (*res)[NMEA_MAX_FIELDS]);
+SAT_returnState gps_parse_fields(uint8_t *buf, const uint8_t size,
+        uint8_t (*res)[NMEA_MAX_FIELDS]);
 
-SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS], _gps_state *state);
+SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS],
+        _gps_state *state);
 
 #endif
