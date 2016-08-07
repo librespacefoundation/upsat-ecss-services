@@ -3,63 +3,79 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 37
 
-_gps_state gps_state;
+_gps_state gps_state = { .d3fix = 0, .num_sat = 0, .p_gps_ecef.x = 0,
+                         .p_gps_ecef.y = 0, .p_gps_ecef.z = 0,
+                         .v_gps_ecef.x = 0, .v_gps_ecef.y = 0,
+                         .v_gps_ecef.z = 0, .sec = 0, .status = GPS_OFF,
+                         .utc_time = 0, .week = 0, .reset_flag = false};
 
-SAT_returnState gps_parse_fields(uint8_t *buf, const uint8_t size, uint8_t (*res)[NMEA_MAX_FIELDS]) {
+SAT_returnState gps_parse_fields(uint8_t *buf, const uint8_t size,
+        uint8_t (*res)[NMEA_MAX_FIELDS]) {
 
     uint8_t gps_crc = 0;
     uint8_t field = 0;
     uint8_t cnt = 0;
 
-    if(!C_ASSERT(size <= NMEA_MAX_LEN) == true) { return SATR_ERROR; }
+    if (!C_ASSERT(size <= NMEA_MAX_LEN) == true) {
+        return SATR_ERROR;
+    }
 
-    for(uint8_t i = 0; i < size; i++) {
+    for (uint8_t i = 0; i < size; i++) {
 
         gps_crc = gps_crc ^ buf[i];
 
-        if(buf[i] == ',') {
+        if (buf[i] == ',') {
 
             res[field++][cnt] = 0;
             cnt = 0;
 
-        } else if(buf[i] == '*') {
+        } else if (buf[i] == '*') {
 
             res[field][cnt] = 0;
 
-            uint8_t res_crc = strtol(&buf[i+1], &buf[i+2], 16);
-            if(gps_crc != res_crc) { return SATR_PKT_INC_CRC; }
-            else { return SATR_OK; }
+            uint8_t res_crc = strtol(&buf[i + 1], &buf[i + 2], 16);
+            if (gps_crc != res_crc) {
+                return SATR_PKT_INC_CRC;
+            } else {
+                return SATR_OK;
+            }
 
         } else {
             res[field][cnt++] = buf[i];
         }
 
-        if(!C_ASSERT(field < NMEA_MAX_FIELDS) == true)   { return SATR_ERROR; }
-        if(!C_ASSERT(cnt < NMEA_MAX_FIELD_SIZE) == true) { return SATR_ERROR; }
+        if (!C_ASSERT(field < NMEA_MAX_FIELDS) == true) {
+            return SATR_ERROR;
+        }
+        if (!C_ASSERT(cnt < NMEA_MAX_FIELD_SIZE) == true) {
+            return SATR_ERROR;
+        }
     }
 
     return SATR_OK;
 }
 
-SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS], _gps_state *state) {
+SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS],
+        _gps_state *state) {
 
-   /*
-    $GPGSA,M,3,31,32,22,24,19,11,17,14,20,,,,1.6,0.9,1.3*3E
- 
-        GSA Satellite status
-        M Auto selection of 2D or 3D fix (M = manual) 
-        3 3D fix - values include: 1 = No Fix
-                                   2 = 2D Fix
-                                   3 = 3D Fix 
-        31,32... PRNs of satellites used for Fix (space for 12)
-        1.6 Position Dilution of Precision (PDOP) 
-        0.9 Horizontal Dilution of Precision (HDOP) 
-        1.3 Vertical Dilution of Precision (VDOP) 
-        *3e The checksum data, always begin with *
-    */
+    /*
+     $GPGSA,M,3,31,32,22,24,19,11,17,14,20,,,,1.6,0.9,1.3*3E
 
-    if(strncmp("$GPGSA", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
-        state->d3fix = strtol(&res[NMEA_GSA_3DFIX][0], &res[NMEA_GSA_3DFIX][NMEA_MAX_FIELD_SIZE], 10);
+     GSA Satellite status
+     M Auto selection of 2D or 3D fix (M = manual)
+     3 3D fix - values include: 1 = No Fix
+     2 = 2D Fix
+     3 = 3D Fix
+     31,32... PRNs of satellites used for Fix (space for 12)
+     1.6 Position Dilution of Precision (PDOP)
+     0.9 Horizontal Dilution of Precision (HDOP)
+     1.3 Vertical Dilution of Precision (VDOP)
+     *3e The checksum data, always begin with *
+     */
+
+    if (strncmp("$GPGSA", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
+        state->d3fix = strtol(&res[NMEA_GSA_3DFIX][0],
+                &res[NMEA_GSA_3DFIX][NMEA_MAX_FIELD_SIZE], 10);
     }
     /*
      LSP – LEO Satellite Position – The piNAV SENTENCE
@@ -75,12 +91,17 @@ SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS], _gps_stat
      The checksum data, always begin with *
      */
 
-    else if(strncmp("$PSLSP", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
-        state->sec = strtod(&res[NMEA_GPS_TIME][0], &res[NMEA_GPS_TIME][NMEA_MAX_FIELD_SIZE]);
-        state->week = strtol(&res[NMEA_GPS_WEEK][0], &res[NMEA_GPS_WEEK][NMEA_MAX_FIELD_SIZE], 10);
-        state->p_gps_ecef.x = (strtod(&res[NMEA_LSP_X_WGS][0], &res[NMEA_LSP_X_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
-        state->p_gps_ecef.y = (strtod(&res[NMEA_LSP_Y_WGS][0], &res[NMEA_LSP_Y_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
-        state->p_gps_ecef.z = (strtod(&res[NMEA_LSP_Z_WGS][0], &res[NMEA_LSP_Z_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
+    else if (strncmp("$PSLSP", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
+        state->sec = strtod(&res[NMEA_GPS_TIME][0],
+                &res[NMEA_GPS_TIME][NMEA_MAX_FIELD_SIZE]);
+        state->week = strtol(&res[NMEA_GPS_WEEK][0],
+                &res[NMEA_GPS_WEEK][NMEA_MAX_FIELD_SIZE], 10);
+        state->p_gps_ecef.x = (strtod(&res[NMEA_LSP_X_WGS][0],
+                &res[NMEA_LSP_X_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
+        state->p_gps_ecef.y = (strtod(&res[NMEA_LSP_Y_WGS][0],
+                &res[NMEA_LSP_Y_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
+        state->p_gps_ecef.z = (strtod(&res[NMEA_LSP_Z_WGS][0],
+                &res[NMEA_LSP_Z_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
     }
 
     /*
@@ -97,10 +118,13 @@ SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS], _gps_stat
      The checksum data, always begin with *
      */
 
-    else if(strncmp("$PSLSV", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
-        state->v_gps_ecef.x = (strtod(&res[NMEA_LSV_VX_WGS][0], &res[NMEA_LSV_VX_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
-        state->v_gps_ecef.y = (strtod(&res[NMEA_LSV_VY_WGS][0], &res[NMEA_LSV_VY_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
-        state->v_gps_ecef.z = (strtod(&res[NMEA_LSV_VZ_WGS][0], &res[NMEA_LSV_VZ_WGS][NMEA_MAX_FIELD_SIZE]))/1000;
+    else if (strncmp("$PSLSV", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
+        state->v_gps_ecef.x = (strtod(&res[NMEA_LSV_VX_WGS][0],
+                &res[NMEA_LSV_VX_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
+        state->v_gps_ecef.y = (strtod(&res[NMEA_LSV_VY_WGS][0],
+                &res[NMEA_LSV_VY_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
+        state->v_gps_ecef.z = (strtod(&res[NMEA_LSV_VZ_WGS][0],
+                &res[NMEA_LSV_VZ_WGS][NMEA_MAX_FIELD_SIZE])) / 1000;
     }
 
     /*
@@ -122,9 +146,11 @@ SAT_returnState gps_parse_logic(const uint8_t (*res)[NMEA_MAX_FIELDS], _gps_stat
      The checksum data, always begin with *
      */
 
-    else if(strncmp("$GPGGA", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
-        state->utc_time = strtof(&res[NMEA_GGA_TIME][0], &res[NMEA_GGA_TIME][NMEA_MAX_FIELD_SIZE]);
-        state->num_sat = strtof(&res[NMEA_GGA_NUM_SAT][0], &res[NMEA_GGA_NUM_SAT][NMEA_MAX_FIELD_SIZE]);
+    else if (strncmp("$GPGGA", &res[NMEA_HEADER][0], NMEA_HEADER_SIZE) == 0) {
+        state->utc_time = strtof(&res[NMEA_GGA_TIME][0],
+                &res[NMEA_GGA_TIME][NMEA_MAX_FIELD_SIZE]);
+        state->num_sat = strtof(&res[NMEA_GGA_NUM_SAT][0],
+                &res[NMEA_GGA_NUM_SAT][NMEA_MAX_FIELD_SIZE]);
     }
 
     return SATR_OK;

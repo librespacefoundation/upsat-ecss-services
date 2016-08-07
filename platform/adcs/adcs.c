@@ -4,6 +4,7 @@
 #include "adcs_actuators.h"
 #include "adcs_switch.h"
 #include "adcs_gps.h"
+
 #include <stdlib.h>
 
 uint8_t dbg_msg;
@@ -40,7 +41,7 @@ static struct _sys_data sys_data;
 SAT_returnState route_pkt(tc_tm_pkt *pkt) {
 
     SAT_returnState res;
-    TC_TM_app_id id;
+    TC_TM_app_id id = 0;
 
     if (!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) {
         return SATR_ERROR;
@@ -104,10 +105,6 @@ void get_reset_source(uint8_t *rsrc) {
 
 void HAL_adcs_GPS_ON() {
     adcs_pwr_switch(SWITCH_ON, GPS);
-    gps_state.status = GPS_UNLOCK;
-    struct time_utc gps_utc_on_gnd;
-    get_time_UTC(&gps_utc_on_gnd);
-    gps_state.status = HAL_SetAlarm_GPS_LOCK(gps_utc_on_gnd, GPS_ALARM_UNLOCK);
 }
 
 void HAL_adcs_GPS_OFF() {
