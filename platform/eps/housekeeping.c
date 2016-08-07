@@ -50,11 +50,8 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     	 * voltage measurement range:  0 - 18.333V for adc range 0-3.3V (0.18V/V)
     	 * expected measurement range: (2.5*3=)7.5V - (4.2*3=)12.6V
     	 * */
-//    	pkt->data[1]  = (uint8_t)((eps_board_state.battery_voltage - ADC_VALUE_3V_BAT_VOLTAGE)>>4);/*shift from 12 bit resolution uint to 8bit uint and typecast*/
 
-    	uint32_t battery_voltage_buffer_32bit = 23*eps_board_state.battery_voltage;//multiplication in 32 bit to avoid overflow (23*4095 = 94185)
-
-    	pkt->data[1]  = (uint8_t)( (battery_voltage_buffer_32bit>>8) - 60) ;/*shift from 12 bit resolution uint to 8bit uint and typecast*/
+    	pkt->data[1]  = (uint8_t)((eps_board_state.battery_voltage)>>4);//**223,40426 to get the value in volts
 
      	/* battery current
     	 *
@@ -63,19 +60,17 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     	 * current measurement range:  0 - 1,178A for adc range 0-3.3V (2.8V/A) so I+ - I- will have a range of -1.178 to 1.178
     	 * expected measurement range: the above full scale
     	 * */
-//        uint16_t battery_current_buffer = eps_board_state.battery_current_plus - eps_board_state.battery_current_minus + ADC_VALUE_1A_BAT_CURRENT;
-//        /*if negative, saturate to zero*/
-//        if(battery_current_buffer<0){battery_current_buffer=0;}
-//
-//        pkt->data[2]  = (uint8_t)( battery_current_buffer>>4);/*shift from 12 bit resolution uint to 8bit uint and typecast*/
-        volatile uint32_t battery_current_buffer = (uint32_t)(eps_board_state.battery_current_plus +4095);
-        battery_current_buffer = battery_current_buffer - eps_board_state.battery_current_minus;
-        battery_current_buffer = 2408*battery_current_buffer;
 
-        uint8_t battery_current_buffer_8bit = (uint8_t)( battery_current_buffer>>24);
-        if(battery_current_buffer_8bit<24){battery_current_buffer_8bit=23;}
 
-        pkt->data[2]  = battery_current_buffer_8bit - 23;
+        volatile uint8_t battery_current_buffer;
+        if(eps_board_state.battery_current_plus>=eps_board_state.battery_current_minus){
+        	battery_current_buffer=(uint8_t)(eps_board_state.battery_current_plus>>4) -(uint8_t)(eps_board_state.battery_current_minus>>4);
+        }
+        else{
+        	battery_current_buffer = (int8_t)((uint8_t)(eps_board_state.battery_current_minus>>4) -(uint8_t)(eps_board_state.battery_current_plus>>4));
+        	battery_current_buffer = -battery_current_buffer;
+        }
+        pkt->data[2]  = battery_current_buffer;
 
      	/* 5v and 3v3 rails current
     	 *
@@ -84,14 +79,9 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
     	 * current measurement range:  0 - 3A for adc range 0-3.3V (1.1V/A)
     	 * expected measurement range: the above full scale - 3A is the maximum output current of the buck module.
     	 * */
-//        pkt->data[3]  = (uint8_t)(eps_board_state.v3_3_current_avg>>4);
-//        pkt->data[4]  = (uint8_t)(eps_board_state.v5_current_avg>>4);
 
-        uint32_t v3_3_current_buffer_32bit = 489895*eps_board_state.v3_3_current_avg;
-        pkt->data[3]  = (uint8_t)(v3_3_current_buffer_32bit>>24);
-
-        uint32_t v5_current_buffer_32bit = 489895*eps_board_state.v5_current_avg;
-        pkt->data[4]  = (uint8_t)(v5_current_buffer_32bit>>24);
+        pkt->data[3]  = (uint8_t)(eps_board_state.v3_3_current_avg);
+        pkt->data[4]  = (uint8_t)(eps_board_state.v5_current_avg);
 
      	/* cpu_temperature
     	 *
@@ -103,10 +93,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         int32_t cpu_temperature_buffer = eps_board_state.cpu_temperature;
 
         if(cpu_temperature_buffer<-15){cpu_temperature_buffer=-15;}//clamp to -15
-
-
-//        pkt->data[5]  = (uint8_t)(cpu_temperature_buffer+15);
-        pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15)<<2 );
+        pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15));
 
 
 
@@ -120,8 +107,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         int16_t battery_temperature_buffer = eps_board_state.battery_temp;
         if(battery_temperature_buffer<-15){battery_temperature_buffer=-15;}//clamp to -15
 
-        //pkt->data[6]  = (uint8_t)( battery_temperature_buffer +15);
-        pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15)<<2 );
+        pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15) );
 
         /*packet length*/
         pkt->len = 7;
