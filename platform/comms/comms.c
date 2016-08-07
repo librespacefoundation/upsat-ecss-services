@@ -100,6 +100,16 @@ route_pkt (tc_tm_pkt *pkt)
     SYSVIEW_PRINT("WOD from OBC");
     store_wod_obc(pkt->data + 1, pkt->len - 1);
   }
+  else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE
+      && pkt->ser_subtype == TM_HK_PARAMETERS_REPORT
+      && pkt->data[0] == EXT_WOD_REP) {
+    /*
+     * A new exWOD arrived from the OBC. Store it and extract the information.
+     * The transmission of each exWOD is handled by the COMMS dispatcher function
+     */
+    SYSVIEW_PRINT("exWOD from OBC");
+    store_ex_wod_obc(pkt->data, pkt->len);
+  }
   else if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE) {
     res = hk_app (pkt);
   }
