@@ -16,44 +16,44 @@
  */
 #define SC_MAX_STORED_SCHEDULES 15
 
+/* For every APID there is a number of maximum 255 sequence counts,
+ * The combination of APID and seq_count acts as 'primary key' for actions
+ * that require selections upon the scheduling packets. 
+ */
+#define MAX_SEQ_CNT             256
+
 typedef enum {
-        /* The 'release_time' member
-     * specified on the Scheduling_pck is absolute to OBC time.
+    /* The 'release_time' member
+     * specified on the Scheduling_pck is absolute to OBC boot time.
      */
     ABSOLUTE        = 0, 
     
-        /* The 'release_time' member
+    /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the schedule's
      * activation time.
      */
     SCHEDULE        = 1, 
     
-        /* The 'release_time' member
+    /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the sub-schedule's
      * activation time.
      */
     SUBSCHEDULE     = 2, 
     
-        /* The 'release_time' member
+    /* The 'release_time' member
      * specified on the Scheduling_pck is relative to the notification time
      * of success of failure of interlocked schedule.
      * time.
      */
     INTERLOCK       = 3,
     
-        /* The 'release_time' member
-     * specified on the Scheduling_pck is relative to the seconds passed from
-     * QB50 epoch (01/01/2000 00:00:00 UTC).
-     * time.
-     */        
-    QB50EPC         = 4,
-    
-        /* The 'release_time' member
-     * specified on the Scheduling_pck is absolute to OBC time, but when is fired
-     * for execution its automatically re-sets itself for execution.
+    /* The 'release_time' member
+     * specified on the Scheduling_pck is absolute to OBC QB50 time, but when
+     * it is fired for execution its automatically re-sets itself for future
+     * execution. In case that repetition time is zero, its on-time only.
      */
-    REPETITIVE      = 5,
-    LAST_EVENTTIME  = 6
+    REPETITIVE      = 4,
+    LAST_EVENTTIME  = 5
             
 }SC_event_time_type;
  
@@ -121,7 +121,7 @@ typedef struct {
          * Timeout execution is only set if telecommand sets interlocks, so for our
          * current implementation will be always 0 (zero)
          */
-    uint16_t timeout;
+    uint32_t timeout;
     
         /* The actual telecommand packet to be scheduled and executed
          * 
