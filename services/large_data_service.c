@@ -332,8 +332,6 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
 
     LD_status.state = LD_STATE_TRANSMITING;
     LD_status.started = HAL_GetTick();
-
-    LD_status.timeout = HAL_GetTick();
     LD_status.tx_lid++;
 
     for(i = 0; i < LD_status.tx_pkt; i++) {
@@ -341,9 +339,7 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
         large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, i, app_id);
 
         size = LD_status.tx_size - (i * LD_PKT_DATA);
-	if (size > LD_PKT_DATA) {
-	  size = LD_PKT_DATA;
-	}
+        size = MIN(size, LD_PKT_DATA);
 
         /*
          * Copy the proper amount of data into the sub-frames and send them!
@@ -351,12 +347,12 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
         memcpy(temp_pkt->data + LD_PKT_DATA_HDR_SIZE,
 	       LD_status.buf + (i * LD_PKT_DATA), size);
 
-        temp_pkt->len = size;
-
+        SYSVIEW_PRINT("LD TX: Frame %u", i);
 	if (i == 0) {
 	  subtype = TM_LD_FIRST_DOWNLINK;
 	}
 	else if (i == LD_status.tx_pkt - 1) {
+	  SYSVIEW_PRINT("LD TX: Last frame");
 	  subtype = TM_LD_LAST_DOWNLINK;
 	}
 	else {
@@ -366,9 +362,16 @@ SAT_returnState large_data_downlinkTx_api(tc_tm_pkt *pkt) {
         large_data_updatePkt(temp_pkt, size, subtype);
         route_pkt(temp_pkt);
 
-        /*FIXME: Why a so large delay? */
-        HAL_Delay(1);
+        /*
+         * Add a delay between the transmissions to let the PA settle down,
+         * avoid over-current and possible damage of the COMMS board
+         */
+        HAL_Delay(200);
     }
+
+    /* Set the timeout period by the time the last frame transmitted */
+    LD_status.timeout = HAL_GetTick();
+    LD_status.state = LD_STATE_TRANSMIT_FIN;
     return SATR_OK;
 }
 
@@ -384,8 +387,6 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
 
     lid = pkt->data[0];
     cnv8_16(&pkt->data[1], &ld_num);
-    //if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
-    //if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && (app_id == GND_APP_ID || app_id == DBG_APP_ID)) == true)    { return SATR_ERROR; }
     if(!C_ASSERT(LD_status.tx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id,
 			    lid, TC_LD_ABORT_RE_DOWNLINK);
@@ -412,13 +413,13 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
 
 
 SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
-
     uint16_t ld_num;
     uint16_t size;
     uint8_t subtype;
     TC_TM_app_id app_id;
     tc_tm_pkt *temp_pkt = 0;
     uint8_t lid;
+    SAT_returnState ret;
 
     if (!C_ASSERT(pkt != NULL && pkt->data != NULL)) {
       return SATR_ERROR;
@@ -426,13 +427,14 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
 
     lid = pkt->data[0];
     cnv8_16(&pkt->data[1], &ld_num);
-
     app_id = (TC_TM_app_id)pkt->dest_id;
+    SYSVIEW_PRINT("LD TX: Retrying %u", ld_num);
 
-    //if(!C_ASSERT(LD_status.app_id != pkt->dest_id) == true)                                             { return SATR_ERROR; }
-    //if(!C_ASSERT(LD_status.state == LD_STATE_TRANSMITING && (app_id == GND_APP_ID || app_id == DBG_APP_ID)) == true)    { return SATR_ERROR; }
-    //if(!C_ASSERT(LD_status.tx_pkt < ld_num) == true)                                               { return SATR_ERROR; }
-    if(!C_ASSERT(LD_status.tx_lid == lid)) {
+    /*
+     * Check if large data session and the number of the large data
+     * frame is valid.
+     */
+    if(!C_ASSERT(LD_status.tx_lid == lid && ld_num < LD_status.tx_pkt)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TC_LD_ABORT_RE_DOWNLINK); 
         if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
@@ -442,16 +444,21 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
         return SATR_OK; 
     }
 
-    large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, ld_num, app_id);
+    ret = large_data_downlinkPkt(&temp_pkt, LD_status.tx_lid, ld_num, app_id);
+    if(ret != SATR_OK) {
+      large_data_abortPkt(&temp_pkt, pkt->dest_id, lid, TC_LD_ABORT_RE_DOWNLINK);
+      if(!C_ASSERT(temp_pkt != NULL)) {
+        return SATR_ERROR;
+      }
+      route_pkt(temp_pkt);
+      return SATR_OK;
+    }
 
     size = LD_status.tx_size - (ld_num * LD_PKT_DATA);
-    if(size > MAX_PKT_DATA) {
-      size = LD_PKT_DATA;
-    }
+    size = MIN(size, LD_PKT_DATA);
 
     memcpy(temp_pkt->data + LD_PKT_DATA_HDR_SIZE,
 	   LD_status.buf + (ld_num * LD_PKT_DATA), size);
-    temp_pkt->len = size;
 
     if(ld_num== 0) {
       subtype = TM_LD_FIRST_DOWNLINK;
@@ -548,48 +555,62 @@ SAT_returnState large_data_abort_api(tc_tm_pkt *pkt) {
 }
 
 SAT_returnState large_data_timeout() {
-
+    SAT_returnState ret = SATR_OK;
     tc_tm_pkt *temp_pkt = 0;
+    SYSVIEW_PRINT("LD RX: Timeout");
 
-    if(LD_status.state == LD_STATE_TRANSMITING) {
-        large_data_abortPkt(&temp_pkt, LD_status.tx_lid, LD_status.app_id,
-			    TM_LD_ABORT_SE_DOWNLINK);
-        if(!C_ASSERT(temp_pkt != NULL)) {
-          return SATR_ERROR;
-        }
-
-        route_pkt(temp_pkt);
-        return SATR_OK; 
-    }
-    else if(LD_status.state == LD_STATE_RECEIVING) {
+    switch (LD_status.state) {
+      case LD_STATE_TRANSMITING:
+	large_data_abortPkt (&temp_pkt, LD_status.tx_lid, LD_status.app_id,
+			     TM_LD_ABORT_SE_DOWNLINK);
+	if (!C_ASSERT(temp_pkt != NULL)) {
+	  return SATR_ERROR;
+	}
+	route_pkt (temp_pkt);
+	break;
+      case LD_STATE_TRANSMIT_FIN:
+	/* Nothing to do here, we are done */
+	break;
+      case LD_STATE_RECEIVING:
         large_data_abortPkt(&temp_pkt, LD_status.rx_lid, LD_status.app_id,
 			    TM_LD_ABORT_RE_UPLINK);
         if(!C_ASSERT(temp_pkt != NULL)) {
           return SATR_ERROR;
         }
-
         route_pkt(temp_pkt);
-        return SATR_OK; 
+        break;
+      default:
+	ret = SATR_ERROR;
+	break;
     }
-
-    return SATR_OK;
+    return ret;
 }
 
 void
 large_data_IDLE ()
 {
-
   uint32_t tmp_time = HAL_GetTick ();
+  uint32_t timeout_period = LD_TIMEOUT;
+  if(LD_status.timeout != 0) {
+    /*
+     * Due to the fact that the receiver may not be able to retrieve
+     * the large data frame size, if the first sub-frame is lost,
+     * we are giving more time until timeout, only in the case where the
+     * satellite waits for possible large data sub-frame requests
+     */
+    if (LD_status.state == LD_STATE_TRANSMIT_FIN) {
+      timeout_period = 2 * LD_TIMEOUT;
+    }
 
-  if (LD_status.timeout != 0
-      && (((tmp_time - LD_status.timeout) > LD_TIMEOUT)
-	  || ((tmp_time - LD_status.started) > LD_MAX_TRANSFER_TIME))) {
-    large_data_timeout ();
+    if (((tmp_time - LD_status.timeout) > timeout_period)
+      || ((tmp_time - LD_status.started) > LD_MAX_TRANSFER_TIME) ) {
 
-    LD_status.state = LD_STATE_FREE;
-    LD_status.ld_num = 0;
-    LD_status.timeout = 0;
-    LD_status.started = 0;
+      large_data_timeout ();
+      LD_status.state = LD_STATE_FREE;
+      LD_status.ld_num = 0;
+      LD_status.timeout = 0;
+      LD_status.started = 0;
+    }
   }
 }
 
