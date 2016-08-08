@@ -154,5 +154,15 @@ SAT_returnState firewall(tc_tm_pkt *pkt) {
         return SATR_FIREWALLED;
     }
 
+    if(!C_ASSERT(pkt->type == TC &&
+                 pkt->app_id == EPS_APP_ID &&
+                 pkt->ser_type == TC_FUNCTION_MANAGEMENT_SERVICE &&
+                 pkt->ser_subtype == TC_FM_PERFORM_FUNCTION &&
+                 pkt->data[0] == P_OFF &&
+                 pkt->data[1] == EPS_DEV_ID) == true) {
+        pkt->verification_state = SATR_FIREWALLED;
+        return SATR_FIREWALLED;
+    }
+
     return SATR_OK;
 }
