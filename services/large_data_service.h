@@ -7,9 +7,14 @@
 #define LD_PKT_DATA             195 /*MAX_PKT_DATA - LD_PKT_DATA_HDR_SIZE*/
 #define LD_PKT_DATA_HDR_SIZE    3
 
-#define LD_TIMEOUT              4000
+#define LD_TIMEOUT              6000
 
 #define LD_MAX_TRANSFER_TIME    30000
+
+#define MIN(A,B) 			\
+   ({ __typeof__ (A) _A = (A); 		\
+       __typeof__ (B) _B = (B); 	\
+     _A < _B ? _A : _B; })
 
 /**
  * The different states of the Large data stae machine
@@ -18,10 +23,9 @@ typedef enum {
     LD_STATE_FREE           = 1,//!< LD_STATE_FREE No large data activity
     LD_STATE_RECEIVING      = 2,//!< LD_STATE_RECEIVING the large data FSM receives data
     LD_STATE_TRANSMITING    = 3,//!< LD_STATE_TRANSMITING the large data FSM transmits data
-    LD_STATE_REPORT         = 4,//!< LD_STATE_REPORT ???
-    LD_STATE_DOWNLINK       = 5,//!< LD_STATE_DOWNLINK ???
-    LD_STATE_RECV_OK        = 6,//!< LD_STATE_RECV_OK the large data FSM successfully received the last frame
-    LAST_STATE              = 7 //!< LAST_STATE
+    LD_STATE_TRANSMIT_FIN   = 4,//!< LD_STATE_TRANSMIT_FIN the large data TX finished. The engine just waits for possible lost frame requests from the ground
+    LD_STATE_RECV_OK        = 5,//!< LD_STATE_RECV_OK the large data FSM successfully received the last frame
+    LAST_STATE              = 6 //!< LAST_STATE
 }LD_states;
 
 /**
