@@ -120,8 +120,12 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv32_8( HAL_sys_GetTick(), &pkt->data[1]);
         size += 4;
 
-        //reset sourc assert source + line placeholder.
-        size += 4;
+        //reset sourc assert source
+        size += 1;
+        pkt->data[size] = assertion_last_file;
+        size += 1;
+        cnv16_8(assertion_last_line,&pkt->data[size]);
+        size += 2;
 
         /*batterypack health status*/
         pkt->data[size] = (uint8_t)(eps_board_state.batterypack_health_status);
