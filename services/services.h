@@ -96,17 +96,17 @@ typedef enum {
     /* Scheduling Service Error State Codes
     * from
     */
-    SATR_SCHEDULE_FULL         = 17, /* Schedule array is full */
-    SATR_SSCH_ID_INVALID       = 18, /* Subschedule ID invalid */
-    SATR_NMR_OF_TC_INVALID     = 19, /* Number of telecommands invalid */
-    SATR_INTRL_ID_INVALID      = 20, /* Interlock ID invalid */
-    SATR_ASS_INTRL_ID_INVALID  = 21, /* Assess Interlock ID invalid */
-    SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/
-    SATR_RLS_TIMET_ID_INVALID  = 23, /* Relese time type ID invalid */
-    SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalid */
-    SATR_TIME_INVALID          = 25, /* Release time of TC is invalid */
-    SATR_TIME_SPEC_INVALID     = 26, /* Release time of TC is specified in a invalid representation*/
-    SATR_INTRL_LOGIC_ERROR     = 27, /* The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHEDULE_FULL         = 17, /*Schedule array is full */
+    SATR_SSCH_ID_INVALID       = 18, /*Subschedule ID invalid */
+    SATR_NMR_OF_TC_INVALID     = 19, /*Number of telecommands invalid */
+    SATR_INTRL_ID_INVALID      = 20, /*Interlock ID invalid */
+    SATR_ASS_INTRL_ID_INVALID  = 21, /*Assess Interlock ID invalid */
+    SATR_ASS_TYPE_ID_INVALID   = 22, /*Assesment type id invalid*/
+    SATR_RLS_TIMET_ID_INVALID  = 23, /*Relese time type ID invalid */
+    SATR_DEST_APID_INVALID     = 24, /*Destination APID in embedded TC is invalid */
+    SATR_TIME_INVALID          = 25, /*Release time of TC is invalid */
+    SATR_TIME_SPEC_INVALID     = 26, /*Release time of TC is specified in a invalid representation*/
+    SATR_INTRL_LOGIC_ERROR     = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
     SATR_SCHEDULE_DISABLED     = 28,
     /*FatFs*/
     SATRF_OK                   = 29, /* (0) Succeeded */
@@ -160,7 +160,7 @@ typedef enum {
 #define TM_HK_PARAMETERS_REPORT         23
 
 #define TM_EV_NORMAL_REPORT         	1
-#define TM_EV_ERROR_REPORT         		4
+#define TM_EV_ERROR_REPORT         	4
 
 #define TC_FM_PERFORM_FUNCTION          1
 
@@ -198,8 +198,8 @@ typedef enum {
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
 #define TC_MS_UPLINK                    14
-#define TC_MS_FORMAT                    15 /* custom service*/
-#define TC_MS_LIST                      16 /* custom service*/
+#define TC_MS_FORMAT                    15 /*custom service*/
+#define TC_MS_LIST                      16 /*custom service*/
 #define TM_MS_CATALOGUE_LIST            17
 
 #define TC_CT_PERFORM_TEST              1
@@ -234,12 +234,18 @@ typedef enum {
 #define TC_SU_SCHE_OFF                  26 //subservice 25
 
 /*TIME MANAGEMENT SERVICE*/
-#define TM_TIME_SET_IN_UTC              1 //subservice 1
-#define TM_TIME_SET_IN_QB50             2 //subservice 2
-#define TM_REPORT_TIME_IN_UTC           3 //subservice 3, Telecommand to report time in UTC
-#define TM_REPORT_TIME_IN_QB50          4 //subservice 4, Telecommand to report time in QB50
-#define TM_TIME_REPORT_IN_UTC           5 //subservice 5, Telemetry response time in UTC
-#define TM_TIME_REPORT_IN_QB50          6 //subservice 6, Telemetry response time in QB50
+#define TM_TIME_SET_IN_UTC              1 /*subservice 1*/
+#define TM_TIME_SET_IN_QB50             2 /*subservice 2*/
+#define TM_REPORT_TIME_IN_UTC           3 /*subservice 3, Telecommand to report time in UTC*/
+#define TM_REPORT_TIME_IN_QB50          4 /*subservice 4, Telecommand to report time in QB50*/
+#define TM_TIME_REPORT_IN_UTC           5 /*subservice 5, Telemetry response time in UTC*/
+#define TM_TIME_REPORT_IN_QB50          6 /*subservice 6, Telemetry response time in QB50*/
+
+/*SCHEDULING SERVICE*/
+#define SCHS_REPORT_SCH_DETAILED        16 /*subservice 16, Telecommand to report schedules in detailed form*/
+#define SCHS_DETAILED_SCH_REPORT        10 /*subservice 10, Telemerty response to report schedules in detailed form*/
+#define SCHS_REPORT_SCH_SIMPLE          17 /*subservice 17, Telecommand to report schedules in summary form*/
+#define SCHS_SIMPLE_SCH_REPORT          13 /*subservice 13, Telemerty response to report schedules in summary form*/
 
 typedef enum {
     HEALTH_REP      = 1,
@@ -342,6 +348,7 @@ typedef enum {
     LAST_EV_EVENT        = 13
 }EV_event;
 
+//TODO: REMOVE THEM
 typedef enum {
     SET_DTIME_UTC       = 1,
     SET_DTIME_QB50      = 2,
@@ -389,9 +396,9 @@ typedef struct {
     uint8_t *data; /* pkt data */
 
     /*this is not part of the header. it is used from the software and the verification service,
-     *when the packet wants ack.
+     *when the packet wants ACK.
      *the type is SAT_returnState and it either stores R_OK or has the error code (failure reason).
-     *it is initiazed as R_ERROR and the service should be responsible to make it R_OK or put the coresponding error.
+     *it is initialized as R_ERROR and the service should be responsible to make it R_OK or put the corresponding error.
      */
     SAT_returnState verification_state;
 /*  uint8_t padding;  x bits, padding for word alligment */

@@ -20,7 +20,8 @@ extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
 SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
-
+SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
+SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
 struct time_keeping obc_time;
 
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size);
@@ -277,16 +278,17 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
         case 15: /*Time shift all TCs*/
             time_shift_all_tcs(tc_tm_packet->data);
             break;
-        case 16: /*Scheduling reporting*/
-//            handle_sch_reporting(tc_tm_packet->data);
-            if(!C_ASSERT(tc_tm_packet->data[0] == REPORT_SIMPLE || tc_tm_packet->data[0] == REPORT_FULL) == true ) { return SATR_ERROR; }
-            if (tc_tm_packet->data[0] == REPORT_SIMPLE ){
-                uint8_t stop_here = 0;
-            }
-            else if (tc_tm_packet->data[0]== REPORT_FULL){
-                uint8_t stop_here = 0;
-            }
+        case 16: /*Scheduling service report detailed*/
+            tc_tm_pkt *sch_rep_d_pkt = get_pkt(PKT_NORMAL);
+            if(!C_ASSERT(sch_rep_d_pkt != NULL)==true) { return SATR_ERROR; }
+
             break;
+        case 17: /*Scheduling service report summary*/
+            tc_tm_pkt *sch_rep_s_pkt = get_pkt(PKT_NORMAL);
+            if(!C_ASSERT(sch_rep_s_pkt != NULL)==true) { return SATR_ERROR; }            
+            
+            scheduling_service_report_summary(sch_rep_s_pkt, (TC_TM_app_id)tc_tm_packet->dest_id);
+            break;            
         case 24: /*Load TCs from permanent storage*/
             scheduling_service_load_schedules();
             break;
@@ -298,11 +300,43 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
     return SATR_OK;
 }
 
-SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id){
+/**
+ * Handles the simple report request.
+ * @param tc_tm_data.
+ * @return the execution state.
+ */
+SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
+    
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+    
+//    scheduling_service_crt_pkt_TM(pkt, dest_id , SCHEDULING_REPORT_SIMPLE );
+//    pkt->data[0] = temp_time.weekday;
+//    pkt->data[1] = temp_time.day;
+//    pkt->data[2] = temp_time.month;
+//    pkt->data[3] = temp_time.year;
+//    pkt->data[4] = temp_time.hour;
+//    pkt->data[5] = temp_time.min;
+//    pkt->data[6] = temp_time.sec;
+//    
+    pkt->len = 7;
+
+    return SATR_OK;
+}
+
+/**
+ * Handles the full report request.
+ * @param tc_tm_data.
+ * @return the execution state.
+ */
+SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
+    
+}
+
+SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, TC_TM_app_id dest_app_id, uint8_t ssid ){
 
     if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
     
-    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, sid, dest_app_id);
+    //crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_SCHEDULING_SERVICE, sid, dest_app_id);
     pkt->len = 0;
 
     return SATR_OK;

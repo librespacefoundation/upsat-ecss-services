@@ -1,7 +1,5 @@
 #include "time_management_service.h"
 
-#include "pkt_pool.h"
-
 #undef __FILE_ID__
 #define __FILE_ID__ 2
 
@@ -99,9 +97,9 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
     if( ser_subtype == TM_REPORT_TIME_IN_UTC){
         
         tc_tm_pkt *time_rep_pkt = get_pkt(PKT_NORMAL);
+        if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         time_management_report_time_in_utc( time_rep_pkt, (TC_TM_app_id)pkt->dest_id);
         pkt->verification_state = SATR_OK;
-        if(!C_ASSERT(time_rep_pkt != NULL) == true) { return SATR_ERROR; }
         route_pkt(time_rep_pkt);
     }
     else

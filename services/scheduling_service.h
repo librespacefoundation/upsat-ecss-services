@@ -7,6 +7,7 @@
 #include "service_utilities.h"
 #include "time_management_service.h"
 #include "services.h"
+#include "pkt_pool.h"
 
 #define SCHEDULING_SERVICE_V 0.1
 
@@ -14,9 +15,6 @@
  * on-memory loaded schedule commands
  */
 #define SC_MAX_STORED_SCHEDULES 15
-
-#define REPORT_SIMPLE 0
-#define REPORT_FULL   1
 
 typedef enum {
         /* The 'release_time' member
