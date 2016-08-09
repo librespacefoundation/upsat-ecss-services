@@ -96,48 +96,48 @@ typedef enum {
     /* Scheduling Service Error State Codes
     * from
     */
-    SATR_SCHEDULE_FULL         = 17, /* Schedule array is full */
-    SATR_SSCH_ID_INVALID       = 18, /* Subschedule ID invalid */
-    SATR_NMR_OF_TC_INVALID     = 19, /* Number of telecommands invalid */
-    SATR_INTRL_ID_INVALID      = 20, /* Interlock ID invalid */
-    SATR_ASS_INTRL_ID_INVALID  = 21, /* Assess Interlock ID invalid */
-    SATR_ASS_TYPE_ID_INVALID   = 22, /* Assesment type id invalid*/
-    SATR_RLS_TIMET_ID_INVALID  = 23, /* Relese time type ID invalid */
-    SATR_DEST_APID_INVALID     = 24, /* Destination APID in embedded TC is invalid */
-    SATR_TIME_INVALID          = 25, /* Release time of TC is invalid */
-    SATR_TIME_SPEC_INVALID     = 26, /* Release time of TC is specified in a invalid representation*/
-    SATR_INTRL_LOGIC_ERROR     = 27, /* The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHEDULE_FULL         = 16, /*Schedule array is full */
+    SATR_SSCH_ID_INVALID       = 17, /*Subschedule ID invalid */
+    SATR_NMR_OF_TC_INVALID     = 18, /*Number of telecommands invalid */
+    SATR_INTRL_ID_INVALID      = 19, /*Interlock ID invalid */
+    SATR_ASS_INTRL_ID_INVALID  = 20, /*Assess Interlock ID invalid */
+    SATR_ASS_TYPE_ID_INVALID   = 21, /*Assesment type id invalid*/
+    SATR_RLS_TIMET_ID_INVALID  = 22, /*Relese time type ID invalid */
+    SATR_DEST_APID_INVALID     = 23, /*Destination APID in embedded TC is invalid */
+    SATR_TIME_INVALID          = 24, /*Release time of TC is invalid */
+    SATR_QBTIME_INVALID        = 25, /*Time management reported erroneous time*/
+    SATR_TIME_SPEC_INVALID     = 26, /*Release time of TC is specified in a invalid representation*/
+    SATR_INTRL_LOGIC_ERROR     = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
     SATR_SCHEDULE_DISABLED     = 28,
+    SATR_SCHEDULE_NOT_IMLP     = 29, /*Not implemented function of scheduling service*/
     /*FatFs*/
-    SATRF_OK                   = 29, /* (0) Succeeded */
-    SATRF_DISK_ERR             = 30, /* (1) A hard error occurred in the low level disk I/O layer */
-    SATRF_INT_ERR              = 31, /* (2) Assertion failed */
-    SATRF_NOT_READY            = 32, /* (3) The physical drive cannot work */
-    SATRF_NO_FILE              = 33, /* (4) Could not find the file */
-    SATRF_NO_PATH              = 34, /* (5) Could not find the path */
-    SATRF_INVALID_NAME         = 35, /* (6) The path name format is invalid */
-    SATRF_DENIED               = 36, /* (7) Access denied due to prohibited access or directory full */
-    SATRF_EXIST                = 37, /* (8) Access denied due to prohibited access */
-    SATRF_INVALID_OBJECT       = 38, /* (9) The file/directory object is invalid */
-    SATRF_WRITE_PROTECTED      = 39, /* (10) The physical drive is write protected */
-    SATRF_INVALID_DRIVE        = 40, /* (11) The logical drive number is invalid */
-    SATRF_NOT_ENABLED          = 41, /* (12) The volume has no work area */
-    SATRF_NO_FILESYSTEM        = 42, /* (13) There is no valid FAT volume */
-    SATRF_MKFS_ABORTED         = 43, /* (14) The f_mkfs() aborted due to any parameter error */
-    SATRF_TIMEOUT              = 44, /* (15) Could not get a grant to access the volume within defined period */
-    SATRF_LOCKED               = 45, /* (16) The operation is rejected according to the file sharing policy */
-    SATRF_NOT_ENOUGH_CORE      = 46, /* (17) LFN working buffer could not be allocated */
-    SATRF_TOO_MANY_OPEN_FILES  = 47, /* (18) Number of open files > _FS_SHARE */
-    SATRF_INVALID_PARAMETER    = 48, /* (19) Given parameter is invalid */
-
-    SATRF_DIR_ERROR            = 49,
-
-    SATR_SD_DISABLED           = 50,
-    SATR_QUEUE_FULL            = 51,
-    SATR_WRONG_DOWNLINK_OFFSET = 52,
-    SATR_VER_ERROR             = 53,
+    SATRF_OK                   = 30, /* (0) Succeeded */
+    SATRF_DISK_ERR             = 31, /* (1) A hard error occurred in the low level disk I/O layer */
+    SATRF_INT_ERR              = 32, /* (2) Assertion failed */
+    SATRF_NOT_READY            = 33, /* (3) The physical drive cannot work */
+    SATRF_NO_FILE              = 34, /* (4) Could not find the file */
+    SATRF_NO_PATH              = 35, /* (5) Could not find the path */
+    SATRF_INVALID_NAME         = 36, /* (6) The path name format is invalid */
+    SATRF_DENIED               = 37, /* (7) Access denied due to prohibited access or directory full */
+    SATRF_EXIST                = 38, /* (8) Access denied due to prohibited access */
+    SATRF_INVALID_OBJECT       = 39, /* (9) The file/directory object is invalid */
+    SATRF_WRITE_PROTECTED      = 40, /* (10) The physical drive is write protected */
+    SATRF_INVALID_DRIVE        = 41, /* (11) The logical drive number is invalid */
+    SATRF_NOT_ENABLED          = 42, /* (12) The volume has no work area */
+    SATRF_NO_FILESYSTEM        = 43, /* (13) There is no valid FAT volume */
+    SATRF_MKFS_ABORTED         = 44, /* (14) The f_mkfs() aborted due to any parameter error */
+    SATRF_TIMEOUT              = 45, /* (15) Could not get a grant to access the volume within defined period */
+    SATRF_LOCKED               = 46, /* (16) The operation is rejected according to the file sharing policy */
+    SATRF_NOT_ENOUGH_CORE      = 47, /* (17) LFN working buffer could not be allocated */
+    SATRF_TOO_MANY_OPEN_FILES  = 48, /* (18) Number of open files > _FS_SHARE */
+    SATRF_INVALID_PARAMETER    = 49, /* (19) Given parameter is invalid */
+    SATRF_DIR_ERROR            = 50,
+    SATR_SD_DISABLED           = 51,
+    SATR_QUEUE_FULL            = 52,
+    SATR_WRONG_DOWNLINK_OFFSET = 53,
+    SATR_VER_ERROR             = 54,
     /*LAST*/
-    SATR_LAST                  = 54
+    SATR_LAST                  = 55
 }SAT_returnState;
 
 /*services types*/
@@ -160,7 +160,7 @@ typedef enum {
 #define TM_HK_PARAMETERS_REPORT         23
 
 #define TM_EV_NORMAL_REPORT         	1
-#define TM_EV_ERROR_REPORT         		4
+#define TM_EV_ERROR_REPORT         	4
 
 #define TC_FM_PERFORM_FUNCTION          1
 
@@ -198,8 +198,8 @@ typedef enum {
 #define TC_MS_REPORT                    12
 #define TM_MS_CATALOGUE_REPORT          13
 #define TC_MS_UPLINK                    14
-#define TC_MS_FORMAT                    15 /* custom service*/
-#define TC_MS_LIST                      16 /* custom service*/
+#define TC_MS_FORMAT                    15 /*custom service*/
+#define TC_MS_LIST                      16 /*custom service*/
 #define TM_MS_CATALOGUE_LIST            17
 
 #define TC_CT_PERFORM_TEST              1
@@ -234,12 +234,27 @@ typedef enum {
 #define TC_SU_SCHE_OFF                  26 //subservice 25
 
 /*TIME MANAGEMENT SERVICE*/
-#define TM_TIME_SET_IN_UTC              1 //subservice 1
-#define TM_TIME_SET_IN_QB50             2 //subservice 2
-#define TM_REPORT_TIME_IN_UTC           3 //subservice 3, Telecommand to report time in UTC
-#define TM_REPORT_TIME_IN_QB50          4 //subservice 4, Telecommand to report time in QB50
-#define TM_TIME_REPORT_IN_UTC           5 //subservice 5, Telemetry response time in UTC
-#define TM_TIME_REPORT_IN_QB50          6 //subservice 6, Telemetry response time in QB50
+#define TM_TIME_SET_IN_UTC              1 /*subservice 1*/
+#define TM_TIME_SET_IN_QB50             2 /*subservice 2*/
+#define TM_REPORT_TIME_IN_UTC           3 /*subservice 3, Telecommand to report time in UTC*/
+#define TM_REPORT_TIME_IN_QB50          4 /*subservice 4, Telecommand to report time in QB50*/
+#define TM_TIME_REPORT_IN_UTC           5 /*subservice 5, Telemetry response time in UTC*/
+#define TM_TIME_REPORT_IN_QB50          6 /*subservice 6, Telemetry response time in QB50*/
+
+/*SCHEDULING SERVICE*/
+#define SCHS_ENABLE_RELEASE             1 /*subservice 01, Telecommand to enable the release of telecommands from schedule pool*/
+#define SCHS_DISABLE_RELEASE            2 /*subservice 02, Telecommand to disable the release of telecommands from schedule pool*/
+#define SCHS_RESET_SCH                  3 /*subservice 03, Telecommand to reset the schedule pool*/
+#define SCHS_INSERT_TC_IN_SCH           4 /*subservice 04, Telecommand to insert a tc_tm_pkt in schedule pool*/
+#define SCHS_DELETE_TC_FROM_SCH         5 /*subservice 05, Telecommand to delete a tc_tm_pkt from schedule pool*/
+#define SCHS_DELETE_TC_FROM_SCH_OTP     6 /*subservice 06, Telecommand to delete tc_tm_pkts from schedule pool over a time period*/
+#define SCHS_TIME_SHIFT_SEL_TC          7 /*subservice 07, Telecommand to time shift (+/-) selected active schedule packet*/
+#define SCHS_TIME_SHIFT_SEL_TC_OTP      8 /*subservice 08, Telecommand to time shift (+/-) selected active schedule packets over a time period*/
+#define SCHS_DETAILED_SCH_REPORT        10 /*subservice 10, Telemerty response to (to TC no:16) report schedules in detailed form*/
+#define SCHS_SIMPLE_SCH_REPORT          13 /*subservice 13, Telemerty response to (to TC no:17) report schedules in summary form*/
+#define SCHS_TIME_SHIFT_ALL_TCS         15 /*subservice 15, Telecommand to time shift (+/-) all active schedule packets*/
+#define SCHS_REPORT_SCH_DETAILED        16 /*subservice 16, Telecommand to report schedules in detailed form*/
+#define SCHS_REPORT_SCH_SIMPLE          17 /*subservice 17, Telecommand to report schedules in summary form*/
 
 typedef enum {
     HEALTH_REP      = 1,
@@ -342,6 +357,7 @@ typedef enum {
     LAST_EV_EVENT        = 13
 }EV_event;
 
+//TODO: REMOVE THEM
 typedef enum {
     SET_DTIME_UTC       = 1,
     SET_DTIME_QB50      = 2,
@@ -389,9 +405,9 @@ typedef struct {
     uint8_t *data; /* pkt data */
 
     /*this is not part of the header. it is used from the software and the verification service,
-     *when the packet wants ack.
+     *when the packet wants ACK.
      *the type is SAT_returnState and it either stores R_OK or has the error code (failure reason).
-     *it is initiazed as R_ERROR and the service should be responsible to make it R_OK or put the coresponding error.
+     *it is initialized as R_ERROR and the service should be responsible to make it R_OK or put the corresponding error.
      */
     SAT_returnState verification_state;
 /*  uint8_t padding;  x bits, padding for word alligment */

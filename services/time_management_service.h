@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "services.h"
+#include "pkt_pool.h"
 
 #define TM_MONTH_JANUARY        ((uint8_t)0x01U)
 #define TM_MONTH_FEBRUARY       ((uint8_t)0x02U)
