@@ -64,19 +64,13 @@ route_pkt (tc_tm_pkt *pkt)
   SAT_returnState res;
   TC_TM_app_id id;
 
-  if ( !C_ASSERT(pkt != NULL && pkt->data != NULL)) {
-    verification_app (pkt);
-    free_pkt (pkt);
+  if (C_ASSERT(pkt == NULL || pkt->data == NULL)) {
     return SATR_ERROR;
   }
-  if (!C_ASSERT(pkt->type == TC || pkt->type == TM)) {
-    verification_app (pkt);
-    free_pkt (pkt);
+  if (C_ASSERT(pkt->type != TC && pkt->type != TM)) {
     return SATR_ERROR;
   }
-  if (!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID)) {
-    verification_app (pkt);
-    free_pkt (pkt);
+  if (C_ASSERT(pkt->app_id >= LAST_APP_ID || pkt->dest_id >= LAST_APP_ID)) {
     return SATR_ERROR;
   }
 
@@ -89,6 +83,8 @@ route_pkt (tc_tm_pkt *pkt)
   else {
     return SATR_ERROR;
   }
+
+  if(firewall(pkt) != SATR_OK) { return SATR_ERROR; }
 
   if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE
       && pkt->ser_subtype == TM_HK_PARAMETERS_REPORT
@@ -152,8 +148,6 @@ route_pkt (tc_tm_pkt *pkt)
     queuePush (pkt, OBC_APP_ID);
   }
 
-  verification_app (pkt);
-  free_pkt (pkt);
   return SATR_OK;
 }
 

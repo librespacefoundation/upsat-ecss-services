@@ -136,8 +136,9 @@ typedef enum {
     SATR_QUEUE_FULL            = 51,
     SATR_WRONG_DOWNLINK_OFFSET = 52,
     SATR_VER_ERROR             = 53,
+    SATR_FIREWALLED            = 54,
     /*LAST*/
-    SATR_LAST                  = 54
+    SATR_LAST                  = 55
 }SAT_returnState;
 
 /*services types*/
