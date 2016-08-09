@@ -65,12 +65,15 @@ route_pkt (tc_tm_pkt *pkt)
   TC_TM_app_id id;
 
   if ( !C_ASSERT(pkt != NULL && pkt->data != NULL)) {
+    free_pkt(pkt);
     return SATR_ERROR;
   }
   if (!C_ASSERT(pkt->type == TC || pkt->type == TM)) {
+    free_pkt(pkt);
     return SATR_ERROR;
   }
   if (!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID)) {
+    free_pkt(pkt);
     return SATR_ERROR;
   }
 
