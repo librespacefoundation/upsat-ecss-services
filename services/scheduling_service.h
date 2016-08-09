@@ -164,19 +164,19 @@ typedef struct {
     * Enable = true, 1
     * Disabled = false, 0
     */
-    uint8_t scheduling_service_enabled;
+    uint8_t schs_service_enabled;
     
     /* Schedules memory pool is full.
      * Full = true, 1
      * space avaliable = false, 0 
      */
-    uint8_t schedule_arr_full;
+    uint8_t sch_arr_full;
     
     /* This array holds the value 1 (True), if 
      * the specified APID scheduling is enabled.
      * OBC_APP_ID = 1, starts at zero index.
      */
-    uint8_t scheduling_apids_enabled[LAST_APP_ID-1];
+    uint8_t schs_apids_enabled[LAST_APP_ID-1];
     
 }Scheduling_service_state;
 

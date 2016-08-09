@@ -23,6 +23,7 @@ SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
 SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
 SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
 SAT_returnState scheduling_service_load_schedules();
+SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id );
 struct time_keeping obc_time;
 
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size);
@@ -51,11 +52,11 @@ SAT_returnState scheduling_service_init(){
     }
         
     sc_s_state.nmbr_of_ld_sched = 0;
-    sc_s_state.schedule_arr_full = false;
+    sc_s_state.sch_arr_full = false;
     
     /*Enable scheduling release for every APID*/
     for(uint8_t s=0;s<LAST_APP_ID;s++){
-        sc_s_state.scheduling_apids_enabled[s] = true;
+        sc_s_state.schs_apids_enabled[s] = true;
     }
     
     /* Load Schedules from storage.
@@ -77,7 +78,7 @@ SAT_returnState cross_schedules() {
     
     for (uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++) {
         if (sch_mem_pool.sc_mem_array[i].pos_taken == true && /*if a valid schedule exists*/
-                sc_s_state.scheduling_apids_enabled[(sch_mem_pool.sc_mem_array[i].app_id) - 1] == true){ /*if scheduling enabled for this APID */
+                sc_s_state.schs_apids_enabled[(sch_mem_pool.sc_mem_array[i].app_id) - 1] == true){ /*if scheduling enabled for this APID */
 
             switch(sch_mem_pool.sc_mem_array[i].sch_evt){
                 case ABSOLUTE: /*ABSOLUTE*/
@@ -87,7 +88,7 @@ SAT_returnState cross_schedules() {
                         route_pkt(&(sch_mem_pool.sc_mem_array[i].tc_pck));
                         sch_mem_pool.sc_mem_array[i].pos_taken = false;
                         sc_s_state.nmbr_of_ld_sched--;
-                        sc_s_state.schedule_arr_full = false;
+                        sc_s_state.sch_arr_full = false;
                     }
                     break;
                 case REPETITIVE: /*REPETITIVE*/
@@ -96,23 +97,23 @@ SAT_returnState cross_schedules() {
                     if(!C_ASSERT(qb_time < MIN_VALID_QB50_SECS) == true ) { return SATR_QBTIME_INVALID; }
                     if(sch_mem_pool.sc_mem_array[i].release_time <= qb_time){ /*time to execute*/
                         route_pkt(&(sch_mem_pool.sc_mem_array[i].tc_pck));
-//                        if(sch_mem_pool.sc_mem_array[i].timeout != 0 &&
-//                           sch_mem_pool.sc_mem_array[i].timeout > 0){ /*set it for future re-execution*/
-                        if(!(sch_mem_pool.sc_mem_array[i].timeout <=0)){
-                            uint32_t new_exec_time = return_time_QB50();
+                        if(!(sch_mem_pool.sc_mem_array[i].timeout <=0)){ /*to save the else*/
+                            uint32_t new_release_time = return_time_QB50();
                             sch_mem_pool.sc_mem_array[i].release_time =
-                                    (new_exec_time + sch_mem_pool.sc_mem_array[i].timeout);
+                                    (new_release_time + sch_mem_pool.sc_mem_array[i].timeout);
                             sch_mem_pool.sc_mem_array[i].pos_taken = true;
                             continue;
-                        }
+                        }/*timeout field is positive */
                         sch_mem_pool.sc_mem_array[i].pos_taken = false;
                         sc_s_state.nmbr_of_ld_sched--;
-                        sc_s_state.schedule_arr_full = false;
+                        sc_s_state.sch_arr_full = false;
                     }
                     break;
              }
         }
     }
+//                        if(sch_mem_pool.sc_mem_array[i].timeout != 0 &&
+//                           sch_mem_pool.sc_mem_array[i].timeout > 0){ /*set it for future re-execution*/
     wdg_reset_SCH();
 }
 
@@ -150,7 +151,7 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
                         sc_s_state.nmbr_of_ld_sched++;
                         if (sc_s_state.nmbr_of_ld_sched == SC_MAX_STORED_SCHEDULES) {
                             /*schedule array has become full*/
-                            sc_s_state.schedule_arr_full = true;
+                            sc_s_state.sch_arr_full = true;
                         }
                     }
                 }
@@ -203,18 +204,30 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
 SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
     
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
-    
-//    scheduling_service_crt_pkt_TM(pkt, dest_id , SCHEDULING_REPORT_SIMPLE );
-//    pkt->data[0] = temp_time.weekday;
-//    pkt->data[1] = temp_time.day;
-//    pkt->data[2] = temp_time.month;
-//    pkt->data[3] = temp_time.year;
-//    pkt->data[4] = temp_time.hour;
-//    pkt->data[5] = temp_time.min;
-//    pkt->data[6] = temp_time.sec;
-//    
-    pkt->len = 7;
-
+    scheduling_service_crt_pkt_TM(pkt, SCHS_SIMPLE_SCH_REPORT, dest_id);
+    uint8_t base = 0;
+    for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
+//        if (sch_mem_pool.sc_mem_array[i].pos_taken == true && /*if a valid schedule exists*/
+//                sc_s_state.schs_apids_enabled[(sch_mem_pool.sc_mem_array[i].app_id) - 1] == true){ /*if scheduling enabled for this APID */
+        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].app_id;
+        base+=1;
+        cnv16_8(sch_mem_pool.sc_mem_array[i].seq_count, &pkt->data[(i+1)*base]);
+        base+=2;
+        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].enabled;
+        base+=1;
+        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].pos_taken;
+        base+=1;
+        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].sch_evt;
+        base+=1;
+        cnv32_8(sch_mem_pool.sc_mem_array[i].release_time, &pkt->data[(i+1)*base]);
+//        pkt->data[i+base] = sch_mem_pool.sc_mem_array[i].release_time;
+        base+=4;
+        cnv32_8(sch_mem_pool.sc_mem_array[i].timeout, &pkt->data[(i+1)*base]);
+        base+=4;
+//        pkt->data[i+base] = sch_mem_pool.sc_mem_array[i].timeout;
+//        base+=14;
+    }
+    pkt->len = base*SC_MAX_STORED_SCHEDULES;
     return SATR_OK;
 }
 
@@ -227,13 +240,11 @@ SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest
     
 }
 
-SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, TC_TM_app_id dest_app_id, uint8_t ssid ){
+SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id ){
 
     if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
-    
-    //crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_SCHEDULING_SERVICE, sid, dest_app_id);
+    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_SCHEDULING_SERVICE, sid, dest_app_id);
     pkt->len = 0;
-
     return SATR_OK;
 }
 
@@ -293,9 +304,9 @@ SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t a
     if(!C_ASSERT( apid < LAST_APP_ID) == true)               { return SATR_ERROR; }
     
     if( subtype == SCHS_ENABLE_RELEASE ){
-        sc_s_state.scheduling_apids_enabled[apid-1] = true; }
+        sc_s_state.schs_apids_enabled[apid-1] = true; }
     else{
-        sc_s_state.scheduling_apids_enabled[apid-1] = false; }
+        sc_s_state.schs_apids_enabled[apid-1] = false; }
     
     return SATR_OK;
 }
@@ -310,7 +321,7 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
     
     uint8_t g = 0;
     sc_s_state.nmbr_of_ld_sched = 0;
-    sc_s_state.schedule_arr_full = false;
+    sc_s_state.sch_arr_full = false;
     
     /*mark every pos as !valid, = available*/
     for( ;g<SC_MAX_STORED_SCHEDULES;g++ ){
@@ -318,7 +329,7 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
     }
     /*enable release for all apids*/
     for( g=0;g<LAST_APP_ID;g++ ){
-        sc_s_state.scheduling_apids_enabled[g] = true;
+        sc_s_state.schs_apids_enabled[g] = true;
     }
     //TODO: reload schedules from storage?
     return SATR_OK;
@@ -542,7 +553,7 @@ SAT_returnState scheduling_remove_schedule_api(uint8_t apid, uint16_t seqc){
                     
                 sch_mem_pool.sc_mem_array[i].pos_taken = false;
                 sc_s_state.nmbr_of_ld_sched--;
-                sc_s_state.schedule_arr_full = false;
+                sc_s_state.sch_arr_full = false;
             }
         }
     return SATR_OK;
