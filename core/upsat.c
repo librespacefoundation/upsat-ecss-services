@@ -53,7 +53,15 @@ SAT_returnState import_pkt(TC_TM_app_id app_id, struct uart_data *data) {
                 pkt->verification_state = res;
             }
             verification_app(pkt);
-            free_pkt(pkt);
+
+            TC_TM_app_id dest = 0;
+
+            if(pkt->type == TC)         { dest = pkt->app_id; }
+            else if(pkt->type == TM)    { dest = pkt->dest_id; }
+
+            if(dest == SYSTEM_APP_ID) {
+                free_pkt(pkt);
+            }
         }
         else {
             stats_dropped_hldlc();

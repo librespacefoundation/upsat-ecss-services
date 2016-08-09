@@ -65,18 +65,12 @@ route_pkt (tc_tm_pkt *pkt)
   TC_TM_app_id id;
 
   if ( !C_ASSERT(pkt != NULL && pkt->data != NULL)) {
-    verification_app (pkt);
-    free_pkt (pkt);
     return SATR_ERROR;
   }
   if (!C_ASSERT(pkt->type == TC || pkt->type == TM)) {
-    verification_app (pkt);
-    free_pkt (pkt);
     return SATR_ERROR;
   }
   if (!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID)) {
-    verification_app (pkt);
-    free_pkt (pkt);
     return SATR_ERROR;
   }
 
@@ -152,8 +146,6 @@ route_pkt (tc_tm_pkt *pkt)
     queuePush (pkt, OBC_APP_ID);
   }
 
-  verification_app (pkt);
-  free_pkt (pkt);
   return SATR_OK;
 }
 
@@ -183,10 +175,20 @@ rx_ecss (uint8_t *payload, const uint16_t payload_size)
   if (unpack_pkt (payload, pkt, payload_size) == SATR_OK) {
     ret = route_pkt (pkt);
   }
-  else {
-    verification_app (pkt);
-    ret = free_pkt (pkt);
+
+  TC_TM_app_id dest = 0;
+
+  if(pkt->type == TC) {
+    dest = pkt->app_id;
   }
+  else if(pkt->type == TM) {
+    dest = pkt->dest_id;
+  }
+
+  if(dest == SYSTEM_APP_ID) {
+      free_pkt(pkt);
+  }
+
   return ret;
 }
 
@@ -211,6 +213,7 @@ SAT_returnState tx_ecss(tc_tm_pkt *pkt) {
     if(ret < 1){
       return SATR_ERROR;
     }
+    free_pkt (pkt);
     return SATR_OK;
 }
 
