@@ -81,6 +81,9 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     else if(id == OBC_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
     else if(id == GND_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
     else if(id == DBG_APP_ID)      { queuePush(pkt, OBC_APP_ID); }
+    else {
+        free_pkt(pkt);
+    }
 
     return SATR_OK;
 }
