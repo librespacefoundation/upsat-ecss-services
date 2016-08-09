@@ -171,7 +171,9 @@ SAT_returnState unpack_pkt(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t si
 
     pkt->verification_state = SATR_PKT_INIT;
 
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID) == true) {
+    if(!C_ASSERT(pkt->app_id < LAST_APP_ID &&
+                 pkt->dest_id < LAST_APP_ID &&
+                 pkt->app_id != pkt->dest_id) == true) {
         pkt->verification_state = SATR_PKT_ILLEGAL_APPID;
         return SATR_PKT_ILLEGAL_APPID; 
     }
@@ -255,7 +257,9 @@ SAT_returnState pack_pkt(uint8_t *buf, tc_tm_pkt *pkt, uint16_t *size) {
 
     if(!C_ASSERT(buf != NULL && pkt != NULL && pkt->data != NULL  && size != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT(pkt->type == TC || pkt->type == TM) == true)                               { return SATR_ERROR; }
-    if(!C_ASSERT(pkt->app_id < LAST_APP_ID) == true)                                        { return SATR_ERROR; }
+    if(!C_ASSERT(pkt->app_id < LAST_APP_ID &&
+                 pkt->dest_id < LAST_APP_ID &&
+                 pkt->app_id != pkt->dest_id) == true)                                      { return SATR_ERROR; }
 
     cnv.cnv16[0] = pkt->app_id;
 

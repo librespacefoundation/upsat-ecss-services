@@ -44,13 +44,15 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
     TC_TM_app_id id = 0;
 
     if (!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) {
+        free_pkt(pkt);
         return SATR_ERROR;
     }
     if (!C_ASSERT(pkt->type == TC || pkt->type == TM) == true) {
+        free_pkt(pkt);
         return SATR_ERROR;
     }
-    if (!C_ASSERT(
-            pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true) {
+    if (!C_ASSERT(pkt->app_id < LAST_APP_ID && pkt->dest_id < LAST_APP_ID) == true) {
+        free_pkt(pkt);
         return SATR_ERROR;
     }
 
@@ -82,6 +84,8 @@ SAT_returnState route_pkt(tc_tm_pkt *pkt) {
         queuePush(pkt, OBC_APP_ID);
     } else if (id == DBG_APP_ID) {
         queuePush(pkt, OBC_APP_ID);
+    } else {
+        free_pkt(pkt);
     }
 
     return SATR_OK;
