@@ -11,6 +11,9 @@
 
 #define SCHEDULING_SERVICE_V 0.1
 
+#define MIN_VALID_QB50_SECS 2678400
+
+
 /* Declares the maximum available space for 
  * on-memory loaded schedule commands
  */
@@ -150,7 +153,7 @@ typedef struct{
     
 }Schedule_pkt_pool;
 
-extern Schedule_pkt_pool schedule_mem_pool;
+extern Schedule_pkt_pool sch_mem_pool;
 
 typedef struct {
     /*Number of loaded schedules*/
@@ -181,7 +184,7 @@ extern Scheduling_service_state sc_s_state;
 
 static uint8_t scheduling_enabled = true;
 
-void cross_schedules();
+SAT_returnState cross_schedules();
 
 SAT_returnState scheduling_service_init();
 

@@ -105,39 +105,40 @@ typedef enum {
     SATR_RLS_TIMET_ID_INVALID  = 23, /*Relese time type ID invalid */
     SATR_DEST_APID_INVALID     = 24, /*Destination APID in embedded TC is invalid */
     SATR_TIME_INVALID          = 25, /*Release time of TC is invalid */
-    SATR_TIME_SPEC_INVALID     = 26, /*Release time of TC is specified in a invalid representation*/
-    SATR_INTRL_LOGIC_ERROR     = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
-    SATR_SCHEDULE_DISABLED     = 28,
-    SATR_SCHEDULE_NOT_IMLP     = 29, /*Not implemented function of scheduling service*/
+    SATR_QBTIME_INVALID        = 26, /*Time management reported erroneous time*/
+    SATR_TIME_SPEC_INVALID     = 27, /*Release time of TC is specified in a invalid representation*/
+    SATR_INTRL_LOGIC_ERROR     = 28, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHEDULE_DISABLED     = 29,
+    SATR_SCHEDULE_NOT_IMLP     = 30, /*Not implemented function of scheduling service*/
     /*FatFs*/
-    SATRF_OK                   = 30, /* (0) Succeeded */
-    SATRF_DISK_ERR             = 31, /* (1) A hard error occurred in the low level disk I/O layer */
-    SATRF_INT_ERR              = 32, /* (2) Assertion failed */
-    SATRF_NOT_READY            = 33, /* (3) The physical drive cannot work */
-    SATRF_NO_FILE              = 34, /* (4) Could not find the file */
-    SATRF_NO_PATH              = 35, /* (5) Could not find the path */
-    SATRF_INVALID_NAME         = 36, /* (6) The path name format is invalid */
-    SATRF_DENIED               = 37, /* (7) Access denied due to prohibited access or directory full */
-    SATRF_EXIST                = 38, /* (8) Access denied due to prohibited access */
-    SATRF_INVALID_OBJECT       = 39, /* (9) The file/directory object is invalid */
-    SATRF_WRITE_PROTECTED      = 40, /* (10) The physical drive is write protected */
-    SATRF_INVALID_DRIVE        = 41, /* (11) The logical drive number is invalid */
-    SATRF_NOT_ENABLED          = 42, /* (12) The volume has no work area */
-    SATRF_NO_FILESYSTEM        = 43, /* (13) There is no valid FAT volume */
-    SATRF_MKFS_ABORTED         = 44, /* (14) The f_mkfs() aborted due to any parameter error */
-    SATRF_TIMEOUT              = 45, /* (15) Could not get a grant to access the volume within defined period */
-    SATRF_LOCKED               = 46, /* (16) The operation is rejected according to the file sharing policy */
-    SATRF_NOT_ENOUGH_CORE      = 47, /* (17) LFN working buffer could not be allocated */
-    SATRF_TOO_MANY_OPEN_FILES  = 48, /* (18) Number of open files > _FS_SHARE */
-    SATRF_INVALID_PARAMETER    = 49, /* (19) Given parameter is invalid */
+    SATRF_OK                   = 31, /* (0) Succeeded */
+    SATRF_DISK_ERR             = 32, /* (1) A hard error occurred in the low level disk I/O layer */
+    SATRF_INT_ERR              = 33, /* (2) Assertion failed */
+    SATRF_NOT_READY            = 34, /* (3) The physical drive cannot work */
+    SATRF_NO_FILE              = 35, /* (4) Could not find the file */
+    SATRF_NO_PATH              = 36, /* (5) Could not find the path */
+    SATRF_INVALID_NAME         = 37, /* (6) The path name format is invalid */
+    SATRF_DENIED               = 38, /* (7) Access denied due to prohibited access or directory full */
+    SATRF_EXIST                = 39, /* (8) Access denied due to prohibited access */
+    SATRF_INVALID_OBJECT       = 40, /* (9) The file/directory object is invalid */
+    SATRF_WRITE_PROTECTED      = 41, /* (10) The physical drive is write protected */
+    SATRF_INVALID_DRIVE        = 42, /* (11) The logical drive number is invalid */
+    SATRF_NOT_ENABLED          = 43, /* (12) The volume has no work area */
+    SATRF_NO_FILESYSTEM        = 44, /* (13) There is no valid FAT volume */
+    SATRF_MKFS_ABORTED         = 45, /* (14) The f_mkfs() aborted due to any parameter error */
+    SATRF_TIMEOUT              = 46, /* (15) Could not get a grant to access the volume within defined period */
+    SATRF_LOCKED               = 47, /* (16) The operation is rejected according to the file sharing policy */
+    SATRF_NOT_ENOUGH_CORE      = 48, /* (17) LFN working buffer could not be allocated */
+    SATRF_TOO_MANY_OPEN_FILES  = 49, /* (18) Number of open files > _FS_SHARE */
+    SATRF_INVALID_PARAMETER    = 50, /* (19) Given parameter is invalid */
 
-    SATRF_DIR_ERROR            = 50,
+    SATRF_DIR_ERROR            = 51,
 
-    SATR_SD_DISABLED           = 51,
-    SATR_QUEUE_FULL            = 52,
-    SATR_WRONG_DOWNLINK_OFFSET = 53,
+    SATR_SD_DISABLED           = 52,
+    SATR_QUEUE_FULL            = 53,
+    SATR_WRONG_DOWNLINK_OFFSET = 54,
     /*LAST*/
-    SATR_LAST                  = 54
+    SATR_LAST                  = 55
 }SAT_returnState;
 
 /*services types*/
