@@ -25,9 +25,12 @@ SAT_returnState verification_app(const tc_tm_pkt *pkt) {
     }
     else {
 
-        if(!C_ASSERT(pkt->ack == TC_ACK_ACC || pkt->ack == TC_ACK_NO) == true) { return SATR_ERROR; }
+        if(!C_ASSERT(pkt->ack == TC_ACK_ACC ||
+                     pkt->ack == TC_ACK_NO) == true) { return SATR_ERROR; }
         if(pkt->type == TM) { return SATR_OK; }
-        if(pkt->app_id != SYSTEM_APP_ID) { return SATR_OK; }
+        if(pkt->app_id != SYSTEM_APP_ID &&
+           (pkt->verification_state == SATR_OK ||
+           pkt->verification_state == SATR_PKT_INIT)) { return SATR_OK; }
         
         if(pkt->ack == TC_ACK_NO) { return SATR_OK; }
         else if(pkt->ack == TC_ACK_ACC) {
