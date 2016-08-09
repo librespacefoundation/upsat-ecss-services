@@ -98,6 +98,8 @@ SAT_returnState mass_storage_app(tc_tm_pkt *pkt) {
 
     MS_sid sid = (MS_sid)pkt->data[0];
 
+    pkt->verification_state = SATR_ACK_1;
+
     if(!C_ASSERT(sid < LAST_SID) == true) { return SATR_ERROR; }
 
     if(pkt->ser_subtype == TC_MS_DISABLE) {

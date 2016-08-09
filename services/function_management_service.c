@@ -24,14 +24,15 @@ SAT_returnState function_management_app(tc_tm_pkt *pkt) {
 
         //if(!C_ASSERT(pkt->len < PKT_LEN_FM_PWRCTRL) == true) { return SATR_INV_DATA_LEN; }
 
-        pkt->verification_state = SATR_OK; 
-        power_control_api((FM_dev_id)pkt->data[1], fun_id, NULL);
+        pkt->verification_state = SATR_ACK_1; 
+        SAT_returnState res = power_control_api((FM_dev_id)pkt->data[1], fun_id, NULL);
+        pkt->verification_state = res;
 
     } else if(fun_id == SET_VAL) {
 
-        pkt->verification_state = SATR_OK;
-        power_control_api((FM_dev_id)pkt->data[1], fun_id, &pkt->data[2]);
-
+        pkt->verification_state = SATR_ACK_1;
+        SAT_returnState res = power_control_api((FM_dev_id)pkt->data[1], fun_id, &pkt->data[2]);
+        pkt->verification_state = res;
     }
 
     return SATR_OK;
