@@ -117,8 +117,8 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
             exec_state = SATR_SCHS_NOT_IMLP;
             break;
         case SCHS_TIME_SHIFT_SEL_TC:
-            if(!C_ASSERT( tc_tm_packet->data[4] < LAST_APP_ID) == true) { return SATR_ERROR; }
-            if(!C_ASSERT( tc_tm_packet->data[5] < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+            if(!C_ASSERT( tc_tm_packet->data[5] < LAST_APP_ID) == true) { return SATR_ERROR; }
+            if(!C_ASSERT( tc_tm_packet->data[6] < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
             exec_state = time_shift_sel_schedule(tc_tm_packet->data);
             break;
         case SCHS_TIME_SHIFT_SEL_TC_OTP:
@@ -255,7 +255,7 @@ SAT_returnState scheduling_service_report_detailed(tc_tm_pkt *pkt, TC_TM_app_id 
     if(!C_ASSERT( apid < LAST_APP_ID) == true) { return SATR_ERROR; }
     if(!C_ASSERT( seqcnt < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
     
-    scheduling_service_crt_pkt_TM(pkt, SCHS_REPORT_SCH_DETAILED, dest_id);
+    scheduling_service_crt_pkt_TM(pkt, SCHS_DETAILED_SCH_REPORT, dest_id);
     for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
         if(sch_mem_pool.sc_mem_array[i].app_id == apid &&
            sch_mem_pool.sc_mem_array[i].seq_count == seqcnt){
@@ -322,10 +322,10 @@ SAT_returnState time_shift_all_tcs(uint8_t *time_v){
     
     int32_t time_diff = 0;
     
-    time_diff = ( time_diff | time_v[0]) << 8;
-    time_diff = ( time_diff | time_v[1]) << 8;
+    time_diff = ( time_diff | time_v[3]) << 8;
     time_diff = ( time_diff | time_v[2]) << 8;
-    time_diff = ( time_diff | time_v[3]);
+    time_diff = ( time_diff | time_v[1]) << 8;
+    time_diff = ( time_diff | time_v[0]);
     
     for ( uint8_t i=0; i< SC_MAX_STORED_SCHEDULES;i++){
         if( sch_mem_pool.sc_mem_array[i].sch_evt == ABSOLUTE){
@@ -568,7 +568,7 @@ SAT_returnState time_shift_sel_schedule(uint8_t *data_v){
                     uint32_t rele_time = sch_mem_pool.sc_mem_array[pos].release_time;
                     uint32_t qb_time_now = return_time_QB50();
                     uint8_t neg = (ushift_time >> 31) & 0x1;
-                    uint32_t shift_time_val = ushift_time & 0x7FFFFFFF;
+                    uint32_t shift_time_val = (~ushift_time)+ 1;
                     uint32_t new_release_t=0;
                     if(neg){ /*then substract it from release time*/
                         if(shift_time_val >= rele_time){ /*substraction not possible, erroneous state*/
@@ -582,7 +582,7 @@ SAT_returnState time_shift_sel_schedule(uint8_t *data_v){
                         return SATR_OK;
                     }
                     /*then add it to release time*/
-                    new_release_t = rele_time + shift_time_val;
+                    new_release_t = rele_time + ushift_time;
                     if( new_release_t <= 662774400 ){ /*to far to execute, will not exist then*/
                         sch_mem_pool.sc_mem_array[pos].release_time = new_release_t;
                         return SATR_OK;
