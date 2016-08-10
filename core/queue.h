@@ -12,4 +12,6 @@ uint8_t queueSize(TC_TM_app_id app_id);
 
 tc_tm_pkt * queuePeak(TC_TM_app_id app_id);
 
+void queue_IDLE(TC_TM_app_id app_id);
+
 #endif
