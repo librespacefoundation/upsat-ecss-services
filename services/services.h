@@ -96,20 +96,20 @@ typedef enum {
     /* Scheduling Service Error State Codes
     * from
     */
-    SATR_SCHEDULE_FULL         = 16, /*Schedule array is full */
-    SATR_SSCH_ID_INVALID       = 17, /*Subschedule ID invalid */
-    SATR_NMR_OF_TC_INVALID     = 18, /*Number of telecommands invalid */
-    SATR_INTRL_ID_INVALID      = 19, /*Interlock ID invalid */
-    SATR_ASS_INTRL_ID_INVALID  = 20, /*Assess Interlock ID invalid */
-    SATR_ASS_TYPE_ID_INVALID   = 21, /*Assesment type id invalid*/
-    SATR_RLS_TIMET_ID_INVALID  = 22, /*Relese time type ID invalid */
-    SATR_DEST_APID_INVALID     = 23, /*Destination APID in embedded TC is invalid */
-    SATR_TIME_INVALID          = 24, /*Release time of TC is invalid */
+    SATR_SCHS_FULL             = 16, /*Schedule array is full */
+    SATR_SCHS_ID_INVALID       = 17, /*Sub-schedule ID invalid */
+    SATR_SCHS_NMR_OF_TC_INVLD  = 18, /*Number of telecommands invalid */
+    SATR_SCHS_INTRL_ID_INVLD   = 19, /*Interlock ID invalid */
+    SATR_SCHS_ASS_INTRL_ID_INVLD = 20, /*Assess Interlock ID invalid */
+    SATR_SCHS_ASS_TP_ID_INVLD  = 21, /*Assessment type id invalid*/
+    SATR_SCHS_RLS_TT_ID_INVLD  = 22, /*Release time type ID invalid */
+    SATR_SCHS_DST_APID_INVLD   = 23, /*Destination APID in embedded TC is invalid */
+    SATR_SCHS_TIM_INVLD        = 24, /*Release time of TC is invalid */
     SATR_QBTIME_INVALID        = 25, /*Time management reported erroneous time*/
-    SATR_TIME_SPEC_INVALID     = 26, /*Release time of TC is specified in a invalid representation*/
-    SATR_INTRL_LOGIC_ERROR     = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
-    SATR_SCHEDULE_DISABLED     = 28,
-    SATR_SCHEDULE_NOT_IMLP     = 29, /*Not implemented function of scheduling service*/
+    SATR_SCHS_TIM_SPEC_INVLD   = 26, /*Release time of TC is specified in a invalid representation*/
+    SATR_SCHS_INTRL_LGC_ERR    = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHS_DISABLED         = 28,
+    SATR_SCHS_NOT_IMLP         = 29, /*Not implemented function of scheduling service*/
     /*FatFs*/
     SATRF_OK                   = 30, /* (0) Succeeded */
     SATRF_DISK_ERR             = 31, /* (1) A hard error occurred in the low level disk I/O layer */
