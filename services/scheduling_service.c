@@ -21,7 +21,7 @@ extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
 SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
 SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
-SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
+SAT_returnState scheduling_service_report_detailed(tc_tm_pkt *pkt, TC_TM_app_id dest_id, uint8_t apid, uint8_t seqcnt);
 SAT_returnState scheduling_service_load_schedules();
 SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id );
 SAT_returnState time_shift_sel_schedule(uint8_t *data_v);
@@ -130,13 +130,17 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
         case SCHS_REPORT_SCH_DETAILED:
             tc_tm_pkt *sch_rep_d_pkt = get_pkt(PKT_NORMAL);
             if(!C_ASSERT(sch_rep_d_pkt != NULL)==true) { return SATR_ERROR; }
-
+            exec_state = scheduling_service_report_detailed(sch_rep_d_pkt, 
+                         (TC_TM_app_id)tc_tm_packet->dest_id, tc_tm_packet->data[0], tc_tm_packet->data[1]);
+            tc_tm_packet->verification_state = exec_state;
+            route_pkt(sch_rep_d_pkt);
             break;
-        case SCHS_REPORT_SCH_SIMPLE:
+        case SCHS_REPORT_SCH_SUMMARY:
             tc_tm_pkt *sch_rep_s_pkt = get_pkt(PKT_NORMAL);
             if(!C_ASSERT(sch_rep_s_pkt != NULL)==true) { return SATR_ERROR; }
-            
             exec_state = scheduling_service_report_summary(sch_rep_s_pkt, (TC_TM_app_id)tc_tm_packet->dest_id);
+            tc_tm_packet->verification_state = exec_state;
+            route_pkt(sch_rep_s_pkt);
             break;
         case 24: /*Load TCs from permanent storage*/
             exec_state = scheduling_service_load_schedules();
@@ -179,33 +183,39 @@ SAT_returnState cross_schedules() {
                 case REPETITIVE:
                     
                     uint32_t qb_time = return_time_QB50();
-                    if(!C_ASSERT(qb_time < MIN_VALID_QB50_SECS) == true ) { return SATR_QBTIME_INVALID; }
+                    if(!C_ASSERT(qb_time >= MIN_VALID_QB50_SECS) == true ) { return SATR_QBTIME_INVALID; }
+                    SYSVIEW_PRINT("SCHS CHECKING SCH TIME");
                     if(sch_mem_pool.sc_mem_array[i].release_time <= qb_time){ /*time to execute*/
+                        SYSVIEW_PRINT("SCHS ROUTING PKT");
                         route_pkt(&(sch_mem_pool.sc_mem_array[i].tc_pck));
-                        if(!(sch_mem_pool.sc_mem_array[i].timeout <=0)){ /*to save the else*/
+                        if(!(sch_mem_pool.sc_mem_array[i].timeout <=0)){ /*to save the else, and go for rescheduling*/
                             uint32_t new_release_time = return_time_QB50();
+//                            sch_mem_pool.sc_mem_array[i].release_time =
+//                                    (new_release_time + sch_mem_pool.sc_mem_array[i].timeout);
                             sch_mem_pool.sc_mem_array[i].release_time =
-                                    (new_release_time + sch_mem_pool.sc_mem_array[i].timeout);
+                                (sch_mem_pool.sc_mem_array[i].release_time + sch_mem_pool.sc_mem_array[i].timeout);
                             sch_mem_pool.sc_mem_array[i].pos_taken = true;
                             sch_mem_pool.sc_mem_array[i].enabled = true;
+                            SYSVIEW_PRINT("SCHS SCHEDULE RESCHEDULED");
                             continue;
                         }/*timeout field is positive */
                         sch_mem_pool.sc_mem_array[i].pos_taken = false;
                         sch_mem_pool.sc_mem_array[i].enabled = false;
                         sc_s_state.nmbr_of_ld_sched--;
                         sc_s_state.sch_arr_full = false;
+                        SYSVIEW_PRINT("SCHS SCHEDULE POS FREED");
                     }
                     break;
              }
         }
-    }
-//                        if(sch_mem_pool.sc_mem_array[i].timeout != 0 &&
-//                           sch_mem_pool.sc_mem_array[i].timeout > 0){ /*set it for future re-execution*/
+    }/*go to check next schedule*/
     wdg_reset_SCH();
 }
 
 /**
  * Handles the simple report request.
+ * This reports just the scheduling position (0-14) and if something is in it.
+ * 
  * @param tc_tm_data.
  * @return the execution state.
  */
@@ -215,27 +225,22 @@ SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id d
     scheduling_service_crt_pkt_TM(pkt, SCHS_SIMPLE_SCH_REPORT, dest_id);
     uint8_t base = 0;
     for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
-//        if (sch_mem_pool.sc_mem_array[i].pos_taken == true && /*if a valid schedule exists*/
-//                sc_s_state.schs_apids_enabled[(sch_mem_pool.sc_mem_array[i].app_id) - 1] == true){ /*if scheduling enabled for this APID */
-        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].app_id;
+        pkt->data[base] = sch_mem_pool.sc_mem_array[i].pos_taken;
         base+=1;
-        cnv16_8(sch_mem_pool.sc_mem_array[i].seq_count, &pkt->data[(i+1)*base]);
-        base+=2;
-        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].enabled;
+        pkt->data[base] = sch_mem_pool.sc_mem_array[i].enabled;
         base+=1;
-        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].pos_taken;
+        pkt->data[base] = sch_mem_pool.sc_mem_array[i].app_id;
         base+=1;
-        pkt->data[(i+1)*base] = sch_mem_pool.sc_mem_array[i].sch_evt;
+        pkt->data[base] = sch_mem_pool.sc_mem_array[i].seq_count;
         base+=1;
-        cnv32_8(sch_mem_pool.sc_mem_array[i].release_time, &pkt->data[(i+1)*base]);
-//        pkt->data[i+base] = sch_mem_pool.sc_mem_array[i].release_time;
+        pkt->data[base] = sch_mem_pool.sc_mem_array[i].sch_evt;
+        base+=1;
+        cnv32_8(sch_mem_pool.sc_mem_array[i].release_time, &pkt->data[base]);
         base+=4;
-        cnv32_8(sch_mem_pool.sc_mem_array[i].timeout, &pkt->data[(i+1)*base]);
+        cnv32_8(sch_mem_pool.sc_mem_array[i].timeout, &pkt->data[base]);
         base+=4;
-//        pkt->data[i+base] = sch_mem_pool.sc_mem_array[i].timeout;
-//        base+=14;
     }
-    pkt->len = base*SC_MAX_STORED_SCHEDULES;
+    pkt->len = 13*SC_MAX_STORED_SCHEDULES;
     return SATR_OK;
 }
 
@@ -244,8 +249,46 @@ SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id d
  * @param tc_tm_data.
  * @return the execution state.
  */
-SAT_returnState scheduling_service_report_full(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
+SAT_returnState scheduling_service_report_detailed(tc_tm_pkt *pkt, TC_TM_app_id dest_id, uint8_t apid, uint8_t seqcnt){
     
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+    if(!C_ASSERT( apid < LAST_APP_ID) == true) { return SATR_ERROR; }
+    if(!C_ASSERT( seqcnt < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+    
+    scheduling_service_crt_pkt_TM(pkt, SCHS_REPORT_SCH_DETAILED, dest_id);
+    for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
+        if(sch_mem_pool.sc_mem_array[i].app_id == apid &&
+           sch_mem_pool.sc_mem_array[i].seq_count == seqcnt){
+            uint8_t base =0;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.app_id;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.type;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.seq_flags;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.seq_count;
+            base+=1;
+            cnv16_8(sch_mem_pool.sc_mem_array[i].tc_pck.len, &pkt->data[base]);
+            base+=2;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.ack;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.ser_type;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.ser_subtype;
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.dest_id;
+            base+=1;            
+            for(uint16_t p=0;p<sch_mem_pool.sc_mem_array[i].tc_pck.len;p++){
+                pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.data[p];
+                base+=1;
+            }
+            base+=1;
+            pkt->data[base] = sch_mem_pool.sc_mem_array[i].tc_pck.verification_state;
+            pkt->len = base;
+            break;
+        }
+    }
+    return SATR_OK;
 }
 
 SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id ){
@@ -638,7 +681,7 @@ SAT_returnState scheduling_service_load_schedules(){
         
         /*start loading the sch packet*/
         sch_mem_pool.sc_mem_array[s].app_id = (TC_TM_app_id)sche_tc_buffer[2];
-        cnv8_16LE(&sche_tc_buffer[3], &sch_mem_pool.sc_mem_array[s].seq_count);
+//        cnv8_16LE(&sche_tc_buffer[3], &sch_mem_pool.sc_mem_array[s].seq_count);
         sch_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[5];
         sch_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[6];
         sch_mem_pool.sc_mem_array[s].num_of_sch_tc = sche_tc_buffer[7];

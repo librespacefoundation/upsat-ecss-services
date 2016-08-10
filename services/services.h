@@ -255,7 +255,7 @@ typedef enum {
 #define SCHS_SIMPLE_SCH_REPORT          13 /*subservice 13, Telemerty response to (to TC no:17) report schedules in summary form*/
 #define SCHS_TIME_SHIFT_ALL_TCS         15 /*subservice 15, Telecommand to time shift (+/-) all active schedule packets*/
 #define SCHS_REPORT_SCH_DETAILED        16 /*subservice 16, Telecommand to report schedules in detailed form*/
-#define SCHS_REPORT_SCH_SIMPLE          17 /*subservice 17, Telecommand to report schedules in summary form*/
+#define SCHS_REPORT_SCH_SUMMARY         17 /*subservice 17, Telecommand to report schedules in summary form*/
 
 typedef enum {
     HEALTH_REP      = 1,

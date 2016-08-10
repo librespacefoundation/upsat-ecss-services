@@ -8,6 +8,7 @@
 #include "time_management_service.h"
 #include "services.h"
 #include "pkt_pool.h"
+#include "sysview.h"
 
 #define SCHEDULING_SERVICE_V 0.1
 
@@ -72,7 +73,7 @@ typedef struct {
         /* This is the sequence count of the telecommand packet.
          * This info will be extracted from the encapsulated TC packet.
          */
-    uint16_t seq_count;
+    uint8_t seq_count;
     
         /* If the specific schedule command is enabled.
          * Enabled = 1, Disabled = 0.
