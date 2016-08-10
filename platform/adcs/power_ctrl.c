@@ -92,16 +92,16 @@ SAT_returnState power_control_api(FM_dev_id did, FM_fun_id fid, uint8_t *state) 
         }
     }
     else if (did == ADCS_CTRL_GAIN && fid == SET_VAL) {
-        cnv8_16(&state[0], &control.gain[0]);
-        cnv8_16(&state[2], &control.gain[1]);
-        cnv8_16(&state[4], &control.gain[2]);
-        SYSVIEW_PRINT("GAINS %d %d %d", control.gain[0], control.gain[1], control.gain[2]);
+        cnv8_16(&state[0], &control.k_bdot);
+        cnv8_16(&state[2], &control.k_pointing[0]);
+        cnv8_16(&state[4], &control.k_pointing[1]);
+        SYSVIEW_PRINT("GAINS %d %d %d", control.k_bdot, control.k_pointing[0], control.k_pointing[1]);
     }
     else if(did == ADCS_SET_POINT && fid == SET_VAL) {
-        cnv8_16(&state[0], &control.set_point[0]);
-        cnv8_16(&state[2], &control.set_point[1]);
-        cnv8_16(&state[4], &control.set_point[2]);
-        SYSVIEW_PRINT("SET POINTS %d %d %d", control.set_point[0], control.set_point[1], control.set_point[2]);
+        cnv8_16(&state[0], &control.sp_roll);
+        cnv8_16(&state[2], &control.sp_pitch);
+        cnv8_16(&state[4], &control.sp_yaw);
+        SYSVIEW_PRINT("SET POINTS %d %d %d", control.sp_roll, control.sp_pitch, control.sp_yaw);
     }
     else if(did == SYS_DBG && fid == SET_VAL)    {
         HAL_adcs_DBG(state[0], state[1]);
