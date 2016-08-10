@@ -6,7 +6,6 @@
 #include "eps_non_volatile_mem_handling.h"
 #include "sysview.h"
 #include "ecss_stats.h"
-
 #include "eps_soft_error_handling.h"
 
 
@@ -29,89 +28,75 @@ uint8_t wod_test[6] = { 1,2,3,4,5,6 };
 SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
 
- 	/*EPS housekeeping WOD
-	 * the order of transmission is:
-	 *  Battery Voltage  - uint8_t - range:3V-15.75V resolution:50mv - reading*71,6mv+3 is the voltage - not 50mv resolution due to voltage divider.
-	 *  Battery Current  - uint8_t - range:-1A - 1.008A resolution:7.87mA - reading*4.601mA+1 is the current
-	 *  3v3 bus Current  - uint8_t - range: 0A - 6.375A resolution:25mA - reading*11.72mA is the current
-	 *  5v  bus Current  - uint8_t - range: 0A - 6.375A resolution:25mA - reading*11.72mA is the current
-	 *  EPS cpu temp     - uint8_t - range:-15oC - 48.75oC resolution: 0.25oC - reading + 15 is the temperature
-	 *  EPS battery temp - uint8_t - range:-15oC - 48.75oC resolution: 0.25oC - reading + 15 is the temperature  */
-
-
     pkt->data[0] = (HK_struct_id)sid;
 
     if(sid == HEALTH_REP) {
 
-     	/* battery voltage
+    	/* battery voltage
     	 *
+    	 * tx data conversion: Vbat = (tx_data * 0.05 + 3) Volt
     	 * eps_board_state.battery_voltage is measured in eps_update_state from the internal 12bit adc.
     	 * arithmetic range: 0-4095
     	 * voltage measurement range:  0 - 18.333V for adc range 0-3.3V (0.18V/V)
     	 * expected measurement range: (2.5*3=)7.5V - (4.2*3=)12.6V
     	 * */
 
-    	pkt->data[1]  = (uint8_t)((eps_board_state.battery_voltage)>>4);//**223,40426 to get the value in volts
+    	uint32_t temp_battery_voltage = ( ((uint32_t)(eps_board_state.battery_voltage)*376870)-252645135 )>>22;
+    	/*Q12 * Q2.20 = Q2.30 - 3/12.75 in Q2.30 and the result shifted in Q8(no overflow is expected)*/
+    	pkt->data[1]  = (uint8_t)(temp_battery_voltage);
 
-     	/* battery current
+    	/* battery current
     	 *
+    	 * tx data conversion: Ibat = (tx_data * 9,20312 - 1178) mA
     	 * eps_board_state.battery_current_plus and battery_current_minus are measured in eps_update_state from the internal 12bit adc.
     	 * arithmetic range: 0-4095
     	 * current measurement range:  0 - 1,178A for adc range 0-3.3V (2.8V/A) so I+ - I- will have a range of -1.178 to 1.178
     	 * expected measurement range: the above full scale
     	 * */
 
+    	uint32_t battery_current_buffer_32bit = 4095 - eps_board_state.battery_current_minus;
+    	/*( S_MAX -S_ADC2 + S_ADC1 )>>5 in Q8*/
+    	battery_current_buffer_32bit = (battery_current_buffer_32bit + eps_board_state.battery_current_plus)>>5;
+    	pkt->data[2]  = (uint8_t)battery_current_buffer_32bit;
 
-        volatile uint8_t battery_current_buffer;
-        if(eps_board_state.battery_current_plus>=eps_board_state.battery_current_minus){
-        	battery_current_buffer=(uint8_t)(eps_board_state.battery_current_plus>>4) -(uint8_t)(eps_board_state.battery_current_minus>>4);
-        }
-        else{
-        	battery_current_buffer = (int8_t)((uint8_t)(eps_board_state.battery_current_minus>>4) -(uint8_t)(eps_board_state.battery_current_plus>>4));
-        	battery_current_buffer = -battery_current_buffer;
-        }
-        pkt->data[2]  = battery_current_buffer;
-
-     	/* 5v and 3v3 rails current
+    	/* 5v and 3v3 rails current
     	 *
+    	 * tx data conversion: I_load = (tx_data*25)mA
     	 * eps_board_state.v3_3_current_avg and v5_current_avg are measured in eps_update_state from the internal 12bit adc.
     	 * arithmetic range: 0-4095
     	 * current measurement range:  0 - 3A for adc range 0-3.3V (1.1V/A)
     	 * expected measurement range: the above full scale - 3A is the maximum output current of the buck module.
     	 * */
+    	pkt->data[3]  = (uint8_t)( ( (uint32_t)(eps_board_state.v3_3_current_avg)*493449 )>>24);/*25mA resoultion*/
+    	pkt->data[4]  = (uint8_t)( ( (uint32_t)(eps_board_state.v5_current_avg)*493449 )>>24);/*25mA resoultion*/
 
-        pkt->data[3]  = (uint8_t)(eps_board_state.v3_3_current_avg);
-        pkt->data[4]  = (uint8_t)(eps_board_state.v5_current_avg);
-
-     	/* cpu_temperature
+    	/* cpu_temperature
     	 *
+    	 * tx data conversion: temp_cpu: (tx_data *0.25 -15) Celsius.
     	 * eps_board_state.cpu_temperature is measured in eps_update_state from  the internal 12bit adc.
     	 * arithmetic range: 0-4095
     	 * temperature measurement range: the temperature is returned in proper signed format in celcius degrees.
     	 * expected measurement range:  the expected range is supposed to be -X to a max of 65 Which is the battery temperature limit.
     	 * */
-        int32_t cpu_temperature_buffer = eps_board_state.cpu_temperature;
+    	int16_t cpu_temperature_buffer = eps_board_state.cpu_temperature;
+    	if(cpu_temperature_buffer<-15){cpu_temperature_buffer=-15;}//clamp to -15
+    	pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15)<<2 );
 
-        if(cpu_temperature_buffer<-15){cpu_temperature_buffer=-15;}//clamp to -15
-        pkt->data[5]  = (uint8_t)( (cpu_temperature_buffer+15));
-
-
-
-     	/* battery temperature
+    	/* battery temperature
     	 *
+    	 * tx data conversion: temp_bat: (tx_data *0.25 -15) Celsius.
     	 * eps_board_state.battery_temp is measured in eps_update_state from  the tc74 i2c temperature sensors.
     	 * arithmetic range: -128 - +128
     	 * temperature measurement range: the temperature is returned in proper signed format in celcius degrees.
     	 * expected measurement range:  the expected range is supposed to be -X to a max of 65 Which is the battery temperature limit.
     	 * */
-        int16_t battery_temperature_buffer = eps_board_state.battery_temp;
-        if(battery_temperature_buffer<-15){battery_temperature_buffer=-15;}//clamp to -15
+    	int16_t battery_temperature_buffer = eps_board_state.battery_temp;
+    	if(battery_temperature_buffer<-15){battery_temperature_buffer=-15;}//clamp to -15
+    	pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15)<<2 );
 
-        pkt->data[6]  = (uint8_t)( (battery_temperature_buffer+15) );
-
-        /*packet length*/
-        pkt->len = 7;
-        SYSVIEW_PRINT("EPS %u,%u,%u,%u,%u,%u", pkt->data[1], pkt->data[2], pkt->data[3], pkt->data[4], pkt->data[5],  pkt->data[6]);
+    	/*packet length*/
+    	pkt->len = 7;
+    	SYSVIEW_PRINT("EPS %u,%u,%u,%u,%u,%u", pkt->data[1], pkt->data[2], pkt->data[3], pkt->data[4], pkt->data[5],  pkt->data[6]);
 
     } else if(sid == EX_HEALTH_REP) {
 
