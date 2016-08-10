@@ -87,6 +87,14 @@ route_pkt (tc_tm_pkt *pkt)
     return SATR_ERROR;
   }
 
+#if 0
+  if(firewall(pkt) != SATR_OK) {
+    verification_app (pkt);
+    free_pkt (pkt);
+    return SATR_OK;
+  }
+#endif
+
   if (id == SYSTEM_APP_ID && pkt->ser_type == TC_HOUSEKEEPING_SERVICE
       && pkt->ser_subtype == TM_HK_PARAMETERS_REPORT
       && pkt->data[0] == WOD_REP) {
