@@ -168,7 +168,7 @@ SAT_returnState su_incoming_rx(){
 
         /*science header request to ADCS subsystem*/
         /*hk_crt_pkt_TC( test_pkt, ADCS_APP_ID, SU_SCI_HDR_REP);*/
-
+        
         /*science header*/
         uint32_t qb_50_secs;
         get_time_QB50(&qb_50_secs);
@@ -217,7 +217,7 @@ SAT_returnState su_incoming_rx(){
         }
     }
 
-    memset(su_sci_header,0x00,SU_SCI_HEADER_SIZE);
+    /*memset(su_sci_header,0x00,SU_SCI_HEADER_SIZE);*/
     memset(su_log_buff,0x00,SU_LOG_SIZE);
     /*set response to zero, in order to detect shifts in next responses*/
     memset(MNLP_data.su_inc_resp,0x00,180);
