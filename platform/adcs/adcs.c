@@ -2,6 +2,7 @@
 #include "queue.h"
 
 #include "adcs_actuators.h"
+#include "adcs_control.h"
 #include "adcs_switch.h"
 #include "adcs_gps.h"
 
@@ -127,9 +128,7 @@ void HAL_adcs_SPIN(int32_t RPM) {
     if (abs(RPM) > MAX_RPM) {
         return;
     }
-    adcs_actuator.spin_torquer.RPM = RPM;
-    adcs_actuator.spin_torquer.rampTime = 0;
-    update_spin_torquer(&adcs_actuator);
+    control.const_rmp = RPM;
 }
 
 void HAL_adcs_MAGNETO(int8_t current_z, int8_t current_y) {
