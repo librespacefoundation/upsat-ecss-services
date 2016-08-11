@@ -59,7 +59,7 @@ SAT_returnState scheduling_service_init(){
     sc_s_state.sch_arr_full = false;
     
     /*Enable scheduling release for every APID*/
-    for(uint8_t s=0;s<LAST_APP_ID;s++){
+    for(uint8_t s=0;s<LAST_APP_ID-1;s++){
         sc_s_state.schs_apids_enabled[s] = true;
     }
     
@@ -145,10 +145,10 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
             tc_tm_packet->verification_state = exec_state;
             route_pkt(sch_rep_s_pkt);
             break;
-        case 24: /*Load TCs from permanent storage*/
+        case SCHS_LOAD_SCHEDULES: /*Load TCs from permanent storage*/
             exec_state = scheduling_service_load_schedules();
             break;
-        case 25: /*Save TCs to permanent storage*/
+        case SCHS_SAVE_SCHEDULES: /*Save TCs to permanent storage*/
             exec_state = scheduling_service_save_schedules();
             break;
     }
@@ -403,7 +403,7 @@ SAT_returnState operations_scheduling_reset_schedule_api(){
         sch_mem_pool.sc_mem_array[g].pos_taken = false;
     }
     /*enable release for all apids*/
-    for( g=0;g<LAST_APP_ID;g++ ){
+    for( g=0;g<LAST_APP_ID-1;g++ ){
         sc_s_state.schs_apids_enabled[g] = true;
     }
     
@@ -692,51 +692,53 @@ SAT_returnState report_detailed_subset( SC_pkt theSchpck ){
  */
 SAT_returnState scheduling_service_load_schedules(){
 
-//    SC_pkt *temp_pkt;
     uint8_t sche_tc_buffer[32];
+    
     memset(sche_tc_buffer,0x00,32);
     for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES;s++){
-//        temp_pkt = find_schedule_pos();
         mass_storage_schedule_load_api(SCHS, s, sche_tc_buffer);
-        
-        /*save the tc's data length in the first 2 bytes*/
+
+        /*read the tc's data length from the first 2 bytes*/
         cnv8_16LE(sche_tc_buffer, &sch_mem_pool.sc_mem_array[s].tc_pck.len);
-        
+
         /*start loading the sch packet*/
         sch_mem_pool.sc_mem_array[s].app_id = (TC_TM_app_id)sche_tc_buffer[2];
+        sch_mem_pool.sc_mem_array[s].seq_count = sche_tc_buffer[3];
 //        cnv8_16LE(&sche_tc_buffer[3], &sch_mem_pool.sc_mem_array[s].seq_count);
-        sch_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[5];
-        sch_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[6];
-        sch_mem_pool.sc_mem_array[s].num_of_sch_tc = sche_tc_buffer[7];
-        sch_mem_pool.sc_mem_array[s].intrlck_set_id = sche_tc_buffer[8];
-        sch_mem_pool.sc_mem_array[s].intrlck_ass_id = sche_tc_buffer[9];
-        sch_mem_pool.sc_mem_array[s].assmnt_type = sche_tc_buffer[10];
-        sch_mem_pool.sc_mem_array[s].sch_evt = (SC_event_time_type) sche_tc_buffer[11];
-        cnv8_32(&sche_tc_buffer[12], &sch_mem_pool.sc_mem_array[s].release_time);
-        cnv8_32(&sche_tc_buffer[16], &sch_mem_pool.sc_mem_array[s].timeout);
-        
+        sch_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[4];
+        sch_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[5];
+        sch_mem_pool.sc_mem_array[s].num_of_sch_tc = sche_tc_buffer[6];
+        sch_mem_pool.sc_mem_array[s].intrlck_set_id = sche_tc_buffer[7];
+        sch_mem_pool.sc_mem_array[s].intrlck_ass_id = sche_tc_buffer[8];
+        sch_mem_pool.sc_mem_array[s].assmnt_type = sche_tc_buffer[9];
+        sch_mem_pool.sc_mem_array[s].sch_evt = (SC_event_time_type) sche_tc_buffer[10];
+        cnv8_32(&sche_tc_buffer[11], &sch_mem_pool.sc_mem_array[s].release_time);
+        cnv8_32(&sche_tc_buffer[15], &sch_mem_pool.sc_mem_array[s].timeout);
+
         /*TC parsing begins here*/
-        sch_mem_pool.sc_mem_array[s].tc_pck.app_id = (TC_TM_app_id) sche_tc_buffer[20];
-        sch_mem_pool.sc_mem_array[s].tc_pck.type = sche_tc_buffer[21];
-        sch_mem_pool.sc_mem_array[s].tc_pck.seq_flags = sche_tc_buffer[22];
+        sch_mem_pool.sc_mem_array[s].tc_pck.app_id = (TC_TM_app_id) sche_tc_buffer[19];
+        sch_mem_pool.sc_mem_array[s].tc_pck.type = sche_tc_buffer[20];
+        sch_mem_pool.sc_mem_array[s].tc_pck.seq_flags = sche_tc_buffer[21];
         cnv8_16LE(&sche_tc_buffer[22], &sch_mem_pool.sc_mem_array[s].tc_pck.seq_count);
-        cnv8_16LE(&sche_tc_buffer[25], &sch_mem_pool.sc_mem_array[s].tc_pck.len);
-        sch_mem_pool.sc_mem_array[s].tc_pck.ack = sche_tc_buffer[27];
-        sch_mem_pool.sc_mem_array[s].tc_pck.ser_type = sche_tc_buffer[28];
-        sch_mem_pool.sc_mem_array[s].tc_pck.ser_subtype = sche_tc_buffer[29];
-        sch_mem_pool.sc_mem_array[s].tc_pck.dest_id = (TC_TM_app_id) sche_tc_buffer[31];
-        
+        cnv8_16LE(&sche_tc_buffer[24], &sch_mem_pool.sc_mem_array[s].tc_pck.len);
+        sch_mem_pool.sc_mem_array[s].tc_pck.ack = sche_tc_buffer[26];
+        sch_mem_pool.sc_mem_array[s].tc_pck.ser_type = sche_tc_buffer[27];
+        sch_mem_pool.sc_mem_array[s].tc_pck.ser_subtype = sche_tc_buffer[28];
+        sch_mem_pool.sc_mem_array[s].tc_pck.dest_id = (TC_TM_app_id) sche_tc_buffer[29];
+
         /*copy tc payload data*/
         uint16_t i = 0;
         for(;i<sch_mem_pool.sc_mem_array[s].tc_pck.len;i++){
-            sch_mem_pool.sc_mem_array[s].tc_pck.data[i] = sche_tc_buffer[31+i];
+            sch_mem_pool.sc_mem_array[s].tc_pck.data[i] = sche_tc_buffer[30+i];
         }
-        sch_mem_pool.sc_mem_array[s].tc_pck.verification_state = (SAT_returnState) sche_tc_buffer[31+i];
+        sch_mem_pool.sc_mem_array[s].tc_pck.verification_state = (SAT_returnState) sche_tc_buffer[30+i];
+
         sch_mem_pool.sc_mem_array[s].pos_taken = true;
+        sch_mem_pool.sc_mem_array[s].enabled = true;
 
         memset(sche_tc_buffer,0x00,32);
     }
-    
+
     return SATR_OK;
 }
 
@@ -745,52 +747,51 @@ SAT_returnState scheduling_service_load_schedules(){
  * @return the execution state.
  */
 SAT_returnState scheduling_service_save_schedules(){
-    
+
     uint8_t sche_tc_buffer[30]; //TODO redefine this
-    
-    /*convert the Schedule packet from Schedule_pkt_pool format to an array of linear bytes*/        
+
+    /*convert the Schedule packet from Schedule_pkt_pool format to an array of linear bytes*/
     for(uint8_t s=0;s<SC_MAX_STORED_SCHEDULES;s++){
         
-        uint16_t file_size=0;                
+        uint16_t file_size=0;
         /*save the tc's data length in the first 2 bytes*/
         cnv16_8(sch_mem_pool.sc_mem_array[s].tc_pck.len, sche_tc_buffer);
-        
+
         /*start saving sch packet*/
         sche_tc_buffer[2] = (uint8_t)sch_mem_pool.sc_mem_array[s].app_id;
-        cnv16_8(sch_mem_pool.sc_mem_array[s].seq_count, &sche_tc_buffer[3]);
-        sche_tc_buffer[5] = sch_mem_pool.sc_mem_array[s].enabled;
-        sche_tc_buffer[6] = sch_mem_pool.sc_mem_array[s].sub_schedule_id;
-        sche_tc_buffer[7] = sch_mem_pool.sc_mem_array[s].num_of_sch_tc;
-        sche_tc_buffer[8] = sch_mem_pool.sc_mem_array[s].intrlck_set_id;
-        sche_tc_buffer[9] = sch_mem_pool.sc_mem_array[s].intrlck_ass_id;
-        sche_tc_buffer[10] = sch_mem_pool.sc_mem_array[s].assmnt_type;
-        sche_tc_buffer[11] = (uint8_t)sch_mem_pool.sc_mem_array[s].sch_evt;
-        cnv32_8(sch_mem_pool.sc_mem_array[s].release_time,&sche_tc_buffer[12]);
-        cnv16_8(sch_mem_pool.sc_mem_array[s].timeout,&sche_tc_buffer[16]);
-        
+        sche_tc_buffer[3] = sch_mem_pool.sc_mem_array[s].seq_count;
+//        cnv16_8(sch_mem_pool.sc_mem_array[s].seq_count, &sche_tc_buffer[3]);
+        sche_tc_buffer[4] = sch_mem_pool.sc_mem_array[s].enabled;
+        sche_tc_buffer[5] = sch_mem_pool.sc_mem_array[s].sub_schedule_id;
+        sche_tc_buffer[6] = sch_mem_pool.sc_mem_array[s].num_of_sch_tc;
+        sche_tc_buffer[7] = sch_mem_pool.sc_mem_array[s].intrlck_set_id;
+        sche_tc_buffer[8] = sch_mem_pool.sc_mem_array[s].intrlck_ass_id;
+        sche_tc_buffer[9] = sch_mem_pool.sc_mem_array[s].assmnt_type;
+        sche_tc_buffer[10] = (uint8_t)sch_mem_pool.sc_mem_array[s].sch_evt;
+        cnv32_8(sch_mem_pool.sc_mem_array[s].release_time,&sche_tc_buffer[11]);
+        cnv32_8(sch_mem_pool.sc_mem_array[s].timeout,&sche_tc_buffer[15]);
+
         /*TC parsing begins here*/
-        sche_tc_buffer[18] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.app_id;
-        sche_tc_buffer[19] = sch_mem_pool.sc_mem_array[s].tc_pck.type;
-        sche_tc_buffer[20] = sch_mem_pool.sc_mem_array[s].tc_pck.seq_flags;
-        cnv16_8(sch_mem_pool.sc_mem_array[s].tc_pck.seq_count,&sche_tc_buffer[21]);
-        cnv16_8(sch_mem_pool.sc_mem_array[s].tc_pck.len,&sche_tc_buffer[23]);
-        sche_tc_buffer[25] = sch_mem_pool.sc_mem_array[s].tc_pck.ack;
-        sche_tc_buffer[26] = sch_mem_pool.sc_mem_array[s].tc_pck.ser_type;
-        sche_tc_buffer[27] = sch_mem_pool.sc_mem_array[s].tc_pck.ser_subtype;
-        sche_tc_buffer[28] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.dest_id;
-        
+        sche_tc_buffer[19] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.app_id;
+        sche_tc_buffer[20] = sch_mem_pool.sc_mem_array[s].tc_pck.type;
+        sche_tc_buffer[21] = sch_mem_pool.sc_mem_array[s].tc_pck.seq_flags;
+        cnv16_8(sch_mem_pool.sc_mem_array[s].tc_pck.seq_count,&sche_tc_buffer[22]);
+        cnv16_8(sch_mem_pool.sc_mem_array[s].tc_pck.len,&sche_tc_buffer[24]);
+        sche_tc_buffer[26] = sch_mem_pool.sc_mem_array[s].tc_pck.ack;
+        sche_tc_buffer[27] = sch_mem_pool.sc_mem_array[s].tc_pck.ser_type;
+        sche_tc_buffer[28] = sch_mem_pool.sc_mem_array[s].tc_pck.ser_subtype;
+        sche_tc_buffer[29] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.dest_id;
+
         /*copy tc payload data*/
         uint16_t i = 0;
         for(;i<sch_mem_pool.sc_mem_array[s].tc_pck.len;i++){
-            sche_tc_buffer[29+i] = sch_mem_pool.sc_mem_array[s].tc_pck.data[i];
+            sche_tc_buffer[30+i] = sch_mem_pool.sc_mem_array[s].tc_pck.data[i];
         }
-        sche_tc_buffer[29+i] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.verification_state;
-        file_size = 30+i;
+        sche_tc_buffer[30+i] = (uint8_t)sch_mem_pool.sc_mem_array[s].tc_pck.verification_state;
+        file_size = 31+i;
         mass_storage_storeFile(SCHS,s,sche_tc_buffer,&file_size);
         //TODO messet the sche_tc_buffer
-        
     }
-    
     return SATR_OK;
 }
 
