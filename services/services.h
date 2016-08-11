@@ -6,6 +6,10 @@
 #include <stdbool.h>
 #include <string.h>
 #include "subsystems_ids.h"
+
+#define SYS_LITTLE_ENDIAN 0
+#define SYS_BIG_ENDIAN 1
+
 #include "system.h"
 
 /* TM TC services*/
@@ -136,8 +140,9 @@ typedef enum {
     SATR_QUEUE_FULL            = 52,
     SATR_WRONG_DOWNLINK_OFFSET = 53,
     SATR_VER_ERROR             = 54,
+	SATR_FIREWALLED            = 55,
     /*LAST*/
-    SATR_LAST                  = 55
+    SATR_LAST                  = 56
 }SAT_returnState;
 
 /*services types*/
