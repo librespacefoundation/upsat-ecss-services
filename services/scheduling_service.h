@@ -14,7 +14,6 @@
 
 #define MIN_VALID_QB50_SECS 2678400
 
-
 /* Declares the maximum available space for 
  * on-memory loaded schedule commands
  */
@@ -24,7 +23,8 @@
  * The combination of APID and seq_count acts as 'primary key' for actions
  * that require selections upon the scheduling packets. 
  */
-#define MAX_SEQ_CNT             256
+#define MAX_SEQ_CNT             255
+#define MIN_SCH_REP_INTRVL      60
 
 typedef enum {
     /* The 'release_time' member
@@ -182,6 +182,9 @@ typedef struct {
 }Scheduling_service_state;
 
 extern Scheduling_service_state sc_s_state;
+
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+extern SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, TC_TM_app_id dest_id);
 
 static uint8_t scheduling_enabled = true;
 

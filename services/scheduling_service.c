@@ -17,19 +17,21 @@
 extern void wdg_reset_SCH();
 extern SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, uint8_t *buf);
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
-extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
+//extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
+
 SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
 SAT_returnState scheduling_service_report_summary(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
 SAT_returnState scheduling_service_report_detailed(tc_tm_pkt *pkt, TC_TM_app_id dest_id, uint8_t apid, uint8_t seqcnt);
 SAT_returnState scheduling_service_load_schedules();
 SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id );
 SAT_returnState time_shift_sel_schedule(uint8_t *data_v);
-
-struct time_keeping obc_time;
-
 SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t size);
+
+uint8_t check_existing(uint8_t apid, uint8_t seqc);
+
 SC_pkt* find_schedule_pos();
+
 Scheduling_service_state sc_s_state;
 Schedule_pkt_pool sch_mem_pool;
 
@@ -97,19 +99,20 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
             }
             else{
                     exec_state = parse_sch_packet(sc_packet, tc_tm_packet);
-                    if (exec_state == SATR_OK) {
+                    if(exec_state == SATR_OK){
                         /*Place the packet into the scheduling array*/
                         sc_s_state.nmbr_of_ld_sched++;
                         if (sc_s_state.nmbr_of_ld_sched == SC_MAX_STORED_SCHEDULES){
                             /*schedule array has become full*/
                             sc_s_state.sch_arr_full = true;
+                            SYSVIEW_PRINT("SCHS PKT ADDED");
                         }
                     }
                 }
             break;
         case SCHS_DELETE_TC_FROM_SCH: /*selection criteria is destined APID and Seq.Count*/
             if(!C_ASSERT( tc_tm_packet->data[1] < LAST_APP_ID) == true) { return SATR_ERROR; }
-            if(!C_ASSERT( tc_tm_packet->data[2] < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+            /*if(!C_ASSERT( seqcnt <= MAX_SEQ_CNT) == true) { return SATR_ERROR; }*/
             exec_state = scheduling_remove_schedule_api( tc_tm_packet->data[1], tc_tm_packet->data[2]);
             break;
         case SCHS_DELETE_TC_FROM_SCH_OTP:
@@ -118,7 +121,7 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
             break;
         case SCHS_TIME_SHIFT_SEL_TC:
             if(!C_ASSERT( tc_tm_packet->data[5] < LAST_APP_ID) == true) { return SATR_ERROR; }
-            if(!C_ASSERT( tc_tm_packet->data[6] < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+            /*if(!C_ASSERT( seqcnt <= MAX_SEQ_CNT) == true) { return SATR_ERROR; }*/
             exec_state = time_shift_sel_schedule(tc_tm_packet->data);
             break;
         case SCHS_TIME_SHIFT_SEL_TC_OTP:
@@ -183,7 +186,9 @@ SAT_returnState cross_schedules() {
                 case REPETITIVE:
                     
                     uint32_t qb_time = return_time_QB50();
-                    if(!C_ASSERT(qb_time >= MIN_VALID_QB50_SECS) == true ) { return SATR_QBTIME_INVALID; }
+                    if(!C_ASSERT(qb_time >= MIN_VALID_QB50_SECS) == true ) { 
+                        wdg_reset_SCH();
+                        return SATR_QBTIME_INVALID; }
                     SYSVIEW_PRINT("SCHS CHECKING SCH TIME");
                     if(sch_mem_pool.sc_mem_array[i].release_time <= qb_time){ /*time to execute*/
                         SYSVIEW_PRINT("SCHS ROUTING PKT");
@@ -210,6 +215,7 @@ SAT_returnState cross_schedules() {
         }
     }/*go to check next schedule*/
     wdg_reset_SCH();
+    return SATR_OK;
 }
 
 /**
@@ -253,7 +259,7 @@ SAT_returnState scheduling_service_report_detailed(tc_tm_pkt *pkt, TC_TM_app_id 
     
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
     if(!C_ASSERT( apid < LAST_APP_ID) == true) { return SATR_ERROR; }
-    if(!C_ASSERT( seqcnt < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+    /*if(!C_ASSERT( seqcnt <= MAX_SEQ_CNT) == true) { return SATR_ERROR; }*/
     
     scheduling_service_crt_pkt_TM(pkt, SCHS_DETAILED_SCH_REPORT, dest_id);
     for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
@@ -300,18 +306,6 @@ SAT_returnState scheduling_service_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM
 }
 
 /**
- * Handles internal reporting functions of scheduling service.
- * @param tc_tm_data, the  data of the report request to distinguish
- * between different report types.
- */
-SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data){
-    
-    
-    
-    
-}
-
-/**
  * Time shifts forward/backward all currently active schedules.
  * For repetitive schedules add /substract the repetition time (restrictions apply).
  * For one time schedules add / substract the execution time (QB50).
@@ -320,22 +314,52 @@ SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data){
  */
 SAT_returnState time_shift_all_tcs(uint8_t *time_v){
     
-    int32_t time_diff = 0;
-    
-    time_diff = ( time_diff | time_v[3]) << 8;
-    time_diff = ( time_diff | time_v[2]) << 8;
-    time_diff = ( time_diff | time_v[1]) << 8;
-    time_diff = ( time_diff | time_v[0]);
-    
-    for ( uint8_t i=0; i< SC_MAX_STORED_SCHEDULES;i++){
-        if( sch_mem_pool.sc_mem_array[i].sch_evt == ABSOLUTE){
-            
-        }else 
-        if( sch_mem_pool.sc_mem_array[i].sch_evt == REPETITIVE){
-                    
+    uint32_t ushift_time = 0;
+    cnv8_32(time_v, &ushift_time);    
+    for(uint8_t pos = 0; pos < SC_MAX_STORED_SCHEDULES; pos++) {
+        switch(sch_mem_pool.sc_mem_array[pos].sch_evt){
+            case REPETITIVE:
+                uint32_t rele_time = sch_mem_pool.sc_mem_array[pos].release_time;
+                uint32_t qb_time_now = return_time_QB50();
+                uint8_t neg = (ushift_time >> 31) & 0x1;
+                uint32_t shift_time_val = (~ushift_time)+ 1;
+                uint32_t new_release_t = 0;
+                if(neg){ /*then subtract it from release time*/
+                    if(shift_time_val >= rele_time){ /*subtraction not possible, erroneous state*/
+                        return SATR_ERROR;
+                    }
+                    new_release_t = rele_time - shift_time_val;
+                    if((new_release_t < qb_time_now)){
+                        return SATR_ERROR;
+                    }
+                    sch_mem_pool.sc_mem_array[pos].release_time = new_release_t;
+                    return SATR_OK;
+                }
+                /*then add it to release time*/
+                new_release_t = rele_time + ushift_time;
+                if( new_release_t <= MAX_QB_SECS ){ /*to far to execute, we will not exist until then*/
+                    sch_mem_pool.sc_mem_array[pos].release_time = new_release_t;
+                    return SATR_OK;
+                }
+                return SATR_ERROR;
+                break;
         }
     }
-    
+//    int32_t time_diff = 0;
+//    
+//    time_diff = ( time_diff | time_v[3]) << 8;
+//    time_diff = ( time_diff | time_v[2]) << 8;
+//    time_diff = ( time_diff | time_v[1]) << 8;
+//    time_diff = ( time_diff | time_v[0]);
+//    
+//    for ( uint8_t i=0; i< SC_MAX_STORED_SCHEDULES;i++){
+//        if( sch_mem_pool.sc_mem_array[i].sch_evt == ABSOLUTE){
+//            
+//        }else 
+//        if( sch_mem_pool.sc_mem_array[i].sch_evt == REPETITIVE){
+//                    
+//        }
+//    }
     return SATR_OK;
 }
 
@@ -353,12 +377,12 @@ SAT_returnState enable_disable_schedule_apid_release( uint8_t subtype, uint8_t a
     if(!C_ASSERT( subtype == SCHS_ENABLE_RELEASE ||
                   subtype == SCHS_DISABLE_RELEASE ) == true) { return SATR_ERROR; }
     if(!C_ASSERT( apid < LAST_APP_ID) == true)               { return SATR_ERROR; }
-    
+
     if( subtype == SCHS_ENABLE_RELEASE ){
         sc_s_state.schs_apids_enabled[apid-1] = true; }
     else{
         sc_s_state.schs_apids_enabled[apid-1] = false; }
-    
+
     return SATR_OK;
 }
 
@@ -557,21 +581,20 @@ SAT_returnState time_shift_sel_schedule(uint8_t *data_v){
     uint32_t ushift_time = 0;
     cnv8_32(data_v, &ushift_time);
     if(!C_ASSERT( apid < LAST_APP_ID) == true) { return SATR_ERROR; }
-    if(!C_ASSERT( seqc < MAX_SEQ_CNT) == true) { return SATR_ERROR; }
+    /*if(!C_ASSERT( seqcnt <= MAX_SEQ_CNT) == true) { return SATR_ERROR; }*/
     for (uint8_t pos = 0; pos < SC_MAX_STORED_SCHEDULES; pos++) {
         if (sch_mem_pool.sc_mem_array[pos].seq_count == seqc &&   
             sch_mem_pool.sc_mem_array[pos].app_id == apid &&
-            sch_mem_pool.sc_mem_array[pos].enabled == true &&
-            sc_s_state.schs_apids_enabled[apid-1] == true ){ /*if release for a whole apid is disabled don't bother*/
+            sch_mem_pool.sc_mem_array[pos].enabled == true ){
             switch(sch_mem_pool.sc_mem_array[pos].sch_evt){
                 case REPETITIVE:
                     uint32_t rele_time = sch_mem_pool.sc_mem_array[pos].release_time;
                     uint32_t qb_time_now = return_time_QB50();
                     uint8_t neg = (ushift_time >> 31) & 0x1;
                     uint32_t shift_time_val = (~ushift_time)+ 1;
-                    uint32_t new_release_t=0;
-                    if(neg){ /*then substract it from release time*/
-                        if(shift_time_val >= rele_time){ /*substraction not possible, erroneous state*/
+                    uint32_t new_release_t = 0;
+                    if(neg){ /*then subtract it from release time*/
+                        if(shift_time_val >= rele_time){ /*subtraction not possible, erroneous state*/
                             return SATR_ERROR;
                         }
                         new_release_t = rele_time - shift_time_val;
@@ -583,7 +606,7 @@ SAT_returnState time_shift_sel_schedule(uint8_t *data_v){
                     }
                     /*then add it to release time*/
                     new_release_t = rele_time + ushift_time;
-                    if( new_release_t <= 662774400 ){ /*to far to execute, will not exist then*/
+                    if( new_release_t <= MAX_QB_SECS ){ /*to far to execute, we will not exist until then*/
                         sch_mem_pool.sc_mem_array[pos].release_time = new_release_t;
                         return SATR_OK;
                     }
@@ -866,13 +889,7 @@ SAT_returnState copy_inner_tc(const uint8_t *buf, tc_tm_pkt *pkt, const uint16_t
     if(!C_ASSERT(pkt->seq_flags == TC_TM_SEQ_SPACKET) == true) {
         pkt->verification_state = SATR_ERROR;
         return SATR_ERROR;
-    }
-
-    /*assertion for data size depanding on pkt type*/
-    //if(!C_ASSERT(pkt->len == pkt_size[app_id][type][subtype][generic] == true) {
-    //    pkt->verification_state = SATR_ERROR;
-    //    return SATR_ERROR;
-    //}    
+    }    
 
     for(int i = 0; i < pkt->len; i++) {
         pkt->data[i] = buf[ECSS_DATA_OFFSET+i];
@@ -941,14 +958,22 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
     exec_timeout = (exec_timeout | tc_pkt->data[11]) << 8;
     exec_timeout = (exec_timeout | tc_pkt->data[10]);
 
+    if( exec_timeout < MIN_SCH_REP_INTRVL ) { 
+        SYSVIEW_PRINT("SCHS PKT REJECTED LOW REP INTRVL");
+        return SATR_SCHS_TIM_INVLD; }
+    
     /*extract data from internal TC packet ( app_id )*/
     (*sc_pkt).app_id = (TC_TM_app_id)tc_pkt->data[offset + 1];
-    if (!C_ASSERT((*sc_pkt).app_id < LAST_APP_ID) == true) {
+    if (!C_ASSERT((*sc_pkt).app_id < LAST_APP_ID) == true){
         return SATR_PKT_ILLEGAL_APPID;
     }
     (*sc_pkt).seq_count = (*sc_pkt).seq_count | (tc_pkt->data[offset + 2] >> 2);
-    (*sc_pkt).seq_count << 8;
-    (*sc_pkt).seq_count = (*sc_pkt).seq_count | (tc_pkt->data[offset + 3]);
+    //    (*sc_pkt).seq_count << 8;
+    //    (*sc_pkt).seq_count = (*sc_pkt).seq_count | (tc_pkt->data[offset + 3]);
+    if(check_existing((*sc_pkt).app_id, (*sc_pkt).seq_count)){ 
+        SYSVIEW_PRINT("SCHS PKT REJECTED, ALREADY EXISTS");
+        return SATR_SCHS_INTRL_LGC_ERR; }
+    
     (*sc_pkt).release_time = time;
     (*sc_pkt).timeout = exec_timeout;
     (*sc_pkt).pos_taken = true;
@@ -966,5 +991,24 @@ SAT_returnState parse_sch_packet(SC_pkt *sc_pkt, tc_tm_pkt *tc_pkt) {
      *  16+16+16+32+(tc_pkt->len - 11)+16 bytes.
      */
     return copy_inner_tc( &(tc_pkt->data[14]), &((*sc_pkt).tc_pck), (uint16_t) tc_pkt->len - 14);
+}
 
+/**
+ * Checks if a scheduling packets with the same APID and sequence count exists
+ * on schedules pool and it is enabled/valid.
+ * @param apid
+ * @param seqc
+ * @return 
+ */
+uint8_t check_existing(uint8_t apid, uint8_t seqc){
+    for(uint8_t i = 0; i < SC_MAX_STORED_SCHEDULES; i++){
+        if(sch_mem_pool.sc_mem_array[i].pos_taken == true && /*if a valid schedule exists*/
+            sch_mem_pool.sc_mem_array[i].enabled == true){
+            if( sch_mem_pool.sc_mem_array[i].app_id == apid &&
+                sch_mem_pool.sc_mem_array[i].seq_count == seqc ){
+                return true;
+            }
+        }
+    }
+    return false;
 }

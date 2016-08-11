@@ -358,15 +358,6 @@ typedef enum {
     LAST_EV_EVENT        = 13
 }EV_event;
 
-//TODO: REMOVE THEM
-typedef enum {
-    SET_DTIME_UTC       = 1,
-    SET_DTIME_QB50      = 2,
-    REPORT_TIME_IN_UTC  = 3,
-    REPORT_TIME_IN_QB50 = 4,
-    LAST_TIME_ID        = 5
-}TIME_MAN_MODE;
-
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging(__FILE_ID__, __LINE__, #e)))
 
 union _cnv {

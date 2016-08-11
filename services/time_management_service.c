@@ -49,7 +49,6 @@ const uint32_t UTC_QB50_H[25] =
 SAT_returnState time_management_app(tc_tm_pkt *pkt){
     
     uint8_t ser_subtype;
-    uint32_t time_value;
     struct time_utc temp_time;
 
     if(!C_ASSERT(pkt != NULL && pkt->data != NULL) == true) { return SATR_ERROR; }
@@ -65,6 +64,7 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
     
     if( ser_subtype == TM_TIME_SET_IN_QB50){
         /*set time from 2000 epoch*/
+        pkt->verification_state = SATR_ERROR;
     }
     else
     if( ser_subtype == TM_TIME_SET_IN_UTC){
@@ -125,7 +125,7 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
     if( ser_subtype == TM_TIME_REPORT_IN_QB50){
         /*time report from a time_management_service implementor in QB50 format exists here,
          * user should implement his own code to handle the time report response*/
-
+        pkt->verification_state = SATR_ERROR;
     }
     
     return SATR_OK;
@@ -140,7 +140,6 @@ SAT_returnState time_management_app(tc_tm_pkt *pkt){
 SAT_returnState time_management_report_time_in_qb50(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
 
     uint32_t qb_temp_secs = 0;
-//    *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
     get_time_QB50(&qb_temp_secs);    
     crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_TIME_MANAGEMENT_SERVICE, TM_TIME_REPORT_IN_QB50, dest_id);
@@ -158,7 +157,6 @@ SAT_returnState time_management_report_time_in_qb50(tc_tm_pkt *pkt, TC_TM_app_id
 SAT_returnState time_management_report_time_in_utc(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
 
     struct time_utc temp_time;
-//    *pkt = get_pkt(PKT_NORMAL);
     if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
     get_time_UTC(&temp_time);
     time_management_crt_pkt_TM(pkt, TM_TIME_REPORT_IN_UTC, dest_id);
@@ -268,7 +266,6 @@ void set_time_QB50(uint32_t qb){
 
 void set_time_UTC(struct time_utc utc){
     
-    /*call setTime BEFORE setDate (HAL bug(?))*/
     HAL_sys_setTime(utc.hour, utc.min, utc.sec);
     HAL_sys_setDate(utc.weekday, utc.month, utc.day, utc.year);
 }
@@ -291,6 +288,7 @@ void get_time_QB50(uint32_t *qb){
  * @return 
  */
 uint32_t return_time_QB50(){
+    
     struct time_utc utc;
     uint32_t qb_secs;
     HAL_sys_getTime(&utc.hour, &utc.min, &utc.sec);
