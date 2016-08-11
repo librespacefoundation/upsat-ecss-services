@@ -47,7 +47,7 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         cnv16_8((int16_t) (DEG(WahbaRot.Euler[1]) / 0.01),
                 &pkt->data[size]); // Pitch in deg
         size += 2;
-        cnv16_8((int16_t) (DEG(WahbaRot.Euler[2]) * RAD2DEG / 0.01),
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[2]) / 0.01),
                 &pkt->data[size]); // Yaw in deg
         size += 2;
         cnv16_8((int16_t) (DEG(WahbaRot.W[0]) / 0.001), &pkt->data[size]); // Roll Dot in deg/sec
@@ -84,17 +84,17 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
         size += 2;
         cnv16_8((int16_t)(adcs_sensors.imu.gyr[2]*1000), &pkt->data[size]);
         size += 2;
-        cnv16_8((int16_t)(adcs_sensors.imu.xm[0]*1000), &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[0]/10), &pkt->data[size]);
         size += 2;
-        cnv16_8((int16_t)(adcs_sensors.imu.xm[1]*1000), &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[1]/10), &pkt->data[size]);
         size += 2;
-        cnv16_8((int16_t)(adcs_sensors.imu.xm[2]*1000), &pkt->data[size]);
+        cnv16_8((int16_t)(adcs_sensors.imu.xm[2]/10), &pkt->data[size]);
         size += 2;
-        cnv32_8((int16_t)(adcs_sensors.mgn.rm[0]*1000), &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[0]/10), &pkt->data[size]);
         size += 4;
-        cnv32_8((int16_t)(adcs_sensors.mgn.rm[1]*1000), &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[1]/10), &pkt->data[size]);
         size += 4;
-        cnv32_8((int16_t)(adcs_sensors.mgn.rm[2]*1000), &pkt->data[size]);
+        cnv32_8((int16_t)(adcs_sensors.mgn.rm[2]/10), &pkt->data[size]);
         size += 4;
         cnv16_8((int16_t)(adcs_sensors.sun.v_sun[0]*100), &pkt->data[size]);
         size += 2;
@@ -120,17 +120,20 @@ SAT_returnState hk_report_parameters(HK_struct_id sid, tc_tm_pkt *pkt) {
 
         uint16_t size = 1;
 
-        cnv16_8((int16_t) (WahbaRot.Euler[0] / 0.01), &pkt->data[size]); // Roll in deg
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[0]) / 0.01),
+                &pkt->data[size]); // Roll in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.Euler[1] / 0.01), &pkt->data[size]); // Pitch in deg
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[1]) / 0.01),
+                &pkt->data[size]); // Pitch in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.Euler[2] / 0.01), &pkt->data[size]); // Yaw in deg
+        cnv16_8((int16_t) (DEG(WahbaRot.Euler[2]) / 0.01),
+                &pkt->data[size]); // Yaw in deg
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[0] * RAD2DEG / 0.001), &pkt->data[size]); // Roll Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[0]) / 0.001), &pkt->data[size]); // Roll Dot in deg/sec
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[1] * RAD2DEG / 0.001), &pkt->data[size]); // Pitch Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[1]) / 0.001), &pkt->data[size]); // Pitch Dot in deg/sec
         size += 2;
-        cnv16_8((int16_t) (WahbaRot.W[2] * RAD2DEG / 0.001), &pkt->data[size]); // Yaw Dot in deg/sec
+        cnv16_8((int16_t) (DEG(WahbaRot.W[2]) / 0.001), &pkt->data[size]); // Yaw Dot in deg/sec
         size += 2;
         cnv16_8((int16_t) (p_eci.x / 0.5), &pkt->data[size]); // X ECI in km
         size += 2;
