@@ -205,13 +205,14 @@ SAT_returnState time_management_force_time_update( TC_TM_app_id dest_id){
     if(!C_ASSERT( time_req_pkt != NULL) == true) { return SATR_ERROR; }
     
     time_management_crt_pkt_TM(time_req_pkt, TM_TIME_SET_IN_UTC, dest_id );
-    (time_req_pkt)->data[0] = temp_time.day;
-    (time_req_pkt)->data[1] = temp_time.month;
-    (time_req_pkt)->data[2] = temp_time.year;
-    (time_req_pkt)->data[3] = temp_time.hour;
-    (time_req_pkt)->data[4] = temp_time.min;
-    (time_req_pkt)->data[5] = temp_time.sec;
-    (time_req_pkt)->len = 6;
+    (time_req_pkt)->data[0] = temp_time.weekday;
+    (time_req_pkt)->data[1] = temp_time.day;
+    (time_req_pkt)->data[2] = temp_time.month;
+    (time_req_pkt)->data[3] = temp_time.year;
+    (time_req_pkt)->data[4] = temp_time.hour;
+    (time_req_pkt)->data[5] = temp_time.min;
+    (time_req_pkt)->data[6] = temp_time.sec;
+    (time_req_pkt)->len = 7;
     
     route_pkt(time_req_pkt);
     return SATR_OK;
