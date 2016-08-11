@@ -60,7 +60,7 @@ SAT_returnState large_data_firstRx_api(tc_tm_pkt *pkt) {
      * Convert properly the sequence number.
      * NOTE: We assume that the transmitter complies with the network byte order
      */
-    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
+    cnv8_16(&pkt->data[1], &ld_num);
     ld_num = ntohs(ld_num);
 
     app_id = (TC_TM_app_id)pkt->dest_id;
@@ -149,7 +149,7 @@ SAT_returnState large_data_intRx_api(tc_tm_pkt *pkt) {
      * Convert properly the sequence number.
      * NOTE: We assume that the transmitter complies with the network byte order
      */
-    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
+    cnv8_16(&pkt->data[1], &ld_num);
     ld_num = ntohs(ld_num);
 
     app_id = (TC_TM_app_id)pkt->dest_id;
@@ -230,7 +230,7 @@ SAT_returnState large_data_lastRx_api(tc_tm_pkt *pkt) {
      * Convert properly the sequence number.
      * NOTE: We assume that the transmitter complies with the network byte order
      */
-    memcpy(&ld_num, &pkt->data[1], sizeof(uint16_t));
+    cnv8_16(&pkt->data[1], &ld_num);
     ld_num = ntohs(ld_num);
 
     app_id = (TC_TM_app_id)pkt->dest_id;
@@ -387,6 +387,7 @@ SAT_returnState large_data_ackTx_api(tc_tm_pkt *pkt) {
 
     lid = pkt->data[0];
     cnv8_16(&pkt->data[1], &ld_num);
+    ld_num = ntohs(ld_num);
     if(!C_ASSERT(LD_status.tx_lid == lid)) {
         large_data_abortPkt(&temp_pkt, pkt->dest_id,
 			    lid, TC_LD_ABORT_RE_DOWNLINK);
@@ -427,6 +428,7 @@ SAT_returnState large_data_retryTx_api(tc_tm_pkt *pkt) {
 
     lid = pkt->data[0];
     cnv8_16(&pkt->data[1], &ld_num);
+    ld_num = ntohs(ld_num);
     app_id = (TC_TM_app_id)pkt->dest_id;
     SYSVIEW_PRINT("LD TX: Retrying %u", ld_num);
 
@@ -499,7 +501,6 @@ SAT_returnState large_data_downlinkPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 
     (*pkt)->data[0] = lid;
     cnv16_8(n, &(*pkt)->data[1]);
-
     return SATR_OK;
 }
 
@@ -518,9 +519,7 @@ SAT_returnState large_data_verifyPkt(tc_tm_pkt **pkt, uint8_t lid, uint16_t n,
 
     (*pkt)->data[0] = lid;
     cnv16_8(n, &(*pkt)->data[1]);
-
     (*pkt)->len = 3;
-
     return SATR_OK;
 }
 

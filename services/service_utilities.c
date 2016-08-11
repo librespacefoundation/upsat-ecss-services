@@ -331,27 +331,21 @@ SAT_returnState sys_data_INIT() {
   return SATR_OK;
 }
 
-/*FIXME: Get the endianness from each subsystem. For now they assume big endian*/
 uint16_t
 htons (uint16_t x)
 {
+#if (SYSTEM_ENDIANESS == SYS_LITTLE_ENDIAN)
+  uint16_t ret = 0x0;
+  ret = (x & 0xFF00) >> 8;
+  ret |= (x & 0x00FF) << 8;
+  return ret;
+#else
   return x;
+#endif
 }
 
 uint16_t
 ntohs (uint16_t x)
 {
-  return x;
-}
-
-uint32_t
-htonl (uint32_t x)
-{
-  return x;
-}
-
-uint32_t
-ntohl (uint32_t x)
-{
-  return x;
+  return htons(x);
 }
