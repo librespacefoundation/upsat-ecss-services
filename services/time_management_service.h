@@ -20,6 +20,9 @@
 
 #define MAX_YEAR 21
 
+#define MIN_QB_SECS 2678400
+#define MAX_QB_SECS 662774400
+
 struct time_utc {
     uint8_t weekday;
     uint8_t day;
@@ -35,6 +38,9 @@ struct time_keeping {
     uint32_t elapsed;
     struct time_utc utc;
 };
+
+extern SAT_returnState crt_pkt(tc_tm_pkt *pkt, TC_TM_app_id app_id, uint8_t type, uint8_t ack, uint8_t ser_type, uint8_t ser_subtype, TC_TM_app_id dest_id);
+extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 
 void cnv_UTC_QB50(struct time_utc utc, uint32_t *qb);
 

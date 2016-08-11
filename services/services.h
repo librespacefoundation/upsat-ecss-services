@@ -96,20 +96,20 @@ typedef enum {
     /* Scheduling Service Error State Codes
     * from
     */
-    SATR_SCHEDULE_FULL         = 16, /*Schedule array is full */
-    SATR_SSCH_ID_INVALID       = 17, /*Subschedule ID invalid */
-    SATR_NMR_OF_TC_INVALID     = 18, /*Number of telecommands invalid */
-    SATR_INTRL_ID_INVALID      = 19, /*Interlock ID invalid */
-    SATR_ASS_INTRL_ID_INVALID  = 20, /*Assess Interlock ID invalid */
-    SATR_ASS_TYPE_ID_INVALID   = 21, /*Assesment type id invalid*/
-    SATR_RLS_TIMET_ID_INVALID  = 22, /*Relese time type ID invalid */
-    SATR_DEST_APID_INVALID     = 23, /*Destination APID in embedded TC is invalid */
-    SATR_TIME_INVALID          = 24, /*Release time of TC is invalid */
+    SATR_SCHS_FULL             = 16, /*Schedule array is full */
+    SATR_SCHS_ID_INVALID       = 17, /*Sub-schedule ID invalid */
+    SATR_SCHS_NMR_OF_TC_INVLD  = 18, /*Number of telecommands invalid */
+    SATR_SCHS_INTRL_ID_INVLD   = 19, /*Interlock ID invalid */
+    SATR_SCHS_ASS_INTRL_ID_INVLD = 20, /*Assess Interlock ID invalid */
+    SATR_SCHS_ASS_TP_ID_INVLD  = 21, /*Assessment type id invalid*/
+    SATR_SCHS_RLS_TT_ID_INVLD  = 22, /*Release time type ID invalid */
+    SATR_SCHS_DST_APID_INVLD   = 23, /*Destination APID in embedded TC is invalid */
+    SATR_SCHS_TIM_INVLD        = 24, /*Release time of TC is invalid */
     SATR_QBTIME_INVALID        = 25, /*Time management reported erroneous time*/
-    SATR_TIME_SPEC_INVALID     = 26, /*Release time of TC is specified in a invalid representation*/
-    SATR_INTRL_LOGIC_ERROR     = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
-    SATR_SCHEDULE_DISABLED     = 28,
-    SATR_SCHEDULE_NOT_IMLP     = 29, /*Not implemented function of scheduling service*/
+    SATR_SCHS_TIM_SPEC_INVLD   = 26, /*Release time of TC is specified in a invalid representation*/
+    SATR_SCHS_INTRL_LGC_ERR    = 27, /*The release time of telecommand is in the execution window of its interlocking telecommand.*/
+    SATR_SCHS_DISABLED         = 28,
+    SATR_SCHS_NOT_IMLP         = 29, /*Not implemented function of scheduling service*/
     /*FatFs*/
     SATRF_OK                   = 30, /* (0) Succeeded */
     SATRF_DISK_ERR             = 31, /* (1) A hard error occurred in the low level disk I/O layer */
@@ -255,7 +255,9 @@ typedef enum {
 #define SCHS_SIMPLE_SCH_REPORT          13 /*subservice 13, Telemerty response to (to TC no:17) report schedules in summary form*/
 #define SCHS_TIME_SHIFT_ALL_TCS         15 /*subservice 15, Telecommand to time shift (+/-) all active schedule packets*/
 #define SCHS_REPORT_SCH_DETAILED        16 /*subservice 16, Telecommand to report schedules in detailed form*/
-#define SCHS_REPORT_SCH_SIMPLE          17 /*subservice 17, Telecommand to report schedules in summary form*/
+#define SCHS_REPORT_SCH_SUMMARY         17 /*subservice 17, Telecommand to report schedules in summary form*/
+#define SCHS_LOAD_SCHEDULES             22 /*subservice 22, Telecommand to load schedules from perm storage*/
+#define SCHS_SAVE_SCHEDULES             23 /*subservice 23, Telecommand to save schedules on perm storage*/
 
 typedef enum {
     HEALTH_REP      = 1,
@@ -357,15 +359,6 @@ typedef enum {
     EV_ms_err            = 12,
     LAST_EV_EVENT        = 13
 }EV_event;
-
-//TODO: REMOVE THEM
-typedef enum {
-    SET_DTIME_UTC       = 1,
-    SET_DTIME_QB50      = 2,
-    REPORT_TIME_IN_UTC  = 3,
-    REPORT_TIME_IN_QB50 = 4,
-    LAST_TIME_ID        = 5
-}TIME_MAN_MODE;
 
 #define C_ASSERT(e)    ((e) ? (true) : (tst_debugging(__FILE_ID__, __LINE__, #e)))
 

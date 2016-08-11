@@ -606,7 +606,7 @@ SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, 
 
     if(!C_ASSERT(MS_data.enabled == true) == true) { return SATR_SD_DISABLED; }
     if(!C_ASSERT( sid == SCHS) == true) { return SATR_INV_STORE_ID; }
-    if(!C_ASSERT( sch_number < 14 ) == true) { return SATR_INV_STORE_ID; }
+    if(!C_ASSERT( sch_number <= 14 ) == true) { return SATR_INV_STORE_ID; }
     
     snprintf((char*)path, MS_MAX_PATH, "%s//%d", MS_SCHS, sch_number);
     
@@ -623,22 +623,6 @@ SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, 
         }
         HAL_sys_delay(1);
     }
-    
-//    for(uint8_t i = 0; i < MAX_F_RETRIES; i++) {
-//        res = f_open(&fp, (char*)path, FA_OPEN_ALWAYS | FA_WRITE);
-//        if(res != FR_OK) { 
-//            HAL_sys_delay(1);
-//            continue;
-//        } 
-//
-//        res = f_write(&fp, buf, *size, (void *)&byteswritten);
-//        f_close(&fp);
-//        if(res == FR_OK) {
-//            break;
-//        }
-//        HAL_sys_delay(1);
-//    }
-    
     
     if(res != FR_OK)    { MS_ERR(res); }
     else if(size == 0)  { return SATR_ERROR; } 
