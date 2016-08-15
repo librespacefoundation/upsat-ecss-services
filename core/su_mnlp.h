@@ -200,7 +200,7 @@ struct _MNLP_data{
     uint8_t *su_nmlp_script_scheduler_active;   /*True if mNLP scheduler script is active/running, false otherwise*/    
     uint8_t *su_service_scheduler_active;   /*True if mNLP service is active/running, false otherwise*/
     
-    /*uint16_t *tt_perm_lost_count;            /*number of time tables that we have lost execution time*/
+    /*uint16_t *tt_perm_lost_count;*/            /*number of time tables that we have lost execution time*/
     
     uint16_t *tt_perm_norm_exec_count;       /*number of time tables that were normally executed on time*/
     uint16_t *tt_perm_exec_on_span_count;   /*number of time tables that were executed on time span of <n> seconds*/

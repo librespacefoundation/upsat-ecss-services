@@ -207,32 +207,24 @@ typedef enum {
 #define TM_CT_REPORT_TEST               2
 
 /*mNLP science unit sub-service definitions*/
-#define TC_SU_ON                        1
-#define TC_SU_OFF                       2
-#define TC_SU_RESET                     3
-#define TC_SU_LOAD_P                    4 //subservice 4
-#define TM_SU_LOAD_P                    5
-#define TC_SU_HC                        6 //subservice 5
-#define TM_SU_HC                        7
-#define TC_SU_CAL                       8 //subservice 6
-#define TM_SU_CAL                       9
-#define TC_SU_SCI                       10 //subservice 7
-#define TM_SU_SCI                       11
-#define TC_SU_HK                        12 //subservice 8
-#define TM_SU_HK                        13
-#define TC_SU_STM                       14 //subservice 9
-#define TM_SU_STM                       15
-#define TC_SU_DUMP                      16 //subservice 10
-#define TM_SU_DUMP                      17
-#define TC_SU_BIAS_ON                   18 //subservice 11
-#define TC_SU_BIAS_OFF                  19 //subservice 12
-#define TC_SU_MTEE_ON                   20 //subservice 13
-#define TC_SU_MTEE_OFF                  21 //subservice 14
-#define TM_SU_ERR                       22 //subservice 15
-#define TM_OBC_SU_ERR                   23 //subservice 16
-#define TC_OBC_EOT                      24 //subservice 17
-#define TC_SU_SCHE_ON                   25 //subservice 24
-#define TC_SU_SCHE_OFF                  26 //subservice 25
+#define TC_SU_ON                        1  /*subservice 1*/
+#define TC_SU_OFF                       2  /*subservice 2*/
+#define TC_SU_RESET                     3  /*subservice 3*/
+#define TC_SU_LOAD_P                    4  /*subservice 4*/
+#define TC_SU_HC                        5  /*subservice 5*/
+#define TC_SU_CAL                       6  /*subservice 6*/
+#define TC_SU_SCI                       7  /*subservice 7*/
+#define TC_SU_HK                        8  /*subservice 8*/
+#define TC_SU_STM                       9  /*subservice 9*/
+#define TC_SU_DUMP                      10 /*subservice 10*/
+#define TC_SU_BIAS_ON                   11 /*subservice 11*/
+#define TC_SU_BIAS_OFF                  12 /*subservice 12*/
+#define TC_SU_MTEE_ON                   13 /*subservice 13*/
+#define TC_SU_MTEE_OFF                  14 /*subservice 14*/
+#define TC_SU_SCH_TASK_NTF              15 /*subservice 15*/
+#define TC_SU_STATUS_REPORT             16 /*subservice 16*/
+#define TM_SU_STATUS_REPORT             17 /*subservice 17*/
+#define TC_SU_MANAGE                    18 /*subservice 18*/
 
 /*TIME MANAGEMENT SERVICE*/
 #define TM_TIME_SET_IN_UTC              1 /*subservice 1*/

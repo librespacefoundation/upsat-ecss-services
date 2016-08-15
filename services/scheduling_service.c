@@ -19,7 +19,6 @@ uint8_t sche_tc_buffer[MAX_PKT_LEN+14+1]; /*224+1 for checksum*/
 extern void wdg_reset_SCH();
 extern SAT_returnState mass_storage_schedule_load_api(MS_sid sid, uint32_t sch_number, uint8_t *buf);
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
-//extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern uint32_t HAL_GetTick(void);
 
 SAT_returnState handle_sch_reporting(uint8_t *tc_tm_data);
@@ -68,7 +67,7 @@ SAT_returnState scheduling_service_init(){
     /* Load Schedules from storage.
      * 
      */
-    
+    scheduling_service_load_schedules();
     return SATR_OK;
 }
 
@@ -149,9 +148,6 @@ SAT_returnState scheduling_app( tc_tm_pkt *tc_tm_packet){
             break;
         case SCHS_LOAD_SCHEDULES: /*Load TCs from permanent storage*/
             exec_state = scheduling_service_load_schedules();
-//            tc_tm_pkt *test_pkt = get_pkt(PKT_NORMAL);
-//            hk_crt_pkt_TC( test_pkt, ADCS_APP_ID, SU_SCI_HDR_REP);
-//            route_pkt(test_pkt);
             break;
         case SCHS_SAVE_SCHEDULES: /*Save TCs to permanent storage*/
             exec_state = scheduling_service_save_schedules();
@@ -178,8 +174,7 @@ SAT_returnState cross_schedules() {
             sc_s_state.schs_apids_enabled[(sch_mem_pool.sc_mem_array[i].app_id) - 1] == true){ /*if scheduling enabled for this APID */
 
             switch(sch_mem_pool.sc_mem_array[i].sch_evt){
-                case ABSOLUTE:
-                    
+                /*case ABSOLUTE:
                     uint32_t boot_secs = HAL_GetTick();
                     if(sch_mem_pool.sc_mem_array[i].release_time <= (boot_secs / 1000)){
                         route_pkt(&(sch_mem_pool.sc_mem_array[i].tc_pck));
@@ -187,9 +182,8 @@ SAT_returnState cross_schedules() {
                         sc_s_state.nmbr_of_ld_sched--;
                         sc_s_state.sch_arr_full = false;
                     }
-                    break;
-                case REPETITIVE:
-                    
+                    break;*/
+                case REPETITIVE:                    
                     uint32_t qb_time = return_time_QB50();
                     if(!C_ASSERT(qb_time >= MIN_VALID_QB50_SECS) == true ) { 
                         wdg_reset_SCH();
@@ -199,9 +193,6 @@ SAT_returnState cross_schedules() {
                         SYSVIEW_PRINT("SCHS ROUTING PKT");
                         route_pkt(&(sch_mem_pool.sc_mem_array[i].tc_pck));
                         if(!(sch_mem_pool.sc_mem_array[i].timeout <=0)){ /*to save the else, and go for rescheduling*/
-                            uint32_t new_release_time = return_time_QB50();
-//                            sch_mem_pool.sc_mem_array[i].release_time =
-//                                    (new_release_time + sch_mem_pool.sc_mem_array[i].timeout);
                             sch_mem_pool.sc_mem_array[i].release_time =
                                 (sch_mem_pool.sc_mem_array[i].release_time + sch_mem_pool.sc_mem_array[i].timeout);
                             sch_mem_pool.sc_mem_array[i].pos_taken = true;
@@ -440,48 +431,6 @@ SAT_returnState scheduling_insert_api( uint8_t posit, SC_pkt theSchpck){
     sch_mem_pool.sc_mem_array[posit].tc_pck.ser_type = theSchpck.tc_pck.ser_type;
     sch_mem_pool.sc_mem_array[posit].tc_pck.verification_state = theSchpck.tc_pck.verification_state;
     
-    /*check if schedule array is already full*/
-        
-//    if ( !C_ASSERT(sc_s_state.schedule_arr_full) == true ){  
-//        /*TODO: Here to create a telemetry/log saying "I'm full"*/
-//        return SATR_SCHEDULE_FULL;
-//    }
-    
-//    uint8_t pos = find_schedule_pos(scheduling_mem_array);
-//    if ( !C_ASSERT(pos != SC_MAX_STORED_SCHEDULES) == true){
-//        return SATR_SCHEDULE_FULL;
-//    }
-    
-    /*Check sub-schedule id*/
-//    if ( C_ASSERT(theSchpck->sub_schedule_id !=1) == true ){
-//        return SATR_SSCH_ID_INVALID;
-//    }
-//    /*Check number of tc in schpck id*/
-//    if ( C_ASSERT(theSchpck->num_of_sch_tc !=1) == true ){
-//        return SATR_NMR_OF_TC_INVALID;
-//    }
-//    /*Check interlock set id*/
-//    if ( C_ASSERT(theSchpck->intrlck_set_id !=0) == true){
-//        return SATR_INTRL_ID_INVALID;
-//    }
-//    /*Check interlock assessment id*/
-//    if ( C_ASSERT(theSchpck->intrlck_ass_id !=1) == true ){
-//        return SATR_ASS_INTRL_ID_INVALID;
-//    }
-//    /*Check release time type id*/
-//    if ( (!C_ASSERT(theSchpck->sch_evt != ABSOLUTE) == true) ||
-//         (!C_ASSERT(theSchpck->sch_evt != QB50EPC) == true) ){
-//        return SATR_RLS_TIMET_ID_INVALID;
-//    }
-    /*Check time value*/
-//    if (   ){
-//        return TIME_SPEC_INVALID;
-//    }
-    /*Check execution time out*/
-//    if (  ){
-//       return INTRL_LOGIC_ERROR; 
-//    }
-    
     return SATR_OK;
 }
 
@@ -526,34 +475,6 @@ SAT_returnState scheduling_reset_schedule_api(SC_pkt* sch_mem_pool){
     for (uint8_t pos = 0; pos < SC_MAX_STORED_SCHEDULES; pos++) {
         sch_mem_pool[pos++].pos_taken = false;
         
-    }
-    return SATR_OK;
-}
-
-/**
- * Time shifts all Schedule_pcks on the Schedule.
- * int32_t secs parameter can be positive or negative seconds value.
- * If positive the seconds are added to the Schedule's TC time, 
- * if negative the seconds are substracted from the Schedule's TC time value. 
- * Service Subtype 15.
- * @param sch_mem_pool
- * @param secs
- * @return the execution state.
- */
-SAT_returnState scheduling_time_shift_all_schedules_api(SC_pkt* sch_mem_pool, int32_t secs ){
-    
-    for (uint8_t pos = 0; pos < SC_MAX_STORED_SCHEDULES; pos++) {
-        if (sch_mem_pool[pos].sch_evt == ABSOLUTE ){
-            /*convert the secs to utc and add them or remove them from the time field.*/
-            
-            /*TODO: timing api*/
-        }
-        else
-        if(sch_mem_pool[pos].sch_evt == REPETITIVE ){
-            /*add them or remove them from the time field. Error if */
-            
-            /*TODO: timing api*/
-        }
     }
     return SATR_OK;
 }
@@ -701,7 +622,6 @@ SAT_returnState scheduling_service_load_schedules(){
             f_s+=1;
             sch_mem_pool.sc_mem_array[s].seq_count = sche_tc_buffer[f_s];
             f_s+=1;
-    //        cnv8_16LE(&sche_tc_buffer[3], &sch_mem_pool.sc_mem_array[s].seq_count);
             sch_mem_pool.sc_mem_array[s].enabled = sche_tc_buffer[f_s];
             f_s+=1;
             sch_mem_pool.sc_mem_array[s].sub_schedule_id = sche_tc_buffer[f_s];

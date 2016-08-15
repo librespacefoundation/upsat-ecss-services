@@ -3,18 +3,24 @@
 #undef __FILE_ID__
 #define __FILE_ID__ 33
 
-extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);
+/*extern SAT_returnState function_management_pctrl_crt_pkt_api(tc_tm_pkt **pkt, TC_TM_app_id dest_id, FM_fun_id fun_id, FM_dev_id did);*/
+extern SAT_returnState function_management_pctrl_ack_crt_pkt_api(tc_tm_pkt **pkt, const TC_TM_app_id dest_id, const FM_fun_id fun_id, const FM_dev_id did);
 extern SAT_returnState route_pkt(tc_tm_pkt *pkt);
 extern SAT_returnState HAL_su_uart_rx();
 extern SAT_returnState mass_storage_storeFile(MS_sid sid, uint32_t file, uint8_t *buf, uint16_t *size);
 extern SAT_returnState mass_storage_su_load_api(MS_sid sid, uint8_t *buf);
 extern SAT_returnState su_nmlp_app( tc_tm_pkt *spacket);
-SAT_returnState tt_call_state;  /*time-table calling state*/
-SAT_returnState ss_call_state;  /*script sequence calling state*/
-SAT_returnState scom_call_state;/*script command calling state*/
+extern SAT_returnState cnv_utc_to_secs( struct time_utc *moment, uint32_t *daysecs );
+SAT_returnState tt_call_state;   /*time-table calling state*/
+SAT_returnState ss_call_state;   /*script sequence calling state*/
+SAT_returnState scom_call_state; /*script command calling state*/
+SAT_returnState su_mnlp_report_state(tc_tm_pkt *pkt, TC_TM_app_id dest_id);
+SAT_returnState su_mnlpt_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id);
 extern void HAL_su_uart_tx(uint8_t *buf, uint16_t size);
 extern void HAL_sys_delay(uint32_t sec);
-extern osThreadId su_schHandle;
+extern void wake_su_sch_task();
+extern void wake_uart_task();
+/*extern osThreadId su_schHandle;*/
 
 struct time_utc tt_utc;
 struct _MNLP_data MNLP_data;
@@ -44,110 +50,129 @@ su_mnlp_returnState state = su_sche_last;
 /*uint8_t mnlp_sim_active = false;*/
 
 SAT_returnState su_nmlp_app( tc_tm_pkt *spacket){
-    
-    uint16_t size = 0;
+
+    SAT_returnState exec_state = SATR_ERROR;
     science_unit_script_sequence s_seq;
-    s_seq.cmd_id = spacket->data[0];
-    s_seq.command[0] = spacket->data[0];
-    s_seq.len = spacket->data[1]; //to tx on uart len+2
-    s_seq.command[1] = spacket->data[1];
+
+    if( spacket->ser_subtype >= 4 && spacket->ser_subtype <= 14){ /*prepare the command for mnlp*/
+        s_seq.cmd_id = spacket->data[0];
+        s_seq.command[0] = spacket->data[0];
+        s_seq.len = spacket->data[1];
+        s_seq.command[1] = spacket->data[1];
     
-    for(uint8_t o=2;o<spacket->len;o++){
-        s_seq.command[o] = spacket->data[o];
+        for(uint8_t o=2;o<spacket->len;o++){
+            s_seq.command[o] = spacket->data[o];
+        }
     }
     
     switch( spacket->ser_subtype){
-        case 1: /*Power on mnlp unit*/
+        case TC_SU_ON: /*Power on mnlp unit*/
             /*if(mnlp_sim_active){ HAL_su_uart_tx( s_seq.command, s_seq.len+2); } else*/
-            { su_power_ctrl(P_ON); }
+            { exec_state = su_power_ctrl(P_ON); }
             break;
-        case 2: /*Power off mnlp unit*/
+        case TC_SU_OFF: /*Power off mnlp unit*/
             /*if(mnlp_sim_active){ HAL_su_uart_tx( s_seq.command, s_seq.len+2); } else*/
-            { su_power_ctrl(P_OFF); }
+            { exec_state = su_power_ctrl(P_OFF); }
             break;
-        case 3: /*Power Reset mnlp unit*/
+        case TC_SU_RESET: /*Power Reset mnlp unit*/
             /*if(mnlp_sim_active){ HAL_su_uart_tx( s_seq.command, s_seq.len+2); } else*/
-            { su_power_ctrl(P_RESET); }
+            { exec_state = su_power_ctrl(P_RESET); }
             break;
-        case 4: /*su load parameters*/ 
+        case TC_SU_LOAD_P: /*su load parameters*/ 
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;
-        case 6: /*su health check*/
+        case TC_SU_HC: /*su health check*/
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;
-        case 8: /*su calibrate*/
+        case TC_SU_CAL: /*su calibrate*/
             HAL_su_uart_tx( s_seq.command, s_seq.len+2); 
+            exec_state = SATR_OK;
             break;
-        case 10: /*su science*/
-            HAL_su_uart_tx( s_seq.command, s_seq.len+2); 
-            break;
-        case 12: /*su housekeep*/
+        case TC_SU_SCI: /*su science*/
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;
-        case 13: /*su reset mnlp state*/
-            *MNLP_data.su_nmlp_last_active_script = (uint8_t) SU_NOSCRIPT;
-            *MNLP_data.su_nmlp_script_scheduler_active = (uint8_t) false;
-            SYSVIEW_PRINT("MNLP STATE RESET");
-            spacket->verification_state = SATR_OK;
-            break;
-        case 14: /*su stm*/
+        case TC_SU_HK: /*su housekeep*/
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;
-        case 16:/*su dump*/
+        case TC_SU_STM: /*su stm*/
             HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;
-        case 18: /*bias on*/
-            HAL_su_uart_tx( s_seq.command, s_seq.len+2); 
+        case TC_SU_DUMP:/*su dump*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
+            break;
+        case TC_SU_BIAS_ON: /*bias on*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;            
-        case 19: /*bias off*/
-            HAL_su_uart_tx( s_seq.command, s_seq.len+2); 
+        case TC_SU_BIAS_OFF: /*bias off*/
+            HAL_su_uart_tx( s_seq.command, s_seq.len+2);
+            exec_state = SATR_OK;
             break;            
-        case 20: /*mtee on*/
-            /*if(mnlp_sim_active){ 
-                ; }
-            else*/
+        case TC_SU_MTEE_ON: /*mtee on*/
+            /*if(mnlp_sim_active){ ; } else*/
             { HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            exec_state = SATR_OK;
             break;            
-        case 21: /*mtee off*/
-            /*if(mnlp_sim_active){ 
-                ; }
-            else*/
+        case TC_SU_MTEE_OFF: /*mtee off*/
+            /*if(mnlp_sim_active){ ; } else*/
             { HAL_su_uart_tx( s_seq.command, s_seq.len+2); }
+            exec_state = SATR_OK;
             break;
-        case 22: /*su scheduler task notify*/
-                xTaskNotifyGive(su_schHandle);
-                SYSVIEW_PRINT("TSK NTF RCVD");
-                spacket->verification_state = SATR_OK;
+        case TC_SU_SCH_TASK_NTF: /*su scheduler task notify*/
+            wake_su_sch_task();
+            SYSVIEW_PRINT("SU_SCH TASK NTF RCVD");
+            exec_state = SATR_OK;
             break;
-        case 23: /*MNLP status report*/
-            //TODO: implement it!
-            /*if(mnlp_sim_active){ 
-                ; }
-            else*/
-            { ; }
+        case TC_SU_STATUS_REPORT: /*MNLP status report*/
+            tc_tm_pkt *su_rep_pkt = get_pkt(PKT_NORMAL);
+            if(!C_ASSERT(su_rep_pkt != NULL) == true) { return SATR_ERROR; }
+            exec_state = su_mnlp_report_state( su_rep_pkt, (TC_TM_app_id)spacket->dest_id);
+            route_pkt(su_rep_pkt);
             break;
-        case 24: /*Manage su nmlp service scheduler*/
-            if( spacket->data[0]){ /*enable nmlp service scheduler*/
-                *MNLP_data.su_service_scheduler_active = (uint8_t) true;
-                SYSVIEW_PRINT("MNLP SERV SCH SET ACTV");
-                spacket->verification_state = SATR_OK;
+        case TC_SU_MANAGE:
+            uint8_t intrnl_com = spacket->data[0];
+            if(intrnl_com == 0){
+                if(spacket->data[1] == 1){ /*su mnlp service scheduler set on*/
+                    *MNLP_data.su_service_scheduler_active = (uint8_t) true;
+                    SYSVIEW_PRINT("MNLP SERV SCH SET ACTV");
+                }
+                else
+                if(spacket->data[1] == 0){ /*su mnlp service scheduler set off*/
+                    *MNLP_data.su_service_scheduler_active = (uint8_t) false;
+                    SYSVIEW_PRINT("MNLP SERV SCH SET INACTV");
+                }
+                else { return (exec_state = SATR_ERROR); }
+                exec_state = SATR_OK;
             }
-            else{ /*disable nmlp service scheduler*/
-                *MNLP_data.su_service_scheduler_active = (uint8_t) false;
-                SYSVIEW_PRINT("MNLP SERV SCH SET DACTV");
-                spacket->verification_state = SATR_OK;
-//                sprintf(sys_view_temp,"MNLP SERV SCH SET %u", (uint8_t)false, 0);
-                SEGGER_SYSVIEW_Print("MNLP SERV SCH SET 0");
+            else
+            if(intrnl_com == 1){ /*manually set active script number*/
+                if(!C_ASSERT(spacket->data[1] <= SU_SCRIPT_7) == true) { return SATR_ERROR;}
+                *MNLP_data.su_nmlp_last_active_script = spacket->data[1];
+                SYSVIEW_PRINT("MNLP ACT SCR SET TO %u", spacket->data[1]);
+                exec_state = SATR_OK;
+            }
+            else
+            if(intrnl_com == 2){ /*reset the mnlp state*/
+                *MNLP_data.su_nmlp_last_active_script = (uint8_t) SU_NOSCRIPT;
+                *MNLP_data.su_nmlp_script_scheduler_active = (uint8_t) false;
+                SYSVIEW_PRINT("MNLP STATE RESET");
+                exec_state = SATR_OK;
             }
             break;
     }
-    return SATR_OK;
+    spacket->verification_state = exec_state;
+    return exec_state;
 }
 
 SAT_returnState su_incoming_rx(){
 
     SAT_returnState res;
-    SAT_returnState fres = SATR_OK;
     uint8_t su_resp_pos=0;
     uint16_t size = SU_LOG_SIZE;
     uint32_t current_time=0;
@@ -156,7 +181,7 @@ SAT_returnState su_incoming_rx(){
     current_time = return_time_QB50();
 
     /*detect responses timeout*/
-    if( MNLP_data.su_state == SU_POWERED_ON //TODO: crseate timeout set service
+    if( MNLP_data.su_state == SU_POWERED_ON
             && (current_time - MNLP_data.last_su_response_time) > SU_TIMEOUT){
         handle_su_timeout();
     }
@@ -165,19 +190,16 @@ SAT_returnState su_incoming_rx(){
 
         MNLP_data.last_su_response_time = return_time_QB50();
         MNLP_data.su_timed_out = (uint8_t) false;
-
-        /*science header request to ADCS subsystem*/
-        /*hk_crt_pkt_TC( test_pkt, ADCS_APP_ID, SU_SCI_HDR_REP);*/
         
         /*science header*/
         uint32_t qb_50_secs;
         get_time_QB50(&qb_50_secs);
         /*the rest of su science header if filled from housekeeping service, when handling of SU_SCI_HDR_REP is done*/
         cnv32_8( qb_50_secs, &su_sci_header[0]);
-        /*science header exists here from HK_WOD*/
+        /*science header exists here from _WOD*/
 
-        if(MNLP_data.su_inc_resp[0]==0){ /*then we have a byte shift on the su-nmlp response*/
-            for(su_resp_pos;su_resp_pos<7;su_resp_pos++){
+        if(MNLP_data.su_inc_resp[0]==0){ /*then we have a byte shift on the su nmlp response*/
+            for(su_resp_pos;su_resp_pos<7;su_resp_pos++){ /*detect max of 7 positions shift*/
                 if(MNLP_data.su_inc_resp[su_resp_pos]==0){ continue; } else { break; }}}
 
         /*zip the two responses to one buffer*/
@@ -187,30 +209,30 @@ SAT_returnState su_incoming_rx(){
         switch(MNLP_data.su_inc_resp[su_resp_pos])
         {
             case (uint8_t)SU_LDP_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_HC_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_CAL_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_SCI_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_HK_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;    
             case (uint8_t)SU_STM_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_DUMP_RSP_ID:
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 break;
             case (uint8_t)SU_ERR_RSP_ID:
                 /*indicates that nmlp is in reset state, power cycle must be done as of 13.4.3 M-NLP ICD issue 6.2, page 49*/
                 /*save the su_error packet as is*/
-                fres = mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
+                mass_storage_storeFile( SU_LOG, 0 ,su_log_buff, &size);
                 /*generate the obc_su_error packet, and cycle power to mnlp*/
                 handle_su_error_response();
                 break;
@@ -353,17 +375,18 @@ su_mnlp_returnState su_script_selector(uint32_t *sleep_val_secs){
     }
 
     if(*MNLP_data.su_nmlp_last_active_script == SU_NOSCRIPT){ /*means that we have never activated a script*/
-        if( least_act_time ==  4000000000 ){ /*if least_act_time untouched, sleep for 50 seconds*/
-            *sleep_val_secs = 50; }
+        if( least_act_time ==  4000000000 ){ /*if least_act_time untouched, sleep for 30 seconds*/
+            *sleep_val_secs = 30; }
         else{ *sleep_val_secs = (least_act_time-30); } /*no chance to go < 0, because its always >=61 seconds*/
 
         trace_SCR_NON_ELIG();
+        SYSVIEW_PRINT("NO SCR ELIGBL TO RUN SLPF %u", *sleep_val_secs);
         return su_no_scr_eligible;
     }
     /* in case that no newer script is eligible to be activated,
      * we run the last activated script continuously.
      */
-    MNLP_data.active_script = *MNLP_data.su_nmlp_last_active_script;
+    MNLP_data.active_script = (MS_sid)*MNLP_data.su_nmlp_last_active_script;
 
     /* assert that active script is not zero (SU_NOSCRIPT), if it is and we have reached this execution point something is not quite right
      * so hard-set script 1 as the running script
@@ -440,7 +463,7 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                         if(moment_diff > 0 && moment_diff <= 6){
                             /*f us 6 seconds, and execute a little late*/
                             MNLP_data.tt_exec_on_span_count++;
-                            *MNLP_data.tt_perm_exec_on_span_count++;
+                            *MNLP_data.tt_perm_exec_on_span_count = *MNLP_data.tt_perm_exec_on_span_count + 1;
                             SYSVIEW_PRINT("EXEC TT ON TIMEMSPAN COUNT: %u",MNLP_data.tt_exec_on_span_count);
                             serve_tt();
                             break;
@@ -458,22 +481,22 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
                         uint32_t to_set = 0;
                         /*time table is in the future, delay until that moment/2*/
                         moment_diff = tt_day_moment_secs - obc_day_moment_secs;
-                        to_set = moment_diff / 2;                        
+                        to_set = moment_diff / 2;
                         if( to_set == 0){ /*some times half a second earlier*/                            
                             MNLP_data.tt_norm_exec_count++;
-                            *MNLP_data.tt_perm_norm_exec_count++;
+                            *MNLP_data.tt_perm_norm_exec_count = *MNLP_data.tt_perm_norm_exec_count + 1;
                             SYSVIEW_PRINT("GO TO EXEC TT: %u", MNLP_data.tt_norm_exec_count);
                             serve_tt();
                             break;
                         }
                         else{                                    
-                            SYSVIEW_PRINT("SLEEP FOR TT UNTIL: %u", to_set*1000);
+                            SYSVIEW_PRINT("SLEEP FOR TT UNTIL: %u", to_set);
                             ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS((to_set)*1000));
                         }
                     }
                     else{ /*execute at once*/
                         MNLP_data.tt_norm_exec_count++;
-                        *MNLP_data.tt_perm_norm_exec_count++;
+                        *MNLP_data.tt_perm_norm_exec_count = *MNLP_data.tt_perm_norm_exec_count + 1;
                         SYSVIEW_PRINT("GO TO EXEC NRML TT: %u", MNLP_data.tt_norm_exec_count);
                         serve_tt();
                         break;
@@ -485,6 +508,7 @@ su_mnlp_returnState su_SCH(uint32_t *sleep_val_secs){
         /*script handling for ends here, at this point every time table in (the current) script has been served.*/
         /*su state is updated in script command handler*/
     }
+    return su_sche_script_ended;
 }
 
 void serve_tt(){
@@ -520,16 +544,12 @@ void serve_tt(){
                     SYSVIEW_PRINT("SU TIMED OUT, break");
                     break;
                 }
-                else{ //TODO: add an extra check here, for valid seq_header state
+                else{
                     MNLP_data.current_sip = MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].tt_header.script_index;
                     su_cmd_handler( &MNLP_data.su_scripts[(uint8_t) (MNLP_data.active_script - 1)].seq_header);
                 }
             }
         }
-    }
-    else
-    if (ss_call_state == SATR_EOT){
-
     }
 }
 
@@ -663,13 +683,13 @@ SAT_returnState su_populate_header( science_unit_script_header *su_script_hdr, u
     su_script_hdr->file_sn = cnv.cnv32;
 
     su_script_hdr->sw_ver = 0x1F & buf[10];    
-    su_script_hdr->su_id = 0x03 & (buf[10] >> 5); //need to check this, seems ok
+    su_script_hdr->su_id = 0x03 & (buf[10] >> 5);
 
     su_script_hdr->script_type = 0x1F & buf[11];
-    su_script_hdr->su_md = 0x03 & (buf[11] >> 5); //need to check this, seems ok
+    su_script_hdr->su_md = 0x03 & (buf[11] >> 5);
 
-    cnv.cnv8[0] = buf[su_script_hdr->script_len-2]; /*to check?*/
-    cnv.cnv8[1] = buf[su_script_hdr->script_len-1]; /*to check?*/
+    cnv.cnv8[0] = buf[su_script_hdr->script_len-2];
+    cnv.cnv8[1] = buf[su_script_hdr->script_len-1];
     su_script_hdr->xsum = cnv.cnv16[0];
 
     return SATR_OK;
@@ -720,12 +740,14 @@ SAT_returnState su_next_cmd(uint8_t *file_buffer, science_unit_script_sequence *
 
 SAT_returnState su_power_ctrl(FM_fun_id fid) {
     
-    /*TODO CHECK PCK AVAILIABILLITY AND RETRY*/
     tc_tm_pkt *temp_pkt = 0;
+    
     function_management_pctrl_ack_crt_pkt_api(&temp_pkt, EPS_APP_ID, fid, SU_DEV_ID);
     if(!C_ASSERT(temp_pkt != NULL) == true) { return SATR_ERROR; }
+    
     route_pkt(temp_pkt);
     wake_uart_task();
+    
     return SATR_OK;
 }
 
@@ -820,4 +842,60 @@ SAT_returnState handle_script_upload(MS_sid sid){
     }
 
     return su_load_specific_script(sid);
+}
+
+/**
+ * Reports the science unit state.
+ * @param pkt
+ * @param dest_id
+ * @return the execution state
+ */
+SAT_returnState su_mnlp_report_state(tc_tm_pkt *pkt, TC_TM_app_id dest_id){
+
+    uint8_t pkt_size=0;
+    if(!C_ASSERT(pkt != NULL) == true) { return SATR_ERROR; }
+    uint32_t qb_time;
+    qb_time = return_time_QB50();
+    su_mnlpt_crt_pkt_TM(pkt, TM_SU_STATUS_REPORT, dest_id);
+    
+    cnv32_8(qb_time, &pkt->data[pkt_size]); /*report creation time*/
+    pkt_size+=4;
+    cnv32_8(MNLP_data.last_su_response_time, &pkt->data[pkt_size]);
+    pkt_size+=4;
+    pkt->data[pkt_size] = *MNLP_data.su_service_scheduler_active;
+    pkt_size+=1;
+    pkt->data[pkt_size] = *MNLP_data.su_nmlp_script_scheduler_active;
+    pkt_size+=1;
+    pkt->data[pkt_size] = *MNLP_data.su_nmlp_last_active_script;
+    pkt_size+=1;
+    pkt->data[pkt_size] = MNLP_data.su_state;
+    pkt_size+=1;
+    pkt->data[pkt_size] = MNLP_data.current_tt;
+    pkt_size+=1;
+    pkt->data[pkt_size] = MNLP_data.current_sip;
+    pkt_size+=1;
+    pkt->data[pkt_size] = MNLP_data.su_timed_out;
+    pkt_size+=1;
+    cnv16_8(*MNLP_data.tt_perm_norm_exec_count, &pkt->data[pkt_size]);
+    pkt_size+=2;
+    cnv16_8(*MNLP_data.tt_perm_exec_on_span_count, &pkt->data[pkt_size]);
+    pkt_size+=2;
+    cnv16_8(MNLP_data.tt_norm_exec_count, &pkt->data[pkt_size]);
+    pkt_size+=2;
+    cnv16_8(MNLP_data.tt_exec_on_span_count, &pkt->data[pkt_size]);
+    pkt_size+=2;
+    cnv16_8(MNLP_data.tt_lost_count, &pkt->data[pkt_size]);
+    pkt_size+=2;
+    
+    pkt->len = pkt_size;
+
+    return SATR_OK;
+}
+
+SAT_returnState su_mnlpt_crt_pkt_TM(tc_tm_pkt *pkt, uint8_t sid, TC_TM_app_id dest_app_id){
+
+    if(!C_ASSERT(dest_app_id < LAST_APP_ID) == true)  { return SATR_ERROR; }
+    crt_pkt(pkt, SYSTEM_APP_ID, TM, TC_ACK_NO, TC_SU_MNLP_SERVICE, sid, dest_app_id);
+    pkt->len = 0;
+    return SATR_OK;
 }

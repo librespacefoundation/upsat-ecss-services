@@ -19,6 +19,7 @@ extern osMessageQId queueDBG;
 extern osMessageQId queueEPS;
 
 extern TaskHandle_t xTask_UART;
+extern osThreadId su_schHandle;
 
 #undef __FILE_ID__
 #define __FILE_ID__ 18
@@ -28,6 +29,9 @@ void wake_uart_task() {
     vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
 }
 
+void wake_su_sch_task() {
+    xTaskNotifyGive(su_schHandle);
+}
 
 SAT_returnState queuePush(tc_tm_pkt *pkt, TC_TM_app_id app_id) {
 
