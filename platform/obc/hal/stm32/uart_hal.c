@@ -199,7 +199,8 @@ void UART_OBC_Receive_IT(UART_HandleTypeDef *huart)
 
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
-      
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+
     } else if(huart->RxXferSize > huart->RxXferCount) {
       *huart->pRxBuffPtr++ = c;
       huart->RxXferCount--;
@@ -284,6 +285,7 @@ HAL_StatusTypeDef UART_OBC_SU_Receive_IT( UART_HandleTypeDef *huart)
      
       BaseType_t xHigherPriorityTaskWoken = pdFALSE;
       vTaskNotifyGiveFromISR(xTask_UART, &xHigherPriorityTaskWoken);
+      portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 
       return HAL_OK;
     }
